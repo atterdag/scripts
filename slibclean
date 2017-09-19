@@ -5,14 +5,14 @@
 # VERSION: $Id$
 #
 # DESCRIPTION:
-# This is a rip-off command from AIX. It cleans the real memory from
+# This is a rip-off command from AIX. It cleans the real memory from 
 # removed persisten memory. E.g. if a library, which was removed, still
 # resides in the memory, then it will clear that library from real memory.
 #
 # LICENSE: Well ... its free ... you can have it, its yours! C'MON, TAKE IT!!!
 #
 # DISCLAIMER:
-# This script is released TOTALLY AS-IS. If it will have any negative impact
+# This script is released TOTALLY AS-IS. If it will have any negative impact 
 # on your systems, make you sleepless at night or even cause of World War III;
 # I will claim no responsibility! You may use this script at you OWN risk.
 #
@@ -21,21 +21,21 @@ IPCS_CMD="/usr/bin/ipcs"
 IPCRM_CMD="/usr/bin/ipcrm"
 
 if [ ! -x ${IPCS_CMD} ]; then
-        if [ "`which ipcs`" == "" ]; then
-                echo "cannot find ipcs in \$PATH. Either add it to \$PATH or correct the IPCS_CMD variable in ${0}"
-                exit 1
-        else
-                IPCS_CMD=`which ipcs`
-        fi
+	if [ "`which ipcs`" == "" ]; then
+		echo "cannot find ipcs in \$PATH. Either add it to \$PATH or correct the IPCS_CMD variable in ${0}"
+		exit 1
+	else
+		IPCS_CMD=`which ipcs`
+	fi
 fi
 
 if [ ! -x ${IPCRM_CMD} ]; then
-        if [ "`which ipcrm`" == "" ]; then
-                echo "cannot find ipcrm in \$PATH. Either add it to \$PATH or correct the IPCRM_CMD variable in ${0}"
-                exit 1
-        else
-                IPCRM_CMD=`which ipcrm`
-        fi
+	if [ "`which ipcrm`" == "" ]; then
+		echo "cannot find ipcrm in \$PATH. Either add it to \$PATH or correct the IPCRM_CMD variable in ${0}"
+		exit 1
+	else
+		IPCRM_CMD=`which ipcrm`
+	fi
 fi
 
 ${IPCS_CMD} | grep `whoami` | awk '{print $2}' | xargs -i[] ${IPCRM_CMD} -m []

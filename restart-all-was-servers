@@ -1,0 +1,4 @@
+#!/bin/sh
+for i in /etc/init.d/*_was.init; do 
+    $i restart
+done
