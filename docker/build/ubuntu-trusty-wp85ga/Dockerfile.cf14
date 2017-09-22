@@ -1,0 +1,42 @@
+# cd /srv/git/ibm-docker/build/ubuntu-trusty-wp8500
+# time docker build --tag registry.example.com:5000/ubuntu-trusty-wp8500:ga --tag registry.example.com:5000/ubuntu-trusty-wp8500:latest --file ./Dockerfile . 2>&1 | tee /tmp/docker_file_ubuntu-trusty-wp8500.$(date +"%Y%m%d_%H%M%S").txt.out
+
+FROM registry.example.com:5000/ubuntu-trusty-was855
+
+LABEL maintainer="Valdemar Lemche <valdemar@lemche.net>" \
+      name="registry.example.com:5000/ubuntu-trusty-wp8500" \
+      version="ga"
+
+ENV http_proxy http://cache.example.com:3128
+ENV https_proxy http://cache.example.com:3128
+ENV ftp_proxy http://cache.example.com:3128
+ENV no_proxy localhost,127.0.0.1,LocalAddress,example.com,example.lan
+ENV SOURCE_PATH http://ftp.example.com
+ENV BASE_INSTALLATION_PATH /opt/IBM
+ENV WP_CF 8500cf14
+ENV IM_REPOSITORY_WP_GA ${SOURCE_PATH}/wp/8500
+ENV IM_REPOSITORY_WP_CF ${SOURCE_PATH}/wpcfs/${WP_CF}/server
+
+RUN echo '*** installing WebSphere Application Server Network Deployment 8.5.5' && \
+    su was --login --shell /bin/bash --command "imcl\
+ install com.ibm.websphere.ND.v85\
+ -acceptLicense\
+ -eclipseLocation ${BASE_INSTALLATION_PATH}/WebSphere/AppServer\
+ -installationDirectory ${BASE_INSTALLATION_PATH}/WebSphere/AppServer\
+ -installFixes none\
+ -log /tmp/install-was${WP_CF}-log.xml\
+ -nl en\
+ -record /tmp/install-was${WP_CF}-response.xml\
+ -repositories ${IM_REPOSITORY_WAS_GA},\
+${IM_REPOSITORY_WP_CF}\
+ -sharedResourcesDirectory ${BASE_INSTALLATION_PATH}/IMShared\
+ -preferences com.ibm.cic.common.core.preferences.keepFetchedFiles=false,\
+com.ibm.cic.common.core.preferences.preserveDownloadedArtifacts=false,\
+offering.service.repositories.areUsed=false,\
+com.ibm.cic.common.core.preferences.searchForUpdates=false\
+ -properties user.wasjava=java6\
+ -showVerboseProgress" && \
+    echo "Done ...."
+
+USER was
+CMD ["/bin/bash","--login"]

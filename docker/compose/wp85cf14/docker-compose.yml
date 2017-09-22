@@ -1,0 +1,25 @@
+version: "3"
+services:
+  wp85cf14:
+    image: registry.example.com:5000/wp85:cf14
+    container_name: wp85cf14
+    tmpfs: /tmp
+    hostname: wp85cf14
+    domainname: docker.example.com
+    stdin_open: true
+    tty: true
+    dns_search: docker.example.com
+    entrypoint: /opt/IBM/WebSphere/wp_profile/bin/start_WebSphere_Portal.sh
+    user: was
+    ports:
+      - 10041:10041
+      - 10042:10042
+      - 10039:10039
+      - 10038:10038
+      - 10033:10033
+    networks:
+      - devnet
+    volumes:
+      - /net/files/srv/install:/host/install:ro
+networks:
+  devnet:
