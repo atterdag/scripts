@@ -2,11 +2,10 @@ import re
 
 def printUsage():
     print ""
-    print "Usage: install_root/bin/wsadmin -lang jython"
+    print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
     print "[-user username] [-password password]"
-    print "-f /tmp/importCACert.py CaFile label"
-    print "where install_root is the root directory for WebSphere"
-    print "                    Application Server"
+    print "-f /tmp/importCACert.py caFile caLabel"
+    print '      $WAS_HOME     is the installation directory for WebSphere'
     print "      username     is the WebSphere Application Server"
     print "                    user"
     print "      password     is the user password"

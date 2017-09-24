@@ -5,7 +5,7 @@ def printUsage():
     print '[-user username] [-password password]'
     print '-f /tmp/configureLTPA.py'
     print '<domain name>'
-    print '           is the installation directory for WebSphere'
+    print '      $WAS_HOME     is the installation directory for WebSphere'
     print '                     Application Server'
     print '      profilename   is the WebSphere Application Server profile'
     print '      username      is the WebSphere Application Server'
