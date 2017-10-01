@@ -73,7 +73,7 @@ case $VLAN in
 esac
 
 HOSTNAME=$(echo $FQDN | awk -F . '{print $1}')
-ID=$(ifconfig | grep "Link encap:Ethernet" | awk '{print $1}')
+ID=$(netstat -i -a | awk '{print $1}' | egrep -v '^Kernel|^Iface|^lo' | head -1)
 
 echo "Network summary:"
 echo -e "Interface ID:\t\t$ID"
