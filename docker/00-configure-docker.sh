@@ -1,9 +1,10 @@
 #!/bin/sh
 
-http_proxy=http://cache.example.com:3128/
-https_proxy=https://cache.example.com:3128/
-ftp_proxy=ftp://cache.example.com:3128/
-no_proxy=localhost,127.0.0.1,LocalAddress,example.com,example.lan
+export http_proxy=http://cache.example.com:3128/
+export https_proxy=https://cache.example.com:3128/
+export ftp_proxy=ftp://cache.example.com:3128/
+export no_proxy=localhost,127.0.0.1,LocalAddress,example.com,example.lan
+HOSTNAME=$(hostname -s)
 
 echo '***'
 echo '*** removing any past versions of docker'
@@ -35,10 +36,10 @@ echo '***'
 echo '*** adding docker APT repository'
 echo '***'
 cat > /etc/apt/sources.list.d/docker.list << EOF
-deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(cat /etc/os-release | sed -rn 's/VERSION=.*\((.*)\).*/\1/p') stable
-# deb-src [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(cat /etc/os-release | sed -rn 's/VERSION=.*\((.*)\).*/\1/p') stable
+deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
+# deb-src [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
 EOF
-
+   
 echo '***'
 echo '*** updating APT repositories'
 echo '***'
@@ -53,7 +54,7 @@ apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head -
 echo '***'
 echo '*** adding forwarding proxy configuration'
 echo '***'
-if [ ! -d /etc/systemd/system/docker.service.d ]; do mkdir -p /etc/systemd/system/docker.service.d; fi
+if [ ! -d /etc/systemd/system/docker.service.d ]; then mkdir -p /etc/systemd/system/docker.service.d; fi
 cat > /etc/systemd/system/docker.service.d/http-proxy.conf << EOF
 [Service]
 Environment="HTTP_PROXY=${http_proxy}"
@@ -66,7 +67,7 @@ systemctl daemon-reload
 echo '***'
 echo '*** copy certificates to docker configuration directory'
 echo '***'
-if [ ! -d /etc/docker/certs ]; do mkdir -p /etc/docker/certs/; fi
+if [ ! -d /etc/docker/certs ]; then mkdir -p /etc/docker/certs/; fi
 sudo cp /net/main/srv/common-setup/ssl/cacert.pem /etc/ssl/cacert.pem
 sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-cert.pem /etc/ssl/${HOSTNAME}.example.com-cert.pem
 sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-key.pem /etc/ssl/private/${HOSTNAME}.example.com-key.pem
