@@ -99,8 +99,7 @@ hostname -F /etc/hostname
 
 echo "*** creating /etc/hosts"
 echo -e "127.0.0.1\tlocalhost" > /etc/hosts
-echo -e "127.0.1.1\t$HOSTNAME" >> /etc/hosts
-echo -e "$IP_ADDRESS\t$FQDN" >> /etc/hosts
+echo -e "$IP_ADDRESS\t$FQDN $HOSTNAME" >> /etc/hosts
 echo >> /etc/hosts
 echo -e "# The following lines are desirable for IPv6 capable hosts" >> /etc/hosts
 echo -e "::1     localhost ip6-localhost ip6-loopback" >> /etc/hosts
