@@ -29,8 +29,8 @@ echo '***'
 echo '*** adding docker APT repository'
 echo '***'
 cat > /etc/apt/sources.list.d/docker.list << EOF
-deb [arch=amd64] https://download.docker.com/linux/debian $(cat /etc/os-release | sed -rn 's/VERSION=.*\((.*)\).*/\1/p') stable
-# deb-src [arch=amd64] https://download.docker.com/linux/debian $(cat /etc/os-release | sed -rn 's/VERSION=.*\((.*)\).*/\1/p') stable
+deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(cat /etc/os-release | sed -rn 's/VERSION=.*\((.*)\).*/\1/p') stable
+# deb-src [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(cat /etc/os-release | sed -rn 's/VERSION=.*\((.*)\).*/\1/p') stable
 EOF
 
 echo '***'
