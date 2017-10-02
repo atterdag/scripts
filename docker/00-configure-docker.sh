@@ -1,4 +1,10 @@
 #!/bin/sh
+
+http_proxy=http://cache.example.com:3128/
+https_proxy=https://cache.example.com:3128/
+ftp_proxy=ftp://cache.example.com:3128/
+no_proxy=localhost,127.0.0.1,LocalAddress,example.com,example.lan
+
 echo '***'
 echo '*** removing any past versions of docker'
 echo '***'
@@ -50,10 +56,10 @@ echo '***'
 if [ ! -d /etc/systemd/system/docker.service.d ]; do mkdir -p /etc/systemd/system/docker.service.d; fi
 cat > /etc/systemd/system/docker.service.d/http-proxy.conf << EOF
 [Service]
-Environment="HTTP_PROXY=http://cache.example.com:3128/"
-Environment="HTTPS_PROXY=http://cache.example.com:3128/"
-Environment="FTP_PROXY=http://cache.example.com:3128/"
-Environment="NO_PROXY=localhost,127.0.0.1,LocalAddress,example.com,example.lan"
+Environment="HTTP_PROXY=${http_proxy}"
+Environment="HTTPS_PROXY=${https_proxy}"
+Environment="FTP_PROXY=${ftp_proxy}"
+Environment="NO_PROXY=${no_proxy}"
 EOF
 systemctl daemon-reload
 
