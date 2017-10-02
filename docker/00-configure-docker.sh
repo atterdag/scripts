@@ -29,8 +29,8 @@ echo '***'
 echo '*** adding docker APT repository'
 echo '***'
 cat > /etc/apt/sources.list.d/docker.list << EOF
-deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
-# deb-src [arch=amd64] https://download.docker.com/linux/debian stretch stable
+deb [arch=amd64] https://download.docker.com/linux/debian $(cat /etc/os-release | sed -rn 's/VERSION=.*\((.*)\).*/\1/p') stable
+# deb-src [arch=amd64] https://download.docker.com/linux/debian $(cat /etc/os-release | sed -rn 's/VERSION=.*\((.*)\).*/\1/p') stable
 EOF
 
 echo '***'
@@ -41,7 +41,8 @@ apt-get update
 echo '***'
 echo '*** installing docker-ce'
 echo '***'
-apt-get -y install docker-ce
+#apt-get -y install docker-ce
+apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}')
 
 echo '***'
 echo '*** adding forwarding proxy configuration'
@@ -89,3 +90,8 @@ echo '***'
 echo '*** checking that docker works'
 echo '***'
 docker run hello-world
+
+echo '***'
+echo '*** Add your user to the docker group to run docker'
+echo '***'
+echo "usermod -aG docker your-user"
