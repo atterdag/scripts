@@ -9,7 +9,10 @@ HOSTNAME=$(hostname -s)
 echo '***'
 echo '*** removing any past versions of docker'
 echo '***'
-apt-get --yes remove docker docker-engine docker.io
+apt-get --yes remove docker docker-engine docker.io docker-ce
+apt-get --yes --purge autoremove
+rm -fr /etc/docker \
+       /var/lib/docker/*
 
 echo '***'
 echo '*** updating APT repositories'
