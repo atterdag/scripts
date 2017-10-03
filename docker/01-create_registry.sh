@@ -126,5 +126,10 @@ docker login \
   # --replicas 1 \
   # registry:2
 
-echo "alias registry-garbage-collect='docker container exec -it registry registry garbage-collect /etc/docker/registry/config.yml'" >> /etc/profile.d/docker.sh
-chmod +x /etc/profile.d/docker.sh
+echo '***'
+echo '*** create alias for performing a registry garbage collect on docker registry'
+echo '***'
+cat << EOF | sudo tee /etc/profile.d/docker.sh
+alias registry-garbage-collect='docker container exec -it registry registry garbage-collect /etc/docker/registry/config.yml'
+EOF
+sudo chmod +x /etc/profile.d/docker.sh

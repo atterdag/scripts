@@ -10,48 +10,52 @@ export no_proxy=localhost,127.0.0.1,LocalAddress,example.com,example.lan,$PRIMAR
 echo '***'
 echo '*** adding removing old versions'
 echo '***'
-service kubelet stop
-killall kube-controller-manager
-apt-get -y remove --purge kubelet kubeadm kubectl lxc-common lxcfs lxd-client
-apt-get -y autoremove --purge
-rm -fr /var/lib/kubelet/ \
-       /etc/kubernetes/ \
-       /var/lib/etcd \
-       /etc/cni/net.d \
-       /var/log/pods \
-       /var/log/containers \
-       /usr/libexec/kubernetes \
-       /var/lib/dockershim
+sudo service kubelet stop
+sudo killall kube-controller-manager
+sudo apt-get -y remove --purge kubelet kubeadm kubectl lxc-common lxcfs lxd-client
+sudo apt-get -y autoremove --purge
+sudo rm -fr /var/lib/kubelet/ \
+            /etc/kubernetes/ \
+            /var/lib/etcd \
+            /etc/cni/net.d \
+            /var/log/pods \
+            /var/log/containers \
+            /usr/libexec/kubernetes \
+            /var/lib/dockershim
        
 
 echo '***'
 echo '*** adding kubernetes repository GPG key'
 echo '***'
-wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+sudo wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 
 echo '***'
 echo '*** adding docker kubernetes repository'
 echo '***'
-cat > /etc/apt/sources.list.d/kubernetes.list << EOF
+cat << EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 
 echo '***'
 echo '*** updating APT repositories'
 echo '***'
-apt-get update
+sudo apt-get update
 
 echo '***'
 echo '*** installing kubernetes - kubelet kubeadm kubectl'
 echo '***'
-apt-get install -y kubelet kubeadm kubectl
+sudo apt-get install -y kubelet kubeadm kubectl
 
 echo '***'
 echo '*** disabling swap'
 echo '***'
-swapoff -a
+sudo swapoff -a
 
 echo '***'
-echo '*** initializing master'
+echo '*** initializing master (THIS IS GOING TO TAKE A WHILE)'
 echo '***'
-kubeadm init
+sudo kubeadm init
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config

@@ -9,21 +9,21 @@ HOSTNAME=$(hostname -s)
 echo '***'
 echo '*** removing any past versions of docker'
 echo '***'
-apt-get --yes remove docker docker-engine docker.io docker-ce
-apt-get --yes --purge autoremove
-rm -fr /etc/docker \
-       /var/lib/docker/*
+sudo apt-get --yes remove docker docker-engine docker.io docker-ce
+sudo apt-get --yes --purge autoremove
+sudo rm -fr /etc/docker \
+            /var/lib/docker/*
 
 echo '***'
 echo '*** updating APT repositories'
 echo '***'
-apt-get update
-apt-get -y install \
-     apt-transport-https \
-     ca-certificates \
-     gnupg2 \
-     software-properties-common \
-     wget
+sudo apt-get update
+sudo apt-get -y install \
+                apt-transport-https \
+                ca-certificates \
+                gnupg2 \
+                software-properties-common \
+                wget
 
 echo '***'
 echo '*** adding docker repository GPG key'
@@ -33,12 +33,12 @@ wget -q -O - https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/
 echo '***'
 echo '*** check that GPG key have been registered'
 echo '***'
-apt-key fingerprint 0EBFCD88
+sudo apt-key fingerprint 0EBFCD88
 
 echo '***'
 echo '*** adding docker APT repository'
 echo '***'
-cat > /etc/apt/sources.list.d/docker.list << EOF
+cat << EOF | sudo tee /etc/apt/sources.list.d/docker.list
 deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
 # deb-src [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
 EOF
@@ -46,31 +46,31 @@ EOF
 echo '***'
 echo '*** updating APT repositories'
 echo '***'
-apt-get update
+sudo apt-get update
 
 echo '***'
 echo '*** installing docker-ce'
 echo '***'
-#apt-get -y install docker-ce
-apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}')
+#sudo apt-get -y install docker-ce
+sudo apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}')
 
 echo '***'
 echo '*** adding forwarding proxy configuration'
 echo '***'
-if [ ! -d /etc/systemd/system/docker.service.d ]; then mkdir -p /etc/systemd/system/docker.service.d; fi
-cat > /etc/systemd/system/docker.service.d/http-proxy.conf << EOF
+if [ ! -d /etc/systemd/system/docker.service.d ]; then sudo mkdir -p /etc/systemd/system/docker.service.d; fi
+cat << EOF | sudo tee /etc/systemd/system/docker.service.d/http-proxy.conf
 [Service]
 Environment="HTTP_PROXY=${http_proxy}"
 Environment="HTTPS_PROXY=${https_proxy}"
 Environment="FTP_PROXY=${ftp_proxy}"
 Environment="NO_PROXY=${no_proxy}"
 EOF
-systemctl daemon-reload
+sudo systemctl daemon-reload
 
 echo '***'
 echo '*** copy certificates to docker configuration directory'
 echo '***'
-if [ ! -d /etc/docker/certs ]; then mkdir -p /etc/docker/certs/; fi
+if [ ! -d /etc/docker/certs ]; then sudo mkdir -p /etc/docker/certs/; fi
 sudo cp /net/main/srv/common-setup/ssl/cacert.pem /etc/ssl/cacert.pem
 sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-cert.pem /etc/ssl/${HOSTNAME}.example.com-cert.pem
 sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-key.pem /etc/ssl/private/${HOSTNAME}.example.com-key.pem
@@ -78,7 +78,7 @@ sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-key.pem /etc/ssl/
 echo '***'
 echo '*** creating docker daemon configuration '
 echo '***'
-cat > /etc/docker/daemon.json << EOF
+cat << EOF | sudo tee /etc/docker/daemon.json
 {
     "iptables": true,
     "insecure-registries": ["registry.example.com:5000"],
@@ -94,14 +94,14 @@ EOF
 echo '***'
 echo '*** restarting docker daemon'
 echo '***'
-/etc/init.d/docker restart
+sudo /etc/init.d/docker restart
+
+echo '***'
+echo '*** Add your user to the docker group to run docker'
+echo '***'
+sudo usermod -aG docker $USERNAME
 
 echo '***'
 echo '*** checking that docker works'
 echo '***'
 docker run hello-world
-
-echo '***'
-echo '*** Add your user to the docker group to run docker'
-echo '***'
-echo "usermod -aG docker your-user"
