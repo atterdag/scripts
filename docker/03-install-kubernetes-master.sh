@@ -27,7 +27,7 @@ sudo rm -fr /var/lib/kubelet/ \
 echo '***'
 echo '*** adding kubernetes repository GPG key'
 echo '***'
-sudo wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 
 echo '***'
 echo '*** adding docker kubernetes repository'
@@ -54,8 +54,11 @@ sudo swapoff -a
 echo '***'
 echo '*** initializing master (THIS IS GOING TO TAKE A WHILE)'
 echo '***'
-sudo kubeadm init
+sudo kubeadm init 2>&1 | tee kubeadm_init.output
 
+echo '***'
+echo '*** enabling user to run kubadm'
+echo '***'
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
