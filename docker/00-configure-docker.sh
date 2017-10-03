@@ -99,9 +99,9 @@ sudo /etc/init.d/docker restart
 echo '***'
 echo '*** Add your user to the docker group to run docker'
 echo '***'
-sudo usermod -aG docker $USERNAME
+sudo usermod -aG docker $USER
 
 echo '***'
 echo '*** checking that docker works'
 echo '***'
-docker run hello-world
+sudo -g docker docker run hello-world
