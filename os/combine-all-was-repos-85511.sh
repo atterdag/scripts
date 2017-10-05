@@ -5,7 +5,7 @@
 # VERSION: $Id$
 #
 # DESCRIPTION:
-# This script shrinks the size of the combined WAS repositories from this'
+# This script shrinks the size of the combined WAS repositories from this
 # du -sm /srv/install/was/8550\
 #        /srv/install/wasfps/85511/was\
 #        /srv/install/ibmwasjava/7041\
@@ -67,10 +67,10 @@ echo 'check that all packages are available'
 
 echo
 echo 'list above should look like this:'
-echo 'com.ibm.websphere.IBMJAVA.v70_7.0.10005.20170626_0533'
-echo 'com.ibm.websphere.IBMJAVA.v71_7.1.4005.20170626_0531'
-echo 'com.ibm.websphere.IBMJAVA.v80_8.0.4005.20170626_0627'
-echo 'com.ibm.websphere.ND.v85_8.5.5012.20170627_1018'
+echo 'com.ibm.websphere.IBMJAVA.v70_7.0.9060.20161124_1308'
+echo 'com.ibm.websphere.IBMJAVA.v71_7.1.3060.20161124_1256'
+echo 'com.ibm.websphere.IBMJAVA.v80_8.0.3020.20161124_1304'
+echo 'com.ibm.websphere.ND.v85_8.5.5011.20161206_1434'
 echo
 echo 'And you install the packages with as single command like this: '
 echo 'su was --login --shell /bin/bash --command "/opt/IBM/InstallationManager/eclipse/tools/imcl\'
