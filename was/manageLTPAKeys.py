@@ -38,6 +38,8 @@ if ( operation == 'export' ):
   result = AdminTask.exportLTPAKeys('-ltpaKeyFile ' + filename + ' -password ' + password)
 elif ( operation == 'import' ):
   result = AdminTask.importLTPAKeys('-ltpaKeyFile ' + filename + ' -password ' + password)
+  print '***** saving configuration *****'
+  result = AdminConfig.save()
 else:
   print 'does not understand operation ' + operation
 
