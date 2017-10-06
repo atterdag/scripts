@@ -18,7 +18,7 @@ def printUsage():
     print 'Sample:'
     print '===================================================================='
     print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
-    print ' -profileName Dmgr01 -user wasadmin -password passw0rd' 
+    print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
     print ' -f "/tmp/configureLTPA.py" "ldap.example.com:636"'
     print ' "wasadmins" "cn=wasadmins,ou=groups,o=example"'
     print '===================================================================='
@@ -33,7 +33,10 @@ realmName = sys.argv[0]
 groupID = sys.argv[1]
 groupDN = sys.argv[2]
 
-print 'Removing ' + groupID + ' from any existing mappings'
+print '##############################################################################'
+print '# Removing ' + groupID + ' from any existing mappings'
+print '##############################################################################'
+print
 groups = AdminConfig.list('GroupExt')
 if len(groups) > 0:
   groups = groups.splitlines()
@@ -43,7 +46,9 @@ if len(groups) > 0:
       print 'removing ' + groupName
       result = AdminConfig.remove(group)
 
-print 'Mapping group ' + groupID + ' to admin console roles'
+print '##############################################################################'
+print '# Mapping group ' + groupID + ' to admin console roles'
+print '##############################################################################'
 result = AdminTask.mapGroupsToAdminRole('[-roleName adminsecuritymanager -accessids [group:' + realmName + '/' + groupDN + '] -groupids [' + groupID + '@' + realmName + ']]')
 result = AdminTask.mapGroupsToAdminRole('[-roleName administrator        -accessids [group:' + realmName + '/' + groupDN + '] -groupids [' + groupID + '@' + realmName + ']]')
 result = AdminTask.mapGroupsToAuditRole('[-roleName auditor              -accessids [group:' + realmName + '/' + groupDN + '] -groupids [' + groupID + '@' + realmName + ']]')
@@ -53,6 +58,7 @@ result = AdminTask.mapGroupsToAdminRole('[-roleName deployer             -access
 result = AdminTask.mapGroupsToAdminRole('[-roleName monitor              -accessids [group:' + realmName + '/' + groupDN + '] -groupids [' + groupID + '@' + realmName + ']]')
 result = AdminTask.mapGroupsToAdminRole('[-roleName operator             -accessids [group:' + realmName + '/' + groupDN + '] -groupids [' + groupID + '@' + realmName + ']]')
 
+print
 print '******* saving configuration *******'
 result = AdminConfig.save()
 
@@ -62,4 +68,4 @@ result = AdminControl.invoke(dmgr, 'multiSync', '[false]')
 
 print 'refreshing roles'
 authGrpMgrDmgr = AdminControl.completeObjectName('WebSphere:type=AuthorizationGroupManager,process=dmgr,*')
-result = AdminControl.invoke(authGrpMgrDmgr, 'refreshAll') 
+result = AdminControl.invoke(authGrpMgrDmgr, 'refreshAll')

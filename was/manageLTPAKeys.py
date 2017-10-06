@@ -43,6 +43,8 @@ elif ( operation == 'import' ):
 else:
   print 'does not understand operation ' + operation
 
-print '===================================================='
-print 'LTPA key have successfully been ' + operation + 'ed!'
-print '===================================================='
+print
+print '##############################################################################'
+print '# LTPA key have successfully been ' + operation + 'ed!                                  #'
+print '##############################################################################'
+print

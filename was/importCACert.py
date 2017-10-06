@@ -1,4 +1,4 @@
-import re 
+import re
 
 def printUsage():
     print ""
@@ -16,7 +16,7 @@ def printUsage():
     print ""
     print "Sample:"
     print "===================================================================="
-    print "wsadmin -lang jython -user tipadmin -password admin123" 
+    print "wsadmin -lang jython -user tipadmin -password admin123"
     print " -f \"/tmp/import-ca-certs.py\" \"/tmp/example-root-ca.cer\" example-root-ca"
     print "===================================================================="
     print ""
@@ -28,22 +28,31 @@ if not (len(sys.argv) == 2):
    printUsage()
    sys.exit(101)
 
-ca_path = sys.argv[0] 
-ca_alias = sys.argv[1] 
+ca_path = sys.argv[0]
+ca_alias = sys.argv[1]
 
-cell = AdminControl.getCell() 
+cell = AdminControl.getCell()
 
-certificates = AdminTask.listSignerCertificates('[-keyStoreName CellDefaultTrustStore -keyStoreScope (cell):' + cell + ' ]').splitlines() 
-for certificate in certificates: 
- certificate = re.sub('^\[\[','[',certificate) 
- certificate = re.sub('\]\]$',']',certificate) 
- details = re.findall(r'\[([^]]*)\]',certificate) 
- for detail in details: 
-   if ( detail == 'alias ' + ca_alias + '' ): 
-     print 'old ca certificate ' + ca_alias + ' found - deleting' 
-     result = AdminTask.deleteSignerCertificate('[-keyStoreName CellDefaultTrustStore -keyStoreScope (cell):' + cell + ' -certificateAlias ' + ca_alias + ' ]') 
+print '##############################################################################'
+print '# Deleting existing certificate with same label                              #'
+print '##############################################################################'
+print
+certificates = AdminTask.listSignerCertificates('[-keyStoreName CellDefaultTrustStore -keyStoreScope (cell):' + cell + ' ]').splitlines()
+for certificate in certificates:
+ certificate = re.sub('^\[\[','[',certificate)
+ certificate = re.sub('\]\]$',']',certificate)
+ details = re.findall(r'\[([^]]*)\]',certificate)
+ for detail in details:
+   if ( detail == 'alias ' + ca_alias + '' ):
+     print 'old ca certificate ' + ca_alias + ' found - deleting'
+     result = AdminTask.deleteSignerCertificate('[-keyStoreName CellDefaultTrustStore -keyStoreScope (cell):' + cell + ' -certificateAlias ' + ca_alias + ' ]')
 
-print 'Adding custom ' + ca_alias + ' CA to cell default trust store' 
-result = AdminTask.addSignerCertificate('[-keyStoreName CellDefaultTrustStore -keyStoreScope (cell):' + cell + ' -certificateFilePath ' + ca_path + ' -base64Encoded true -certificateAlias ' + ca_alias + ' ]') 
-print '*** saving configuration ***' 
-result = AdminConfig.save() 
+print '##############################################################################'
+print '# Adding certificate                                                         #'
+print '##############################################################################'
+print
+print 'Adding custom ' + ca_alias + ' CA to cell default trust store'
+result = AdminTask.addSignerCertificate('[-keyStoreName CellDefaultTrustStore -keyStoreScope (cell):' + cell + ' -certificateFilePath ' + ca_path + ' -base64Encoded true -certificateAlias ' + ca_alias + ' ]')
+print
+print '***** saving configuration *****'
+result = AdminConfig.save()

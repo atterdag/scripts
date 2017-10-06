@@ -10,11 +10,16 @@ for node in nodes:
     result = AdminControl.invoke(nodeAgentCompleteObjectName, 'refreshRepositoryEpoch')
     result = AdminControl.invoke(cellCompleteobjectName, 'syncNode', '[' + node + ']')
 
-print '+++ synchronizing configuration +++'
+print '##############################################################################'
+print '# Synchronizing configuration                                                #'
+print '##############################################################################'
+print
 dmgr = AdminControl.completeObjectName('type=DeploymentManager,*')
 nodes = AdminControl.invoke(dmgr, 'syncActiveNodes', 'true')
 print 'the following nodes have been synchronized:'
 for node in nodes.splitlines():
   print ' - ' + node
 
+print
+print '***** saving configuration *****'
 result = AdminConfig.save()
