@@ -66,17 +66,30 @@ Environment="FTP_PROXY=${ftp_proxy}"
 Environment="NO_PROXY=${no_proxy}"
 EOF
 sudo systemctl daemon-reload
+systemctl show --property=Environment docker
+
+echo '***'
+echo '*** allow TCP connection'
+echo '***'
+if [ ! -d /etc/systemd/system/docker.service.d ]; then sudo mkdir -p /etc/systemd/system/docker.service.d; fi
+cat << EOF | sudo tee /etc/systemd/system/docker.service.d/override.conf
+[Service]
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
+EOF
+sudo systemctl daemon-reload
+systemctl show --property=ExecStart docker
 
 echo '***'
 echo '*** copy certificates to docker configuration directory'
 echo '***'
-if [ ! -d /etc/docker/certs ]; then sudo mkdir -p /etc/docker/certs/; fi
 sudo cp /net/main/srv/common-setup/ssl/cacert.pem /etc/ssl/cacert.pem
 sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-cert.pem /etc/ssl/${HOSTNAME}.example.com-cert.pem
 sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-key.pem /etc/ssl/private/${HOSTNAME}.example.com-key.pem
 
 echo '***'
-echo '*** creating docker daemon configuration '
+echo '*** creating docker daemon configuration'
 echo '***'
 cat << EOF | sudo tee /etc/docker/daemon.json
 {
@@ -97,9 +110,26 @@ echo '***'
 sudo /etc/init.d/docker restart
 
 echo '***'
-echo '*** Add your user to the docker group to run docker'
+echo '*** checking that the daemon is listening on TCP using SSL'
+echo '***'
+openssl s_client -connect localhost:2376 -nocommands
+
+echo '***'
+echo '*** Add your local user to the docker group to run docker'
 echo '***'
 sudo usermod -aG docker $USER
+
+echo '***'
+echo '*** Configure a workstation to connect to your docker host'
+echo '***'
+if [ ! -d /etc/docker/certs ]; then sudo mkdir -p /etc/docker/certs; fi
+sudo cp /net/main/srv/common-setup/ssl/cacert.pem /etc/docker/certs/ca.pem 
+cat << EOF | sudo tee /etc/profile.d/docker.sh
+DOCKER_CERT_PATH=/etc/docker/certs
+DOCKER_HOST=tcp://docker.example.com:2376
+DOCKER_TLS_VERIFY=1
+export DOCKER_TLS_VERIFY DOCKER_HOST DOCKER_CERT_PATH
+EOF
 
 echo '***'
 echo '*** checking that docker works'
