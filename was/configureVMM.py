@@ -10,9 +10,9 @@ def dict(sequence):
     resultDict[key] = value
   return resultDict
 
-# the following two functions handles wsadmins strange command outputs that 
-# looks like dicts or lists, but its really not. For instance stringToDict 
-# handles outputs like '{key1=value1,key2=value2}'. As you can its also 
+# the following two functions handles wsadmins strange command outputs that
+# looks like dicts or lists, but its really not. For instance stringToDict
+# handles outputs like '{key1=value1,key2=value2}'. As you can its also
 # most a dict, but is not.
 def stringToDict(str):
   str = re.sub('^\{','',str)
@@ -77,8 +77,8 @@ def printUsage():
     print 'Sample:'
     print '===================================================================='
     print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
-    print ' -profileName Dmgr01 -user wasadmin -password passw0rd' 
-    print ' -f \"/tmp/configureLTPA.py\" \".example.com\"'
+    print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
+    print ' -f \"/tmp/configureLTPA.py\"'
     print ' --ldapBaseDN \'o=example\''
     print ' --ldapBindDN \'cn=ldapbind,ou=DSA,o=example\''
     print ' --ldapBindPW \'passw0rd\''
@@ -110,35 +110,35 @@ def printUsage():
 ##############################################################################
 # sort the wsadmin sys.argv list into a tuple
 optlist, args = getopt.getopt(sys.argv, 'x', [
-  'ldapBaseDN=', 
-  'ldapBindDN=', 
-  'ldapBindPW=', 
-  'ldapHostName=', 
-  'ldapPort=', 
-  'backupLdapHostName=', 
-  'backupLdapPort=', 
-  'ldapSSL=', 
-  'ldapUserOC=', 
-  'ldapUserIdAttribute=', 
-  'ldapGroupOC=', 
-  'ldapMemberAttribute=', 
-  'ldapMemberScope=', 
-  'ldapMembershipAttribute=', 
-  'ldapMembershipScope=', 
-  'ldapTimeout=', 
-  'ldapType=', 
-  'primaryAdminId=', 
-  'serverId=', 
-  'serverIdPassword=', 
-  'vmmBaseDN=', 
-  'vmmRealmID=', 
+  'ldapBaseDN=',
+  'ldapBindDN=',
+  'ldapBindPW=',
+  'ldapHostName=',
+  'ldapPort=',
+  'backupLdapHostName=',
+  'backupLdapPort=',
+  'ldapSSL=',
+  'ldapUserOC=',
+  'ldapUserIdAttribute=',
+  'ldapGroupOC=',
+  'ldapMemberAttribute=',
+  'ldapMemberScope=',
+  'ldapMembershipAttribute=',
+  'ldapMembershipScope=',
+  'ldapTimeout=',
+  'ldapType=',
+  'primaryAdminId=',
+  'serverId=',
+  'serverIdPassword=',
+  'vmmBaseDN=',
+  'vmmRealmID=',
   'vmmRepositoryID='
 ])
 
 # convert the tuple into a dict
 optdict = dict(optlist)
 
-# map the dict value into specific variables, and assign default values if no 
+# map the dict value into specific variables, and assign default values if no
 # value specified
 ldapBaseDN              = optdict.get('--ldapBaseDN', '')
 ldapBindDN              = optdict.get('--ldapBindDN', '')
@@ -274,14 +274,14 @@ for repositoryId in repositoryIds:
       for key, value in zip(entries[0::2],entries[1:2]):
         vmmBaseEntry = key + '=' + value
         print ' - ' + vmmBaseEntry
-        try: 
+        try:
           result = AdminTask.deleteIdMgrRealmBaseEntry('[-name ' + defaultVmmRealmID + ' -baseEntry ' + vmmBaseEntry + ']')
         except: pass
-        try: 
-          result = AdminTask.deleteIdMgrRepositoryBaseEntry('[-id ' + repositoryId + ' -name ' + vmmBaseEntry + ']') 
+        try:
+          result = AdminTask.deleteIdMgrRepositoryBaseEntry('[-id ' + repositoryId + ' -name ' + vmmBaseEntry + ']')
         except: pass
     print 'deleting existing repository ' + vmmRepositoryID
-    result = AdminTask.deleteIdMgrRepository('[-id ' + repositoryId + ']') 
+    result = AdminTask.deleteIdMgrRepository('[-id ' + repositoryId + ']')
 
 print
 print '***** saving configuration *****'
@@ -298,12 +298,12 @@ if ( ldapSSL == 'true' ):
   result = AdminTask.createIdMgrLDAPRepository('[-default true -id ' + vmmRepositoryID + ' -adapterClassName com.ibm.ws.wim.adapter.ldap.LdapAdapter -ldapServerType ' + ldapType + ' -sslConfiguration -certificateMapMode exactdn -supportChangeLog none -certificateFilter -loginProperties ' + ldapUserIdAttribute + ']')
 else:
   result = AdminTask.createIdMgrLDAPRepository('[-default true -id ' + vmmRepositoryID + ' -adapterClassName com.ibm.ws.wim.adapter.ldap.LdapAdapter -ldapServerType ' + ldapType + ' -supportChangeLog none -loginProperties ' + ldapUserIdAttribute + ']')
- 
+
 print 'adding LDAP server to repository ' + vmmRepositoryID
 if ( ldapSSL == 'true' ):
-  result = AdminTask.addIdMgrLDAPServer('[-id ' + vmmRepositoryID + ' -host ' + ldapHostName + ' -bindDN "' + ldapBindDN + '" -bindPassword "' + ldapBindPW + '" -referal ignore -sslEnabled ' + ldapSSL + ' -ldapServerType ' + ldapType + ' -sslConfiguration -certificateMapMode exactdn -certificateFilter -authentication simple -port  ' + ldapPort + ']') 
+  result = AdminTask.addIdMgrLDAPServer('[-id ' + vmmRepositoryID + ' -host ' + ldapHostName + ' -bindDN "' + ldapBindDN + '" -bindPassword "' + ldapBindPW + '" -referal ignore -sslEnabled ' + ldapSSL + ' -ldapServerType ' + ldapType + ' -sslConfiguration -certificateMapMode exactdn -certificateFilter -authentication simple -port  ' + ldapPort + ']')
 else:
-  result = AdminTask.addIdMgrLDAPServer('[-id ' + vmmRepositoryID + ' -host ' + ldapHostName + ' -bindDN "' + ldapBindDN + '" -bindPassword "' + ldapBindPW + '" -referal ignore -sslEnabled ' + ldapSSL + ' -ldapServerType ' + ldapType + ' -authentication simple -port  ' + ldapPort + ']') 
+  result = AdminTask.addIdMgrLDAPServer('[-id ' + vmmRepositoryID + ' -host ' + ldapHostName + ' -bindDN "' + ldapBindDN + '" -bindPassword "' + ldapBindPW + '" -referal ignore -sslEnabled ' + ldapSSL + ' -ldapServerType ' + ldapType + ' -authentication simple -port  ' + ldapPort + ']')
 
 if ( backupLdapHostName != '' ):
   print 'adding backup LDAP server to repository'
@@ -311,31 +311,31 @@ if ( backupLdapHostName != '' ):
 
 print 'setting LDAP connection timeout on ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPServer('[-id ' + vmmRepositoryID + ' -host ' + ldapHostName + ' -connectTimeout ' + ldapTimeout + ']')
- 
+
 print 'defining LDAP search limits on ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPRepository('[-id ' + vmmRepositoryID + ' -searchTimeLimit 120000 -searchCountLimit 500]')
- 
+
 print 'disabling obsolete LDAP connection pool ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPServer('[-id ' + vmmRepositoryID + ' -host ' + ldapHostName + ' -connectionPool false]')
- 
+
 print 'configuring LDAP context pool ' + vmmRepositoryID
 result = AdminTask.setIdMgrLDAPContextPool('[-id ' + vmmRepositoryID + ' -enabled true -initPoolSize 1 -maxPoolSize 20 -prefPoolSize 3 -poolTimeOut 2700]')
- 
+
 print 'defining LDAP attribute cache size on ' + vmmRepositoryID
 result = AdminTask.setIdMgrLDAPAttrCache('[-id ' + vmmRepositoryID + ' -enabled true -cacheSize 4000 -cacheDistPolicy none -cacheTimeOut 1200]')
- 
+
 print 'defining LDAP results cache size on ' + vmmRepositoryID
 result = AdminTask.setIdMgrLDAPSearchResultCache('[-id ' + vmmRepositoryID + ' -enabled true -cacheSize 2000 -cacheDistPolicy none -cacheTimeOut 600]')
- 
+
 print 'defining LDAP group search filter for ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPEntityType('[-id ' + vmmRepositoryID + ' -name Group -objectClasses ' + ldapGroupOC + ' -searchBases  -searchFilter (objectClass=' + ldapGroupOC + ')]')
- 
+
 print 'defining LDAP user search filter for ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPEntityType('[-id ' + vmmRepositoryID + ' -name PersonAccount -objectClasses ' + ldapUserOC + ' -searchBases  -searchFilter (objectClass=' + ldapUserOC + ')]')
- 
+
 print 'defining LDAP group membership attribute, and scope ' + vmmRepositoryID
 result = AdminTask.setIdMgrLDAPGroupConfig('[-id ' + vmmRepositoryID + ' -name ' + ldapMembershipAttribute + ' -scope ' + ldapMembershipScope + ']')
- 
+
 print 'defining LDAP group member attribute, and scope ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPGroupMemberAttr('[-id ' + vmmRepositoryID + ' -name ' + ldapMemberAttribute + ' -objectClass ' + ldapGroupOC + ' -scope ' + ldapMemberScope + ']')
 
@@ -351,7 +351,7 @@ print
 
 print 'adding repository baseDN ' + ldapBaseDN + ' to WAS VMM baseDN ' + vmmBaseDN
 result = AdminTask.addIdMgrRepositoryBaseEntry('[-id ' + vmmRepositoryID + ' -name ' + ldapBaseDN + ' -nameInRepository ' + vmmBaseDN + ']')
- 
+
 print 'adding WAS VMM base DN ' + vmmBaseDN + ' to realm'
 result = AdminTask.addIdMgrRealmBaseEntry('[-name defaultWIMFileBasedRealm -baseEntry ' + vmmBaseDN + ']')
 
@@ -374,20 +374,20 @@ print '#########################################################################
 print '# renaming realm (if needed), and allow operation if repositories are down   #'
 print '##############################################################################'
 print
- 
+
 if defaultVmmRealmID != vmmRealmID:
   #print 'disable realm verification'
   #result = AdminTask.configureAdminWIMUserRegistry('[-realmName ' + vmmRealmID + ' -verifyRegistry false ]')
- 
+
   print 'renaming realm to ' + vmmRealmID
   result = AdminTask.renameIdMgrRealm('[-name defaultWIMFileBasedRealm -newName ' + vmmRealmID + ']')
 
 #print 'validate primary ID'
 #result = AdminTask.validateAdminName('[-registryType WIMUserRegistry -adminUser ' + primaryAdminId + ' ]')
- 
+
 print 'set current realm definition to Federated repositories'
 result = AdminTask.configureAdminWIMUserRegistry('[-realmName ' + vmmRealmID + ' -verifyRegistry true ]')
- 
+
 print 'allow WAS to run if repository is unavailable'
 result = AdminTask.updateIdMgrRealm('[-name ' + vmmRealmID + ' -allowOperationIfReposDown true]')
 
@@ -401,7 +401,7 @@ print '#########################################################################
 print '# deleting remaining default VMM configuration                               #'
 print '##############################################################################'
 print
- 
+
 print "delete file based repository"
 result = AdminTask.deleteIdMgrRealmBaseEntry('[-name ' + vmmRealmID + ' -baseEntry o=defaultWIMFileBasedRealm]')
 
@@ -415,19 +415,19 @@ print '#########################################################################
 print '# enabling security                                                          #'
 print '##############################################################################'
 print
- 
+
 print 'set active user reposity to WIM'
 result = AdminTask.setAdminActiveSecuritySettings('-activeUserRegistry WIMUserRegistry')
- 
+
 print 'enabling global, and administrative security'
 result = AdminTask.setAdminActiveSecuritySettings('-enableGlobalSecurity true')
- 
+
 print 'enabling application security'
 result = AdminTask.setAdminActiveSecuritySettings('-appSecurityEnabled true')
- 
+
 print 'disabling java 2 security'
 result = AdminTask.setAdminActiveSecuritySettings('-enforceJava2Security false')
- 
+
 print
 print '***** saving configuration *****'
 result = AdminConfig.save()
