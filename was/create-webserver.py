@@ -89,7 +89,7 @@ nodeName = hostname + 'UnmanagedNode'
 # show operator the final values, both set by operator, but also default
 print
 print '##############################################################################'
-print '# register IHS with the following values:'
+print '# register IHS with the following values:                                    #'
 print '##############################################################################'
 print
 print 'fqdn             = ' + fqdn
@@ -117,8 +117,71 @@ print
 print 'creating new unmanaged node: ' + nodeName
 AdminTask.createUnmanagedNode('[-nodeName ' + nodeName + ' -hostName ' + fqdn + ' -nodeOperatingSystem ' + operatingSystem + ']')
 print 'creating new web server:     ' + nodeName + '/webserver1'
-AdminTask.createWebServer(hostname + 'UnmanagedNode', '[-name webserver1 -templateName IHS -serverConfig [-webPort 80 -webInstallRoot ' + ihsInstallRoot + ' -webProtocol HTTP -pluginInstallRoot ' + plgInstallRoot + ' -webAppMapping ALL] -remoteServerConfig [-adminPort ' + adminPort + ' -adminUserID ' + adminUserID + ' -adminPasswd ' + adminPasswd + ' -adminProtocol ' + adminProtocol + ']]')
+AdminTask.createWebServer(hostname + 'UnmanagedNode', '[-name webserver1 -templateName IHS -serverConfig [-webPort 80 -serviceName -webInstallRoot ' + ihsInstallRoot + ' -webProtocol HTTPS -configurationFile  -errorLogfile  -accessLogfile  -pluginInstallRoot ' + plgInstallRoot + ' -webAppMapping ALL] -remoteServerConfig [-adminPort '  + adminPort + ' -adminUserID ' + adminUserID + ' -adminPasswd ' + adminPasswd + ' -adminProtocol ' + adminProtocol + ']]')
 
 print
 print '***** saving configuration *****'
+result = AdminConfig.save()
+
+print
+print '##############################################################################'
+print '# creating host aliases for *:80, and *.443                                  #'
+print '##############################################################################'
+print
+import re
+cell = AdminControl.getCell()
+default_hostId = AdminConfig.getid('/Cell:' + cell + '/VirtualHost:default_host/')
+default_hostIdAliases = AdminConfig.showAttribute(default_hostId,'aliases')
+default_hostIdAliases = re.sub('^\[|\]$','',default_hostIdAliases)
+for default_hostIdAlias in default_hostIdAliases.split():
+  default_hostIdAliasHostname = AdminConfig.showAttribute(default_hostIdAlias,'hostname')
+  default_hostIdAliasPort = AdminConfig.showAttribute(default_hostIdAlias,'port')
+  if ( default_hostIdAliasHostname == '*' and ( default_hostIdAliasPort == '80' or default_hostIdAliasPort == '443') ):
+    print 'deleting existing: ' + default_hostIdAliasHostname + ':' + default_hostIdAliasPort
+    result = AdminConfig.remove(default_hostIdAlias)
+
+print 'creating new host alias: *:80'
+result = AdminConfig.create('HostAlias', AdminConfig.getid('/Cell:' + cell + '/VirtualHost:default_host/'), '[[port "80"] [hostname "*"]]')
+print 'creating new host alias: *:443'
+result = AdminConfig.create('HostAlias', AdminConfig.getid('/Cell:' + cell + '/VirtualHost:default_host/'), '[[port "443"] [hostname "*"]]')
+
+print
+print '##############################################################################'
+print '# configure plugin to not timeout when communicating with application server #'
+print '##############################################################################'
+print
+webserverPluginSettingsIds = AdminConfig.list('WebserverPluginSettings').splitlines()
+for webserverPluginSettingsId in webserverPluginSettingsIds:
+  serverIOTimeout = AdminConfig.showAttribute(webserverPluginSettingsId, 'ServerIOTimeout')
+  print "modifying ServerOITimeout from " + serverIOTimeout + " to 0"
+  result = AdminConfig.modify(webserverPluginSettingsId, '[[ServerIOTimeout "0"]]')
+
+result = AdminConfig.save()
+dmgr = AdminControl.completeObjectName('type=DeploymentManager,*')
+result = AdminControl.invoke(dmgr, 'multiSync', '[false]')
+
+print
+print '##############################################################################'
+print '# propagate plugin-cfg.xml, and keystores to webserver                       #'
+print '##############################################################################'
+print
+nodes = AdminTask.listNodes().splitlines()
+for node in nodes:
+  if ( node == nodeName ):
+    webservers = AdminTask.listServers('[-serverType WEB_SERVER -nodeName ' + node + ']').splitlines()
+    for webserver in webservers:
+      webserverName = AdminConfig.showAttribute(webserver, 'name')
+      generator = AdminControl.completeObjectName('type=PluginCfgGenerator,*')
+      print "Generating plugin-cfg.xml for " + webserverName + " on " + node
+      result = AdminControl.invoke(generator, 'generate', '/opt/IBM/WebSphere/AppServer/profiles/Dmgr01/config ' + cell +  ' ' + node + ' ' + webserverName + ' false')
+      print "Propagating plugin-cfg.xml for " + webserverName + " on " + node
+      result = AdminControl.invoke(generator, 'propagate', '/opt/IBM/WebSphere/AppServer/profiles/Dmgr01/config ' + cell + ' ' + node + ' ' + webserverName)
+      print "Propagating keyring for " + webserverName + " on " + node
+      result = AdminControl.invoke(generator, 'propagateKeyring', '/opt/IBM/WebSphere/AppServer/profiles/Dmgr01/config ' + cell + ' ' + node + ' ' + webserverName)
+      webserverCON = AdminControl.completeObjectName('type=WebServer,*')
+      print "Stopping " + webserverName + " on " + node
+      result = AdminControl.invoke(webserverCON, 'stop', '[' + cell + ' ' + node + ' ' + webserverName + ']')
+      print "Starting " + webserverName + " on " + node
+      result = AdminControl.invoke(webserverCON, 'start', '[' + cell + ' ' + node + ' ' + webserverName + ']')
+
 result = AdminConfig.save()
