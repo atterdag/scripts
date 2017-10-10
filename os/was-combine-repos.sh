@@ -121,3 +121,30 @@ for PLATFORM in ${PLATFORMS[@]}; do
   echo '******************************************************************************'
   echo
 done
+echo		
+echo 'list(s) above should look like this:'		
+echo 'com.ibm.websphere.IBMJAVA.v70_7.0.9060.20161124_1308'		
+echo 'com.ibm.websphere.IBMJAVA.v71_7.1.3060.20161124_1256'		
+echo 'com.ibm.websphere.IBMJAVA.v80_8.0.3020.20161124_1304'		
+echo 'com.ibm.websphere.ND.v85_8.5.5011.20161206_1434'		
+echo		
+echo 'And you install the packages with as single command like this: '		
+echo 'su was --login --shell /bin/bash --command "/opt/IBM/InstallationManager/eclipse/tools/imcl\'		
+echo ' install com.ibm.websphere.ND.v85 com.ibm.websphere.IBMJAVA.v70 com.ibm.websphere.IBMJAVA.v71 com.ibm.websphere.IBMJAVA.v80\'		
+echo ' -acceptLicense\'		
+echo ' -eclipseLocation /opt/IBM/WebSphere/AppServer\'		
+echo ' -installationDirectory /opt/IBM/WebSphere/AppServer\'		
+echo ' -installFixes none\'		
+echo ' -log /tmp/install-was85511-log.xml\'		
+echo ' -nl en\'		
+echo ' -record /tmp/install-was85511-response.xml\'		
+echo ' -repositories http://ftp.example.com/srv/install/was-combined-linux_x86-64-85511\'		
+echo ' -sharedResourcesDirectory /opt/IBM/IMShared\'		
+echo ' -preferences com.ibm.cic.common.core.preferences.keepFetchedFiles=false,\'		
+echo 'com.ibm.cic.common.core.preferences.preserveDownloadedArtifacts=false,\'		
+echo 'offering.service.repositories.areUsed=false,\'		
+echo 'com.ibm.cic.common.core.preferences.searchForUpdates=false\'		
+echo ' -properties user.wasjava=java6\'		
+echo ' -showVerboseProgress"'		
+echo
+ 
