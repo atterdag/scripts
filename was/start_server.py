@@ -1,3 +1,10 @@
+import os, re, java.io.File
+command = os.environ.get('IBM_JAVA_COMMAND_LINE')
+for arg in command.split(' -'):
+  if re.match('^f\s',arg):
+    script_directory = java.io.File(arg.split()[1]).getParent()
+    execfile( script_directory + '/common.py')
+
 def printUsage():
     print ''
     print 'Usage: <profile root>/bin/wsadmin -lang jython'
@@ -12,16 +19,4 @@ if not (len(sys.argv) == 1):
   printUsage()
   sys.exit(101)
 
-managedNodeNames = AdminTask.listManagedNodes().splitlines()
-for managedNodeName in managedNodeNames:
-  applicationServers = AdminTask.listServers('[-serverType APPLICATION_SERVER -nodeName ' + managedNodeName + ']').splitlines()
-  for applicationServer in applicationServers:
-    applicationServerName = AdminConfig.showAttribute(applicationServer, 'name')
-    if applicationServerName == sys.argv[0]:
-      print 'starting ' + applicationServerName + ' on ' + managedNodeName
-      #result = AdminControl.startServer(applicationServerName,managedNodeName)
-    else:
-      print ''
-      sys.stderr.write('!!! server name not found\n')
-      printUsage()
-      sys.exit(101)
+startServer(sys.argv[0])
