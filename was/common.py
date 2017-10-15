@@ -1,13 +1,7 @@
-def clusterRippleStart:
-  cell = AdminControl.getCell()
-  serverClusters = AdminConfig.list('ServerCluster').splitlines()
-  for serverCluster in serverClusters:
-    clusterName = AdminConfig.showAttribute(serverCluster, 'name')
-    print '##############################################################################'
-    print '# performing ripple start of cluster: ' + clusterName
-    print '##############################################################################'
-    clusterCompleteObjectName = AdminControl.completeObjectName('cell=' + cell + ',type=Cluster,name=' + clusterName + ',*')
-    result = AdminControl.invoke(clusterCompleteObjectName, 'rippleStart')
+print '##############################################################################'
+print '# Loading common functions                                                   #'
+print '##############################################################################'
+
 def configureDataSourceClientReroute(dataSourceName, hosts, ports, retryInterval, retryCount):
   print
   print '##############################################################################'
@@ -15,10 +9,10 @@ def configureDataSourceClientReroute(dataSourceName, hosts, ports, retryInterval
   print '##############################################################################'
   dataSourceId = AdminConfig.getid(dataSourceName)
   propertySet = AdminConfig.showAttribute(dataSourceId, 'propertySet')
-  modifyJ2eeResourceProperty(propertySet, 'clientRerouteAlternateServerName', hosts)
-  modifyJ2eeResourceProperty(propertySet, 'clientRerouteAlternatePortNumber', ports)
-  modifyJ2eeResourceProperty(propertySet, 'retryIntervalForClientReroute', retryInterval)
-  modifyJ2eeResourceProperty(propertySet, 'maxRetriesForClientReroute', retryCount)
+  setJ2eeResourceProperty(propertySet, 'clientRerouteAlternateServerName', hosts)
+  setJ2eeResourceProperty(propertySet, 'clientRerouteAlternatePortNumber', ports)
+  setJ2eeResourceProperty(propertySet, 'retryIntervalForClientReroute', retryInterval)
+  setJ2eeResourceProperty(propertySet, 'maxRetriesForClientReroute', retryCount)
 def configureDataSourceConnectionPool(dataSourceName, minConnections, maxConnections, agedTimeout):
   print
   print '##############################################################################'
@@ -39,8 +33,10 @@ def configureDataSourceStatementCacheSize(dataSourceName, statementCacheSize):
   AdminConfig.modify(dataSourceId, attributes)
 def configureHpel(server,nodeName):
   serverName = AdminConfig.showAttribute(server, 'name')
-  print '------------------------------------------------------------------------------'
-  print 'enable HPEL on server ' + nodeName + '/' + serverName
+  print
+  print '##############################################################################'
+  print '# Enable HPEL on server ' + nodeName + '/' + serverName
+  print '##############################################################################'
   RASLoggingService = AdminConfig.getid('/Cell:' + cell + ' /Node:' + nodeName + '/Server:' + serverName + '/RASLoggingService:/')
   result = AdminConfig.modify(RASLoggingService, '[[enable false]]')
   highPerformanceExtensibleLogging = AdminConfig.getid('/Cell:' + cell + '/Node:' + nodeName + '/Server:' + serverName + '/HighPerformanceExtensibleLogging:/')
@@ -61,7 +57,7 @@ def configureHpel(server,nodeName):
 def configureJvmLogRotation(server):
   print
   print '##############################################################################'
-  print '# setting JVM logs to rotate every night at 00:00'
+  print '# Setting JVM logs to rotate every night at 00:00'
   print '##############################################################################'
   logtypes = ['outputStreamRedirect','errorStreamRedirect']
   for logtype in logtypes:
@@ -71,14 +67,14 @@ def configureJvmLogRotation(server):
 def configureJvmStartupTrace(server,level):
   print
   print '##############################################################################'
-  print '# setting startup trace specification for ' + server
+  print '# Setting startup trace specification for ' + server
   print '##############################################################################'
   traceService = AdminConfig.list('TraceService', server)
   result = AdminConfig.modify(traceService, [['startupTraceSpecification',level]])
 def configureJvmRuntimeTrace(server,level):
   print
   print '##############################################################################'
-  print '# setting runtime trace specification for ' + server
+  print '# Setting runtime trace specification for ' + server
   print '##############################################################################'
   serverName = AdminConfig.showAttribute(server, 'name')
   traceServiceCompleteObjectName = AdminControl.completeObjectName('type=TraceService,process=' + serverName + ',*')
@@ -86,7 +82,7 @@ def configureJvmRuntimeTrace(server,level):
 def configureTraceLog(server,number,size):
   print
   print '##############################################################################'
-  print '# setting trace file, and rotation size on ' + server
+  print '# Setting trace file, and rotation size on ' + server
   print '##############################################################################'
   traceService = AdminConfig.list('TraceService', server)
   traceLog = AdminConfig.showAttribute(traceService, 'traceLog')
@@ -112,7 +108,7 @@ def extractRepositoryIds(repositories):
 def fullSynchronizeNodes():
   print
   print '##############################################################################'
-  print '# full synchronize in background                                             #'
+  print '# Full synchronize in background                                             #'
   print '##############################################################################'
   cell = AdminControl.getCell()
   cellCompleteobjectName = AdminControl.completeObjectName('type=CellSync,cell=' + cell + ',*')
@@ -125,17 +121,11 @@ def fullSynchronizeNodes():
       result = AdminControl.invoke(nodeCompleteObjectName, 'sync')
       result = AdminControl.invoke(nodeAgentCompleteObjectName, 'refreshRepositoryEpoch')
       result = AdminControl.invoke(cellCompleteobjectName, 'syncNode', '[' + node + ']')
-def httponlyCookies(server, name):
+def listMimeTypes(type='all'):
   print
   print '##############################################################################'
-  print '# Setting httponly option on ' + name + ' cookie'
+  print '# Listing MIME for: ' + type
   print '##############################################################################'
-  wc = AdminConfig.list('WebContainer', server)
-  for prop in AdminConfig.list('Property', wc).splitlines():
-    if AdminConfig.showAttribute(prop, 'name') == 'com.ibm.ws.webcontainer.httpOnlyCookies':
-      result = AdminConfig.remove(prop)
-  result = AdminConfig.create('Property', wc, [['validationExpression', ''], ['name', 'com.ibm.ws.webcontainer.httpOnlyCookies'], ['description', ''], ['value', name], ['required', 'false']])
-def listMimeTypes(type='all'):
   virtualHostId = AdminConfig.getid('/VirtualHost:default_host')
   mimeEntries = AdminConfig.list('MimeEntry',virtualHostId)
   for mimeEntry in mimeEntries.splitlines():
@@ -148,6 +138,10 @@ def listMimeTypes(type='all'):
       print 'type:       ' + mimeEntryType
       print 'extensions: ' + AdminConfig.showAttribute(mimeEntry,'extensions')
 def listPmiFilterValues():
+  print
+  print '##############################################################################'
+  print '# List PMI filters values                                                    #'
+  print '##############################################################################'
   pmiRmFilters = AdminConfig.list('PMIRMFilter').splitlines()
   for pmiRmFilter in pmiRmFilters:
     pmiRmFilterType = AdminConfig.showAttribute(pmiRmFilter, 'type')
@@ -157,23 +151,6 @@ def listPmiFilterValues():
       filterValueValue = AdminConfig.showAttribute(filterValue, 'value')
       filterValueEnable = AdminConfig.showAttribute(filterValue, 'enable')
       print pmiRmFilterType + ', ' + filterValueValue + ', ' + filterValueEnable
-def modifyJ2eeResourceProperty(propertySet, name, value):
-  print
-  print '##############################################################################'
-  print '# setting J2EE resource property ' + name + ' on ' + propertySet
-  print '##############################################################################'
-  j2eeResourceProperty = AdminConfig.list('J2EEResourceProperty', propertySet)
-  if len(j2eeResourceProperty) > 0:
-    j2eeResourceProperty = j2eeResourceProperty.splitlines()
-    for property in j2eeResourceProperty:
-      found = 0
-      n = AdminConfig.showAttribute(property, 'name')
-      if n == name:
-        result = AdminConfig.modify(property, [['value', value]])
-        found = 1
-        return
-    if found == 0:
-      result = AdminConfig.create('J2EEResourceProperty', propertySet, [['name', name], ['type', 'java.lang.String'], ['description', ''], ['value', value], ['required', 'false']])
 def propagatePluginCfg():
   print
   print '##############################################################################'
@@ -193,6 +170,10 @@ def propagatePluginCfg():
       result = AdminControl.invoke(generator, 'propagateKeyring', '/opt/IBM/WebSphere/AppServer/profiles/Dmgr01/config ' + cell + ' ' + nodeName + ' ' + webserverName)
       webserverCON = AdminControl.completeObjectName('type=WebServer,*')
 def removePmiFilterValue(type,value):
+  print
+  print '##############################################################################'
+  print '# Removing PMI filter value ' + value + ' from type ' + type
+  print '##############################################################################'
   pmiRmFilters = AdminConfig.list('PMIRMFilter').splitlines()
   for pmiRmFilter in pmiRmFilters:
     pmiRmFilterType = AdminConfig.showAttribute(pmiRmFilter, 'type')
@@ -207,6 +188,10 @@ def removePmiFilterValue(type,value):
           return
       print 'no existing ' + type + ' filter value, ' + value + ' was found'
 def restartApplicationServers():
+  print
+  print '##############################################################################'
+  print '# Restarting all application servers in foreground                           #'
+  print '##############################################################################'
   nodes = AdminConfig.list('Node').splitlines()
   for node in nodes:
     nodeName = AdminConfig.showAttribute(node, 'name')
@@ -225,6 +210,17 @@ def restartApplicationServers():
         print 'starting ' + nodeName + '/' + serverName
         serverName = AdminConfig.showAttribute(server, 'name')
         print AdminControl.startServer(serverName, nodeName)
+def rippleRestartClusters():
+  cell = AdminControl.getCell()
+  serverClusters = AdminConfig.list('ServerCluster').splitlines()
+  for serverCluster in serverClusters:
+    clusterName = AdminConfig.showAttribute(serverCluster, 'name')
+    print
+    print '##############################################################################'
+    print '# Performing background ripple start of cluster: ' + clusterName
+    print '##############################################################################'
+    clusterCompleteObjectName = AdminControl.completeObjectName('cell=' + cell + ',type=Cluster,name=' + clusterName + ',*')
+    result = AdminControl.invoke(clusterCompleteObjectName, 'rippleStart')
 def saveConfiguration():
   print
   print '***** saving configuration *****'
@@ -232,14 +228,44 @@ def saveConfiguration():
 def setDefaultCookieName(server, name):
   print
   print '##############################################################################'
-  print '# setting session cookie name to ' + name + ' on ' + server
+  print '# Setting session cookie name to ' + name + ' on ' + server
   print '##############################################################################'
   cookies = AdminConfig.list('Cookie', server).splitlines()
   for cookie in cookies:
     cookieName = AdminConfig.showAttribute(cookie, 'name')
     result = AdminConfig.modify(cookie, [['name', name]])
+def setHttponlyCookies(server, name):
+  print
+  print '##############################################################################'
+  print '# Setting httponly option on ' + name + ' cookie'
+  print '##############################################################################'
+  wc = AdminConfig.list('WebContainer', server)
+  for prop in AdminConfig.list('Property', wc).splitlines():
+    if AdminConfig.showAttribute(prop, 'name') == 'com.ibm.ws.webcontainer.setHttponlyCookies':
+      result = AdminConfig.remove(prop)
+  result = AdminConfig.create('Property', wc, [['validationExpression', ''], ['name', 'com.ibm.ws.webcontainer.setHttponlyCookies'], ['description', ''], ['value', name], ['required', 'false']])
+def setJ2eeResourceProperty(propertySet, name, value):
+  print
+  print '##############################################################################'
+  print '# Setting J2EE resource property ' + name + ' on ' + propertySet
+  print '##############################################################################'
+  j2eeResourceProperty = AdminConfig.list('J2EEResourceProperty', propertySet)
+  if len(j2eeResourceProperty) > 0:
+    j2eeResourceProperty = j2eeResourceProperty.splitlines()
+    for property in j2eeResourceProperty:
+      found = 0
+      n = AdminConfig.showAttribute(property, 'name')
+      if n == name:
+        result = AdminConfig.modify(property, [['value', value]])
+        found = 1
+        return
+    if found == 0:
+      result = AdminConfig.create('J2EEResourceProperty', propertySet, [['name', name], ['type', 'java.lang.String'], ['description', ''], ['value', value], ['required', 'false']])
 def setJavaVirtualMachineProperty(server, property):
-  print 'setting JVM property on ' + server
+  print
+  print '##############################################################################'
+  print '# Setting JVM property on ' + server
+  print '##############################################################################'
   javaVirtualMachine = AdminConfig.list('JavaVirtualMachine', server)
   AdminConfig.modify(javaVirtualMachine, property)
 def setJvmGenericArguements(nodeName, serverName, newArgument):
@@ -277,7 +303,7 @@ def setMimeEntry(type, extensions):
 def setPluginProperty(pluginProperty, name, value, description='""'):
   print
   print '##############################################################################'
-  print '# setting ' + name + ' custom property on ' + pluginProperty
+  print '# Setting ' + name + ' custom property on ' + pluginProperty
   print '##############################################################################'
   existingProperties = AdminConfig.showAttribute(pluginProperty,'properties').split()
   create = 'true'
@@ -312,14 +338,14 @@ def setPmiFilterValue(type,value,enable):
 def setProcessExecution(server, user, group):
   print
   print '##############################################################################'
-  print '# setting java process runtime user to ' + user + ' for ' + server
+  print '# Setting java process runtime user to ' + user + ' for ' + server
   print '##############################################################################'
   processExecution = AdminConfig.list('ProcessExecution', server)
   result = AdminConfig.modify(processExecution, [['runAsUser', user], ['runAsGroup', group]])
 def setSessionTuning(server, timeout, inMemorySessions):
   print
   print '##############################################################################'
-  print '# setting session timeout to ' + timeout + ' minutes and max in memory session'
+  print '# Setting session timeout to ' + timeout + ' minutes and max in memory session'
   print '# count to ' + inMemorySessions + ' on ' + server
   print '##############################################################################'
   tuningParams = AdminConfig.list('TuningParams', server)
@@ -327,15 +353,30 @@ def setSessionTuning(server, timeout, inMemorySessions):
 def setWebcontainerThreadpoolTuning(server, size):
   print
   print '##############################################################################'
-  print '# setting webcontainer threadPool                                            #'
+  print '# Setting webcontainer thread pool                                           #'
   print '##############################################################################'
   threadPools = AdminConfig.list('ThreadPool', server).splitlines()
   for threadPool in threadPools:
     if AdminConfig.showAttribute(threadPool, 'name') == 'WebContainer':
       print 'setting web container thread pool for ' + server + ' to maximumSize ' + size
       result = AdminConfig.modify(threadPool, [['maximumSize', size]])
+def startServer(name):
+  print
+  print '##############################################################################'
+  print '# Starting application server with name: ' + name
+  print '##############################################################################'
+  managedNodeNames = AdminTask.listManagedNodes().splitlines()
+  for managedNodeName in managedNodeNames:
+    applicationServers = AdminTask.listServers('[-serverType APPLICATION_SERVER -nodeName ' + managedNodeName + ']').splitlines()
+    for applicationServer in applicationServers:
+      applicationServerName = AdminConfig.showAttribute(applicationServer, 'name')
+      if applicationServerName == name:
+        print 'starting ' + applicationServerName + ' on ' + managedNodeName
+        result = AdminControl.startServer(applicationServerName,managedNodeName)
+      else:
+        print ''
+        sys.stderr.write('!!! server name not found\n')
 def stringToList(str):
-  str = re.sub('^\[\[','[',str)
   str = re.sub('^\[\[','[',str)
   str = re.sub('\]\]$',']',str)
   str = re.findall(r'\[([^]]*)\]',str)
@@ -346,7 +387,7 @@ def stringToList(str):
 def synchronizeActiveNodes():
   print
   print '##############################################################################'
-  print '# Synchronizing active node in foregroup                                     #'
+  print '# Synchronizing active node in foreground                                    #'
   print '##############################################################################'
   saveConfiguration()
   dmgr = AdminControl.completeObjectName('type=DeploymentManager,*')
