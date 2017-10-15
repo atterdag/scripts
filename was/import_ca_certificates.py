@@ -1,5 +1,7 @@
 import re
 
+execfile('common.py')
+
 def printUsage():
     print ""
     print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
@@ -53,6 +55,5 @@ print '#########################################################################
 print
 print 'Adding custom ' + ca_alias + ' CA to cell default trust store'
 result = AdminTask.addSignerCertificate('[-keyStoreName CellDefaultTrustStore -keyStoreScope (cell):' + cell + ' -certificateFilePath ' + ca_path + ' -base64Encoded true -certificateAlias ' + ca_alias + ' ]')
-print
-print '***** saving configuration *****'
-result = AdminConfig.save()
+
+saveConfiguration()

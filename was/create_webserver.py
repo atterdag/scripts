@@ -2,13 +2,7 @@ import getopt
 import sys
 import re
 
-# the dict function is missing from the wsadmin jython, so we have to make our
-# own
-def dict(sequence):
-  resultDict = {}
-  for key, value in sequence:
-    resultDict[key] = value
-  return resultDict
+execfile('common.py')
 
 def printUsage():
     print ''
@@ -119,9 +113,7 @@ AdminTask.createUnmanagedNode('[-nodeName ' + nodeName + ' -hostName ' + fqdn + 
 print 'creating new web server:     ' + nodeName + '/webserver1'
 AdminTask.createWebServer(hostname + 'UnmanagedNode', '[-name webserver1 -templateName IHS -serverConfig [-webPort 80 -serviceName -webInstallRoot ' + ihsInstallRoot + ' -webProtocol HTTPS -configurationFile  -errorLogfile  -accessLogfile  -pluginInstallRoot ' + plgInstallRoot + ' -webAppMapping ALL] -remoteServerConfig [-adminPort '  + adminPort + ' -adminUserID ' + adminUserID + ' -adminPasswd ' + adminPasswd + ' -adminProtocol ' + adminProtocol + ']]')
 
-print
-print '***** saving configuration *****'
-result = AdminConfig.save()
+saveConfiguration()
 
 print
 print '##############################################################################'
@@ -156,32 +148,5 @@ for webserverPluginSettingsId in webserverPluginSettingsIds:
   print "modifying ServerOITimeout from " + serverIOTimeout + " to 0"
   result = AdminConfig.modify(webserverPluginSettingsId, '[[ServerIOTimeout "0"]]')
 
-result = AdminConfig.save()
-dmgr = AdminControl.completeObjectName('type=DeploymentManager,*')
-result = AdminControl.invoke(dmgr, 'multiSync', '[false]')
-
-print
-print '##############################################################################'
-print '# propagate plugin-cfg.xml, and keystores to webserver                       #'
-print '##############################################################################'
-print
-nodes = AdminTask.listNodes().splitlines()
-for node in nodes:
-  if ( node == nodeName ):
-    webservers = AdminTask.listServers('[-serverType WEB_SERVER -nodeName ' + node + ']').splitlines()
-    for webserver in webservers:
-      webserverName = AdminConfig.showAttribute(webserver, 'name')
-      generator = AdminControl.completeObjectName('type=PluginCfgGenerator,*')
-      print "Generating plugin-cfg.xml for " + webserverName + " on " + node
-      result = AdminControl.invoke(generator, 'generate', '/opt/IBM/WebSphere/AppServer/profiles/Dmgr01/config ' + cell +  ' ' + node + ' ' + webserverName + ' false')
-      print "Propagating plugin-cfg.xml for " + webserverName + " on " + node
-      result = AdminControl.invoke(generator, 'propagate', '/opt/IBM/WebSphere/AppServer/profiles/Dmgr01/config ' + cell + ' ' + node + ' ' + webserverName)
-      print "Propagating keyring for " + webserverName + " on " + node
-      result = AdminControl.invoke(generator, 'propagateKeyring', '/opt/IBM/WebSphere/AppServer/profiles/Dmgr01/config ' + cell + ' ' + node + ' ' + webserverName)
-      webserverCON = AdminControl.completeObjectName('type=WebServer,*')
-      print "Stopping " + webserverName + " on " + node
-      result = AdminControl.invoke(webserverCON, 'stop', '[' + cell + ' ' + node + ' ' + webserverName + ']')
-      print "Starting " + webserverName + " on " + node
-      result = AdminControl.invoke(webserverCON, 'start', '[' + cell + ' ' + node + ' ' + webserverName + ']')
-
-result = AdminConfig.save()
+saveConfiguration()
+propagatePluginCfg()

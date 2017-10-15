@@ -1,3 +1,5 @@
+execfile('common.py')
+
 def printUsage():
     print ''
     print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
@@ -40,6 +42,4 @@ result = AdminTask.setAdminActiveSecuritySettings('[-customProperties[\"com.ibm.
 print 'setting LTPA v2 token names to LtpaToken2'
 result = AdminTask.setAdminActiveSecuritySettings('[-customProperties[\"com.ibm.websphere.security.customSSOCookieName=LtpaToken2\"]]')
 
-print
-print '***** saving configuration *****'
-result = AdminConfig.save()
+saveConfiguration()

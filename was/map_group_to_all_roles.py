@@ -1,3 +1,5 @@
+execfile('common.py')
+
 def printUsage():
     print ''
     print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
@@ -58,13 +60,7 @@ result = AdminTask.mapGroupsToAdminRole('[-roleName deployer             -access
 result = AdminTask.mapGroupsToAdminRole('[-roleName monitor              -accessids [group:' + realmName + '/' + groupDN + '] -groupids [' + groupID + '@' + realmName + ']]')
 result = AdminTask.mapGroupsToAdminRole('[-roleName operator             -accessids [group:' + realmName + '/' + groupDN + '] -groupids [' + groupID + '@' + realmName + ']]')
 
-print
-print '******* saving configuration *******'
-result = AdminConfig.save()
-
-print '+++ synchronizing configuration +++'
-dmgr = AdminControl.completeObjectName('type=DeploymentManager,*')
-result = AdminControl.invoke(dmgr, 'multiSync', '[false]')
+synchronizeActiveNodes()
 
 print 'refreshing roles'
 authGrpMgrDmgr = AdminControl.completeObjectName('WebSphere:type=AuthorizationGroupManager,process=dmgr,*')

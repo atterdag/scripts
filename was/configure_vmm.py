@@ -2,36 +2,7 @@ import getopt
 import sys
 import re
 
-# the dict function is missing from the wsadmin jython, so we have to make our
-# own
-def dict(sequence):
-  resultDict = {}
-  for key, value in sequence:
-    resultDict[key] = value
-  return resultDict
-
-# the following two functions handles wsadmins strange command outputs that
-# looks like dicts or lists, but its really not. For instance stringToDict
-# handles outputs like '{key1=value1,key2=value2}'. As you can its also
-# most a dict, but is not.
-def stringToDict(str):
-  str = re.sub('^\{','',str)
-  str = re.sub('\}$','',str)
-  dict = {}
-  for keypair in str.split(', '):
-    key, value=keypair.split('=',1)
-    dict[key] = value
-  return dict
-
-def extractRepositoryIds(repositories):
-  repositories = re.sub('^\{','',repositories)
-  repositories = re.sub('\}$','',repositories)
-  repositories = re.sub('}, ','}|',repositories)
-  repositoryIds = []
-  for repository in repositories.split('|'):
-    repositoryId,properties = repository.split('=',1)
-    repositoryIds.append(repositoryId)
-  return repositoryIds
+execfile('common.py')
 
 # printed if syntax is wrong
 def printUsage():
@@ -256,8 +227,6 @@ for repositoryId in repositoryIds:
       if ( realmBaseEntry == 'o=defaultWIMFileBasedRealm' ):
         defaultVmmConfiguration = 'true'
 
-print defaultVmmConfiguration
-
 if ( defaultVmmConfiguration == 'false' ):
   print 'creating base entry "o=defaultWIMFileBasedRealm" under repository "InternalFileRepository"'
   result = AdminTask.addIdMgrRealmBaseEntry('[-name defaultWIMFileBasedRealm -baseEntry o=defaultWIMFileBasedRealm]')
@@ -283,9 +252,7 @@ for repositoryId in repositoryIds:
     print 'deleting existing repository ' + vmmRepositoryID
     result = AdminTask.deleteIdMgrRepository('[-id ' + repositoryId + ']')
 
-print
-print '***** saving configuration *****'
-result = AdminConfig.save()
+saveConfiguration()
 
 print
 print '##############################################################################'
@@ -339,9 +306,7 @@ result = AdminTask.setIdMgrLDAPGroupConfig('[-id ' + vmmRepositoryID + ' -name '
 print 'defining LDAP group member attribute, and scope ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPGroupMemberAttr('[-id ' + vmmRepositoryID + ' -name ' + ldapMemberAttribute + ' -objectClass ' + ldapGroupOC + ' -scope ' + ldapMemberScope + ']')
 
-print
-print '***** saving configuration *****'
-result = AdminConfig.save()
+saveConfiguration()
 
 print
 print '##############################################################################'
@@ -365,9 +330,7 @@ else:
 print 'validate realm administrator'
 result = AdminTask.validateAdminName('[-registryType WIMUserRegistry -adminUser ' + primaryAdminId + ' ]')
 
-print
-print '***** saving configuration *****'
-result = AdminConfig.save()
+saveConfiguration()
 
 print
 print '##############################################################################'
@@ -391,10 +354,7 @@ result = AdminTask.configureAdminWIMUserRegistry('[-realmName ' + vmmRealmID + '
 print 'allow WAS to run if repository is unavailable'
 result = AdminTask.updateIdMgrRealm('[-name ' + vmmRealmID + ' -allowOperationIfReposDown true]')
 
-print
-print '*** saving configuration ***'
-print
-result = AdminConfig.save()
+saveConfiguration()
 
 print
 print '##############################################################################'
@@ -405,10 +365,7 @@ print
 print "delete file based repository"
 result = AdminTask.deleteIdMgrRealmBaseEntry('[-name ' + vmmRealmID + ' -baseEntry o=defaultWIMFileBasedRealm]')
 
-print
-print "*** saving configuration ***"
-print
-result = AdminConfig.save()
+saveConfiguration()
 
 print
 print '##############################################################################'
@@ -428,6 +385,4 @@ result = AdminTask.setAdminActiveSecuritySettings('-appSecurityEnabled true')
 print 'disabling java 2 security'
 result = AdminTask.setAdminActiveSecuritySettings('-enforceJava2Security false')
 
-print
-print '***** saving configuration *****'
-result = AdminConfig.save()
+saveConfiguration()

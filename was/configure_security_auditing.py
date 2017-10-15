@@ -2,23 +2,7 @@ import getopt
 import sys
 import re
 
-# the dict function is missing from the wsadmin jython, so we have to make our
-# own
-def dict(sequence):
-  resultDict = {}
-  for key, value in sequence:
-    resultDict[key] = value
-  return resultDict
-
-def stringToList(str):
-  str = re.sub('^\[\[','[',str)
-  str = re.sub('^\[\[','[',str) 
-  str = re.sub('\]\]$',']',str) 
-  str = re.findall(r'\[([^]]*)\]',str)
-  lst = []
-  for strPair in str:
-    lst.append(strPair.split(' '))
-  return lst
+execfile('common.py')
 
 def printUsage():
     print ''
@@ -95,10 +79,10 @@ auditNotificationMonitorAttributes = stringToList(auditNotificationMonitors)
 for auditNotificationMonitorAttributePair in auditNotificationMonitorAttributes:
   if ( auditNotificationMonitorAttributePair[0] == 'monitorRef' ):
     result = AdminTask.modifyAuditNotificationMonitor('[-monitorRef ' + auditNotificationMonitorAttributePair[1] + ' -enable false ]')
-    result = AdminTask.deleteAuditNotificationMonitorByRef('-monitorRef ' + auditNotificationMonitorAttributePair[1] + ']') 
+    result = AdminTask.deleteAuditNotificationMonitorByRef('-monitorRef ' + auditNotificationMonitorAttributePair[1] + ']')
 
 print 'disable security auditing'
-result = AdminTask.modifyAuditPolicy('[-auditEnabled false -auditPolicy NOWARN -verbose false ]') 
+result = AdminTask.modifyAuditPolicy('[-auditEnabled false -auditPolicy NOWARN -verbose false ]')
 
 print 'delete existing audit notification ' + newAuditNotification
 auditNotifications = AdminTask.listAuditNotifications().splitlines()
@@ -108,7 +92,7 @@ for auditNotification in auditNotifications:
   for auditNotificationAttributePair in auditNotificationAttributes:
     auditNotificationAttributeDict[auditNotificationAttributePair[0]] = auditNotificationAttributePair[1]
   if ( auditNotificationAttributeDict['name'] == newAuditNotification ):
-    result = AdminTask.deleteAuditNotification('[-notificationRef ' + auditNotificationAttributeDict['notificationRef'] + ']') 
+    result = AdminTask.deleteAuditNotification('[-notificationRef ' + auditNotificationAttributeDict['notificationRef'] + ']')
 
 print 'delete existing audit notification ' + newAuditNotification
 auditNotificationRefs = AdminTask.getAuditNotificationRef().splitlines()
@@ -118,7 +102,7 @@ for auditNotificationRef in auditNotificationRefs:
   for auditNotificationAttributePair in auditNotificationAttributes:
     if ( auditNotificationAttributePair[0] == 'name' ):
       if ( auditNotificationAttributePair[1] == newAuditNotification ):
-        AdminTask.deleteAuditNotification('[-notificationRef ' + auditNotificationRef + ']') 
+        AdminTask.deleteAuditNotification('[-notificationRef ' + auditNotificationRef + ']')
 
 print 'delete old existing audit event factory ' + newAuditFactoryName
 auditEventFactories = AdminTask.listAuditEventFactories()
@@ -142,7 +126,7 @@ for auditEmitter in auditEmitters:
   for auditEmitterAttributePair in auditEmitterAttributePairs:
     if ( auditEmitterAttributePair[0] == 'name' ):
       if ( auditEmitterAttributePair[1] == newAuditEmitter ):
-        result = AdminTask.deleteAuditEmitterByName('[-uniqueName ' + newAuditEmitter + ']') 
+        result = AdminTask.deleteAuditEmitterByName('[-uniqueName ' + newAuditEmitter + ']')
 
 print 'delete existing audit filter: ' + newAuditFilterName
 auditSpecifications = AdminTask.listAuditFiltersByRef().split()
@@ -154,9 +138,7 @@ for auditSpecification in auditSpecifications:
       if ( auditFilterAttributePair[1] == newAuditFilterName ):
         result = AdminTask.deleteAuditFilterByRef('[-filterRef ' + auditSpecification + ']')
 
-print
-print '+++ saving configuration +++'
-result = AdminConfig.save()
+saveConfiguration()
 
 print 'create new audit specification ' + newAuditFilterName
 auditSpecification = AdminTask.createAuditFilter('[-name ' + newAuditFilterName + ' -outcome ' + newAuditFilterOutcome + ']')
@@ -171,7 +153,7 @@ print 'create new audit notification ' + newAuditNotification
 wSNotification = AdminTask.createAuditNotification('[-notificationName ' + newAuditNotification + ' -sendEmail false -emailList  -logToSystemOut true ]')
 
 print 'create new audit notification monitor AuditMonitor'
-auditNotificationMonitor = AdminTask.createAuditNotificationMonitor('[-monitorName AuditMonitor -notificationRef ' + wSNotification + ' -enable true ]') 
+auditNotificationMonitor = AdminTask.createAuditNotificationMonitor('[-monitorName AuditMonitor -notificationRef ' + wSNotification + ' -enable true ]')
 
 print 'create new audit notification monitor ' + auditNotificationMonitor
 result = AdminTask.modifyAuditNotificationMonitor('[-monitorRef ' + auditNotificationMonitor + ' -notificationRef ' + wSNotification + ' -enable true ]')
@@ -179,6 +161,4 @@ result = AdminTask.modifyAuditNotificationMonitor('[-monitorRef ' + auditNotific
 print 'enable auditing with ' + auditorId + ' as auditor'
 result = AdminTask.modifyAuditPolicy('[-auditEnabled true -auditPolicy WARN -auditorId ' + auditorId + ' -verbose true ]')
 
-print
-print '+++ saving configuration +++'
-result = AdminConfig.save()
+saveConfiguration()

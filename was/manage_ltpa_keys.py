@@ -1,3 +1,5 @@
+execfile('common.py')
+
 def printUsage():
     print ''
     print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
@@ -20,7 +22,7 @@ def printUsage():
     print 'Sample:'
     print '===================================================================='
     print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
-    print ' -profileName Dmgr01 -user wasadmin -password passw0rd' 
+    print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
     print ' -f \"/tmp/manageLTPAKeys.py\" \"/tmp/example-ltpa.key\"  \"passw0rd\"'
     print '===================================================================='
     print ''
@@ -38,8 +40,7 @@ if ( operation == 'export' ):
   result = AdminTask.exportLTPAKeys('-ltpaKeyFile ' + filename + ' -password ' + password)
 elif ( operation == 'import' ):
   result = AdminTask.importLTPAKeys('-ltpaKeyFile ' + filename + ' -password ' + password)
-  print '***** saving configuration *****'
-  result = AdminConfig.save()
+  saveConfiguration()
 else:
   print 'does not understand operation ' + operation
 
