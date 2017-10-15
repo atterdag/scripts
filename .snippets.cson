@@ -1,0 +1,40 @@
+# Your snippets
+#
+# Atom snippets allow you to enter a simple prefix in the editor and hit tab to
+# expand the prefix into a larger code block with templated values.
+#
+# You can create a new snippet in this file by typing "snip" and then hitting
+# tab.
+#
+# An example CoffeeScript snippet to expand log to console.log:
+#
+# '.source.coffee':
+#   'Console log':
+#     'prefix': 'log'
+#     'body': 'console.log $1'
+#
+# Each scope (e.g. '.source.coffee' above) can only be declared once.
+#
+# This file uses CoffeeScript Object Notation (CSON).
+# If you are unfamiliar with CSON, you can read more about it in the
+# Atom Flight Manual:
+# http://flight-manual.atom.io/using-atom/sections/basic-customization/#_cson
+'.source.python':
+  'Synchronize Active Nodes':
+    'prefix': 'syncactivenodes'
+    'body': 'synchronizeActiveNodes()\n'
+  'Save Configuration':
+    'prefix': 'saveconfiguration'
+    'body': 'saveConfiguration()\n'
+  'Common Functions':
+    'prefix': 'common'
+    'body': 'execfile(\'common.py\')\n'
+  'Restart Application Servers':
+    'prefix': 'restartservers'
+    'body': 'restartApplicationServers()\n'
+  'Propegate Plugin Configuration':
+    'prefix': 'propagateplgcfg'
+    'body': 'propagatePluginCfg()\n'
+  'Add header':
+    'prefix': 'header'
+    'body': 'import os, re, java.io.File\ncommand = os.environ.get(\'IBM_JAVA_COMMAND_LINE\')\nfor arg in command.split(\' -\'):\n  if re.match(\'^f\\\\s\',arg):\n    script_directory = java.io.File(arg.split()[1]).getParent()\n    execfile( script_directory + \'/common.py\')\n'
