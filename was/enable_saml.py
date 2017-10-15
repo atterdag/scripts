@@ -1,4 +1,9 @@
-execfile('common.py')
+import os, re, java.io.File
+command = os.environ.get('IBM_JAVA_COMMAND_LINE')
+for arg in command.split(' -'):
+  if re.match('^f\s',arg):
+    script_directory = java.io.File(arg.split()[1]).getParent()
+    execfile( script_directory + '/common.py')
 
 print 'adding SAML TAI'
 result = AdminTask.addSAMLTAISSO('-enable true -acsUrl https://was855ihs.dmz.example.com:443/samlsps/wps -trustStoreName SAMLKeyStore -keyStoreName SAMLKeyStore -keyAlias samlSP-certificate -keyName samlSP-certificate -keyPassword WebAS -errorPage https://adfs.example.com/adfs/ls/IdpInitiatedSignOn.aspx?loginToRp=https://was855ihs.dmz.example.com:443/samlsps/wps -idMap localRealm')

@@ -1,7 +1,12 @@
+import os, re, java.io.File
+command = os.environ.get('IBM_JAVA_COMMAND_LINE')
+for arg in command.split(' -'):
+  if re.match('^f\s',arg):
+    script_directory = java.io.File(arg.split()[1]).getParent()
+    execfile( script_directory + '/common.py')
+
 # can either be 'none', 'basic', 'extended', 'all', or 'custom'. If using 'custom', then you must define the specific counters manually in ISC.
 statisticSet = 'all'
-
-execfile('common.py')
 
 cell = AdminControl.getCell()
 managedNodeNames = AdminTask.listManagedNodes().splitlines()

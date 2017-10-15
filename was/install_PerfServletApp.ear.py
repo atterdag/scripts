@@ -1,10 +1,13 @@
-import os
+import os, re, java.io.File
+command = os.environ.get('IBM_JAVA_COMMAND_LINE')
+for arg in command.split(' -'):
+  if re.match('^f\s',arg):
+    script_directory = java.io.File(arg.split()[1]).getParent()
+    execfile( script_directory + '/common.py')
 
 realmName = "ldap.example.com:636"
 perfServletAppMonitorGroupDN = 'cn=wasmonitors,ou=groups,o=example'
 perfServletAppMonitorGroupCN = 'wasmonitors'
-
-execfile('common.py')
 
 print 'installing, and mapping application to all clusters, and web servers'
 mapModulesToServersList = []

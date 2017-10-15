@@ -1,6 +1,11 @@
-rootLogDirectory = '/var/log/was'
+import os, re, java.io.File
+command = os.environ.get('IBM_JAVA_COMMAND_LINE')
+for arg in command.split(' -'):
+  if re.match('^f\s',arg):
+    script_directory = java.io.File(arg.split()[1]).getParent()
+    execfile( script_directory + '/common.py')
 
-execfile('common.py')
+rootLogDirectory = '/var/log/was'
 
 cell = AdminControl.getCell()
 nodes = AdminTask.listNodes().splitlines()
