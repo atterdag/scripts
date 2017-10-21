@@ -1,0 +1,7 @@
+kubernetes
+confd
+sysdig
+molecule
+vagrant
+gogs
+openstack
