@@ -47,7 +47,8 @@ if [[ "$(dirname $0)" =~ ^"/net/" ]]; then
 	echo "*** OOPS! cannot run this script from network share. Instead copy it to /tmp, and run it again"
 	echo "For your convenience we have prepared the command for you:"
 	echo
-	echo "cp $0 /tmp && /tmp/$(basename $0) -i $IP_ADDRESS -f $FQDN -v $VLAN"
+	cp $0 /tmp
+  nohup /tmp/$(basename $0) -i $IP_ADDRESS -f $FQDN -v $VLAN &
 	exit 1
 fi
 
