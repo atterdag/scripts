@@ -1,18 +1,38 @@
 #!/bin/sh
 
-export http_proxy=http://cache.example.com:3128/
-export https_proxy=https://cache.example.com:3128/
-export ftp_proxy=ftp://cache.example.com:3128/
-export no_proxy=localhost,127.0.0.1,LocalAddress,example.com,example.lan
+echo '***'
+echo '*** setting up disk'
+echo '***'
+sudo pvcreate /dev/sdb
+sudo vgcreate containers /dev/sdb
+yes | sudo lvcreate --size 5G --name docker containers
+# I prefer butterfs, but Kubernetes doesn't support it
+#mkfs.btrfs /dev/containers/docker
+sudo mkfs.xfs -f /dev/containers/docker
+echo -e "/dev/mapper/containers-docker /var/lib/docker xfs defaults\t0\t0" | sudo tee -a /etc/fstab
+sudo mkdir /var/lib/docker
+sudo mount /var/lib/docker
+
+echo '***'
+echo '*** setup environment'
+echo '***'
 HOSTNAME=$(hostname -s)
 
 echo '***'
-echo '*** removing any past versions of docker'
+echo '*** adding forwarding proxy configuration to shell'
 echo '***'
-sudo apt-get --yes remove docker docker-engine docker.io docker-ce
-sudo apt-get --yes --purge autoremove
-sudo rm -fr /etc/docker \
-            /var/lib/docker/*
+cat << EOF | sudo tee /etc/profile.d/proxyenv.sh
+proxy_host="cache.example.com"
+proxy_port="3128"
+
+http_proxy="http://\${proxy_host}:\${proxy_port}";
+https_proxy="https://\${proxy_host}:\${proxy_port}";
+ftp_proxy="ftp://\${proxy_host}:\${proxy_port}";
+no_proxy=localhost,127.0.0.1,LocalAddress,example.com,example.lan
+
+export http_proxy https_proxy ftp_proxy no_proxy;
+EOF
+. /etc/profile.d/proxyenv.sh
 
 echo '***'
 echo '*** updating APT repositories'
@@ -42,7 +62,7 @@ cat << EOF | sudo tee /etc/apt/sources.list.d/docker.list
 deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
 # deb-src [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
 EOF
-   
+
 echo '***'
 echo '*** updating APT repositories'
 echo '***'
@@ -51,11 +71,11 @@ sudo apt-get update
 echo '***'
 echo '*** installing docker-ce'
 echo '***'
-#sudo apt-get -y install docker-ce
+#sudo apt-get -y install docker-ce # Kubernetes doesn't support futher than docker-ce 17.03
 sudo apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}')
 
 echo '***'
-echo '*** adding forwarding proxy configuration'
+echo '*** adding forwarding proxy configuration to docker daemon'
 echo '***'
 if [ ! -d /etc/systemd/system/docker.service.d ]; then sudo mkdir -p /etc/systemd/system/docker.service.d; fi
 cat << EOF | sudo tee /etc/systemd/system/docker.service.d/http-proxy.conf
@@ -107,12 +127,23 @@ EOF
 echo '***'
 echo '*** restarting docker daemon'
 echo '***'
+cat << EOF | sudo tee /etc/ufw/applications.d/docker
+[dockerd]
+title=Docker daemon
+description=Docker daemon TLS listening port.
+ports=2376/tcp
+EOF
+sudo ufw allow dockerd
+
+echo '***'
+echo '*** restarting docker daemon'
+echo '***'
 sudo /etc/init.d/docker restart
 
 echo '***'
 echo '*** checking that the daemon is listening on TCP using SSL'
 echo '***'
-openssl s_client -connect localhost:2376 -nocommands
+echo | openssl s_client -connect localhost:2376
 
 echo '***'
 echo '*** Add your local user to the docker group to run docker'
@@ -123,7 +154,7 @@ echo '***'
 echo '*** Configure a workstation to connect to your docker host'
 echo '***'
 if [ ! -d /etc/docker/certs ]; then sudo mkdir -p /etc/docker/certs; fi
-sudo cp /net/main/srv/common-setup/ssl/cacert.pem /etc/docker/certs/ca.pem 
+sudo cp /net/main/srv/common-setup/ssl/cacert.pem /etc/docker/certs/ca.pem
 cat << EOF | sudo tee /etc/profile.d/docker.sh
 DOCKER_CERT_PATH=/etc/docker/certs
 DOCKER_HOST=tcp://docker.example.com:2376
@@ -135,3 +166,8 @@ echo '***'
 echo '*** checking that docker works'
 echo '***'
 sudo -g docker docker run hello-world
+
+echo '***'
+echo '*** logout from user, and login again'
+echo '***'
+logout
