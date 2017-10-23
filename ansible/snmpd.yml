@@ -1,0 +1,4 @@
+---
+- hosts: debian
+  roles:
+    - snmpd

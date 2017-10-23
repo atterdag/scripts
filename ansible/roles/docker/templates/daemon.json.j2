@@ -1,0 +1,10 @@
+{
+    "iptables": true,
+    "insecure-registries": ["registry.example.com:5000"],
+    "tls": true,
+    "tlsverify": true,
+    "tlscacert": "{{ ssl_combined_ca_certificate[ansible_distribution] }}",
+    "tlscert": "{{ ssl_server.certificate.dest }}/{{ ssl_server.certificate.file }}",
+    "tlskey": "{{ ssl_server.key.dest }}/{{ ssl_server.key.file }}",
+    "debug": false
+}

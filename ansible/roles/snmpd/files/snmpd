@@ -1,0 +1,4 @@
+[snmpd]
+title=Simple Network Management Protocol
+description=The Simple Network Management Protocol (SNMP) provides a framework for the exchange of management information between agents (servers) and clients
+ports=161/udp

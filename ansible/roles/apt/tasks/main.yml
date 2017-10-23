@@ -1,0 +1,50 @@
+---
+- when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+  block:
+    - name: update sources.list
+      tags:
+        - update_debian_sources
+      become: true
+      copy:
+        src: "{{ item }}"
+        dest: /etc/apt/sources.list
+        owner: root
+        group: root
+        mode: 0644
+      with_items:
+        - "{{ sources[ansible_distribution] }}"
+      register: sourceupdate
+
+    - name: update 99proxy
+      tags:
+        - update_proxy
+      become: true
+      template:
+        src: "{{ item }}"
+        dest: /etc/apt/apt.conf.d/99proxy
+        owner: root
+        group: root
+        mode: 0644
+      with_items:
+        - "99proxy.j2"
+
+    - name: install aptitude
+      tags:
+        - install_aptitude
+      become: true
+      apt:
+        name: aptitude
+        update_cache: yes
+        autoclean: yes
+
+    - name: upgrade packages
+      tags:
+        - upgrade
+      become: true
+      apt:
+        upgrade: dist
+        update_cache: yes
+        autoremove: yes
+        autoclean: yes
+        purge: yes
+...

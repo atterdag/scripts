@@ -1,0 +1,7 @@
+---
+- hosts: docker
+  roles:
+    - roles/common
+    - roles/apt
+    - roles/docker
+...

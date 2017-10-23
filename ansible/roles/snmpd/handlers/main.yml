@@ -1,0 +1,9 @@
+---
+- name: Start SNMP Agent
+  service: name=snmpd state=started
+
+- name: Restart SNMP Agent
+  service: name=snmpd state=restarted
+
+- name: Allow SNMP Agent in UFW
+  command: /usr/sbin/ufw allow snmpd

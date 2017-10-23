@@ -1,0 +1,35 @@
+---
+- name: Create ssl-cert group
+  tags:
+    - create_group
+  become: true
+  group:
+    name: ssl-cert
+    state: present
+    system: yes
+
+- name: Copy certificates to localhost
+  tags:
+    - copy_certificates_to_localhost
+  copy:
+    dest: "{{ tmp_dir | default('/tmp') }}/{{ localhost_ssl_server.value.file }}"
+    src: "{{ ssl_certificate_path }}/{{ localhost_ssl_server.value.file }}"
+  with_dict: "{{ ssl_server }}"
+  loop_control:
+    loop_var: localhost_ssl_server
+  delegate_to: localhost
+
+- name: Copy certificates to server
+  tags:
+    - copy_certificates_to_server
+  become: true
+  copy:
+    dest: "{{ remote_ssl_server.value.dest }}/{{ remote_ssl_server.value.file }}"
+    group: "ssl-cert"
+    mode: "{{ remote_ssl_server.value.mode }}"
+    owner: "root"
+    src: "{{ tmp_dir | default('/tmp') }}/{{ remote_ssl_server.value.file }}"
+  with_dict: "{{ ssl_server }}"
+  loop_control:
+    loop_var: remote_ssl_server
+...

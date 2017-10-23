@@ -1,0 +1,26 @@
+---
+ssl_certificate_path: "/net/main/srv/common-setup/ssl"
+ssl_ca_certificate_filenames:
+  - "Example-CA.crt"
+ssl_combined_ca_certificate:
+  "Debian": "/etc/ssl/certs/ca-certificates.crt"
+  "Ubuntu": "/etc/ssl/certs/ca-certificates.crt"
+  "SLES": "/etc/ssl/ca-bundle.pem"
+ssl_custom_ca_path:
+  "Debian": "/usr/local/share/ca-certificates"
+  "Ubuntu": "/usr/local/share/ca-certificates"
+  "SLES": "/usr/share/pki/trust/anchors"
+ssl_ca_trust_update_command:
+  "Debian": "update-ca-certificates"
+  "Ubuntu": "update-ca-certificates"
+  "SLES": "update-ca-certificates"
+ssl_server:
+  certificate:
+    file: "{{ ansible_fqdn }}-cert.pem"
+    dest: "/etc/ssl"
+    mode: "0644"
+  key:
+    file: "{{ ansible_fqdn }}-key.pem"
+    dest: "/etc/ssl/private"
+    mode: "0640"
+...

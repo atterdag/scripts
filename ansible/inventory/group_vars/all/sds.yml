@@ -1,0 +1,12 @@
+---
+sds_base_dn: "o=example"
+sds_loadbalancer_fqdn: "ldap.example.com"
+sds_loadbalancer_port: "636"
+sds_loadbalancer_ssl: "true"
+sds_group_objectclass: "groupOfName"
+sds_group_member_attributetype: "member"
+sds_user_objectclass: "inetOrgPerson"
+sds_user_username_attributetype: "uid"
+sds_user_groupmembership_attributetype: "ibm-allGroups"
+sds_type: "IDS"
+...

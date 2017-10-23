@@ -1,0 +1,16 @@
+---
+- name: Adding forwarding proxy configuration to shell'
+  tags:
+    - adding_shell_proxy_env
+  become: true
+  template:
+    src: "{{ profile_enviroment_file }}"
+    dest: "/etc/profile.d/proxyenv.sh"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - "proxyenv.sh.j2"
+  loop_control:
+    loop_var: profile_enviroment_file
+...

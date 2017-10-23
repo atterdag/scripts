@@ -1,0 +1,32 @@
+---
+- name: Copy CA certificates to localhost
+  tags:
+    - copy_ca_certificates_to_localhost
+  copy:
+    dest: "{{ tmp_dir | default('/tmp') }}/{{ ssl_ca_certificate_filename }}"
+    src: "{{ ssl_certificate_path }}/{{ ssl_ca_certificate_filename }}"
+  with_items: "{{ ssl_ca_certificate_filenames }}"
+  loop_control:
+    loop_var: ssl_ca_certificate_filename
+  delegate_to: localhost
+
+- name: Copy CA certificates to server
+  tags:
+    - copy_certificates_to_server
+  become: true
+  copy:
+    dest: "{{ ssl_custom_ca_path[ansible_distribution] }}/{{ ssl_ca_certificate_filename }}"
+    group: "root"
+    mode: "0644"
+    owner: "root"
+    src: "{{ tmp_dir | default('/tmp') }}/{{ ssl_ca_certificate_filename | regex_replace('pem','crt')}}"
+  with_items: "{{ ssl_ca_certificate_filenames }}"
+  loop_control:
+    loop_var: ssl_ca_certificate_filename
+
+- name: Update list of trusted CA
+  tags:
+    - update-cas
+  become: true
+  command: "{{ ssl_ca_trust_update_command[ansible_distribution] }}"
+...

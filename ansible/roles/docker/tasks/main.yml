@@ -1,0 +1,214 @@
+---
+- name: Create containers volume group
+  tags:
+    - create_vg
+  become: true
+  lvg:
+    vg: containers
+    pvs: /dev/sdb
+
+- name: Create docker logical volume
+  tags:
+    - create_lv
+  become: true
+  lvol:
+    lv: docker
+    size: 5G
+    vg: containers
+
+- name: Create docker partition
+  tags:
+    - create_partition
+  become: true
+  filesystem:
+    dev: /dev/containers/docker
+    fstype: xfs
+
+- name: Mount docker partition
+  tags:
+    - mount_partition
+  become: true
+  mount:
+    fstype: xfs
+    opts: noatime,relatime
+    path: /var/lib/docker
+    src: /dev/mapper/containers-docker
+    state: mounted
+
+- name: Delete Docker apt repository
+  tags:
+    - delete_docker_repo
+  become: true
+  file:
+    path: '/etc/apt/sources.list.d/docker.list'
+    state: absent
+
+- name: Install required packages to manage apt keys
+  tags:
+    - install_prereq_packages
+  become: true
+  apt:
+    autoclean: true
+    autoremove: true
+    name: "{{ package }}"
+    purge: true
+    update_cache: true
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - gnupg2
+    - python-pip
+    - software-properties-common
+    - wget
+  loop_control:
+    loop_var: package
+
+- name: Download docker repository GPG key
+  tags:
+    - download_gpg_key
+  get_url:
+    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+    dest: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
+    mode: 0644
+  environment:
+    https_proxy: "http://{{ caching_proxy_fqdn }}:{{ caching_proxy_port }}"
+  delegate_to: localhost
+
+- name: Copy docker repository GPG key to server
+  tags:
+    - copy_gpg_key
+  become: true
+  copy:
+    dest: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
+    group: root
+    mode: 0644
+    owner: root
+    src: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
+
+- name: Adding docker repository GPG key
+  tags:
+    - add_apt_key
+  become: true
+  apt_key:
+    file: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
+    id: 0EBFCD88
+    state: present
+
+- name: Add Docker apt repository
+  tags:
+    - add_docker_repo
+  become: true
+  apt_repository:
+    filename: 'docker'
+    repo: "{{ repository }}"
+    state: present
+    update_cache: true
+  with_items:
+    - "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+  loop_control:
+    loop_var: repository
+
+- name: Look up full package name for specific Docker version
+  register: apt_cache
+  tags:
+    - apt_cache
+  shell: "apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}'"
+  when: docker_version is defined
+
+- name: Setting Docker package name
+  tags:
+    - set_docker_package
+  set_fact:
+    docker_package: "docker-ce={{ apt_cache.stdout }}"
+  when: docker_version is defined
+
+- name: "Installing {{ docker_package }}"
+  tags:
+    - install_docker_package
+  become: true
+  apt:
+    autoclean: true
+    name: "{{ docker_package }}"
+    state: present
+
+- name: Prevent docker-ce package to be upgraded
+  tags:
+    - apt_mark
+  become: true
+  shell: "apt-mark hold docker-ce"
+  when: docker_version is defined
+
+- name: Create dockerd systemd service directory
+  tags:
+    - create_dockerd_systemd_directory
+  become: true
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+
+- name: Configure dockerd systemd start properties'
+  tags:
+    - configure_dockerd_systemd
+  become: true
+  template:
+    src: "{{ systemd_configuration_file }}"
+    dest: "/etc/systemd/system/docker.service.d/{{ systemd_configuration_file | regex_replace('.j2') }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - "http-proxy.conf.j2"
+    - "override.conf.j2"
+  loop_control:
+    loop_var: systemd_configuration_file
+
+- name: Create dockerd daemon.json configuration file'
+  tags:
+    - configure_dockerd_systemd
+  become: true
+  template:
+    src: "{{ dockerd_configuration_file }}"
+    dest: "/etc/docker/{{ dockerd_configuration_file | regex_replace('.j2') }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - "daemon.json.j2"
+  loop_control:
+    loop_var: dockerd_configuration_file
+
+- name: Restart dockerd
+  tags:
+    - restart-dockerd
+  become: true
+  systemd:
+    daemon_reload: true
+    name: docker
+    state: restarted
+
+- name: Install docker python modules
+  tags:
+    - docker_python
+  become: true
+  pip:
+    name: docker-py
+    state: present
+  environment:
+    https_proxy: "{{ https_proxy }}"
+
+- name: "Add {{ ansible_user }} to docker group"
+  tags:
+    - add_user_to_group
+  become: true
+  user:
+    name: "{{ ansible_user }}"
+    groups: "docker"
+    append: yes
+
+- name: Test that docker can run hello-world image
+  tags:
+    - test_docker
+  docker_container:
+    image: hello-world
+    name: hello-world
+  register: docker_test

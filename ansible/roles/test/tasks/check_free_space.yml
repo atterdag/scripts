@@ -1,0 +1,29 @@
+---
+- name: check partition size
+  fail:
+    msg="{{ mount }} requires {{ required_space }} bytes available space, but only {{ ansible_partitions.size_available }} bytes is available"
+  with_items: "{{ ansible_mounts }}"
+  loop_control:
+    loop_var: ansible_partitions
+  when: "ansible_partitions.mount == mount and ansible_partitions.size_available < required_space"
+  ignore_errors: yes
+...
+# - name: check partition size
+  # # debug: msg="{{ mount }} require {{ required_space }} and {{ ansible_partitions.size_available }} is available"
+  # fail: msg="{{ mount }} requires {{ required_space }} bytes available space, but only {{ ansible_partitions.size_available }} is available"
+  # with_items: "{{ ansible_mounts }}"
+  # loop_control:
+    # loop_var: ansible_partitions
+  # when: mount == ansible_partitions.mount
+  # failed_when: required_space > ansible_partitions.size_available
+
+# - name: test for available disk space
+  # assert:
+    # that:
+      # - not {{ ansible_partitions.mount == mount and ( ansible_partitions.size_available < required_space ) }}
+    # msg: "{{ mount }} requires {{ required_space }} bytes available space, but only {{ ansible_partitions.size_available }} is available"
+  # with_items: "{{ ansible_mounts }}"
+  # loop_control:
+    # loop_var: ansible_partitions
+  # ignore_errors: yes
+  # register: disk_free

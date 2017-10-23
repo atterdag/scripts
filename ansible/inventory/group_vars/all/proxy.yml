@@ -1,0 +1,8 @@
+---
+caching_proxy_fqdn: "cache.example.com"
+caching_proxy_port: "3128"
+http_proxy: "http://{{ caching_proxy_fqdn }}:{{ caching_proxy_port }}/"
+https_proxy: "https://{{ caching_proxy_fqdn }}:{{ caching_proxy_port }}/"
+ftp_proxy: "ftp://{{ caching_proxy_fqdn }}:{{ caching_proxy_port }}/"
+no_proxy: "localhost,127.0.0.1,LocalAddress,example.com,example.lan"
+...

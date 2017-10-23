@@ -1,0 +1,5 @@
+---
+sources:
+  "Debian": "debian-sources.list"
+  "Ubuntu": "ubuntu-sources.list"
+...

@@ -1,0 +1,4 @@
+---
+- hosts: nrpe:children
+  roles:
+    - nrpe
