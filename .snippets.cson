@@ -38,3 +38,7 @@
   'Add header':
     'prefix': 'header'
     'body': 'import os, re, java.io.File\ncommand = os.environ.get(\'IBM_JAVA_COMMAND_LINE\')\nfor arg in command.split(\' -\'):\n  if re.match(\'^f\\\\s\',arg):\n    script_directory = java.io.File(arg.split()[1]).getParent()\n    execfile( script_directory + \'/common.py\')\n'
+'.source.ansible':
+  'Add new task':
+    'prefix': 'new'
+    'body': '- name: \n  tags:\n    - \n  become: true\n  '
