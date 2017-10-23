@@ -1,5 +1,5 @@
 ---
-- name: Adding forwarding proxy configuration to shell'
+- name: Adding forwarding proxy configuration to shell
   tags:
     - adding_shell_proxy_env
   become: true
