@@ -1,0 +1,9 @@
+proxy_host="{{ caching_proxy_fqdn }}"
+proxy_port="{{ caching_proxy_port }}"
+
+http_proxy="http://${proxy_host}:${proxy_port}";
+https_proxy="https://${proxy_host}:${proxy_port}";
+ftp_proxy="ftp://${proxy_host}:${proxy_port}";
+no_proxy="{{ no_proxy }},{{ ansible_default_ipv4.address }}"
+
+export http_proxy https_proxy ftp_proxy no_proxy;
