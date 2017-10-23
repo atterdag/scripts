@@ -167,15 +167,11 @@
     - configure_dockerd_systemd
   become: true
   template:
-    src: "{{ dockerd_configuration_file }}"
-    dest: "/etc/docker/{{ dockerd_configuration_file | regex_replace('.j2') }}"
+    src: "daemon.json.j2"
+    dest: "/etc/docker/daemon.json"
     owner: root
     group: root
     mode: 0644
-  with_items:
-    - "daemon.json.j2"
-  loop_control:
-    loop_var: dockerd_configuration_file
 
 - name: Restart dockerd
   tags:
