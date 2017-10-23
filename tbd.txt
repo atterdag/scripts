@@ -1,7 +1,9 @@
 kubernetes
-confd
-sysdig
-molecule
-vagrant
+confd https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
+sysdig https://www.sysdig.org/install/
+sysdig falco
+molecule https://molecule.readthedocs.io/en/latest/installation.html
+vagrant https://www.vagrantup.com/downloads.html
 gogs
 openstack
+openvswitch
