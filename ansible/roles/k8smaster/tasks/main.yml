@@ -1,0 +1,97 @@
+---
+- block:
+  - name: Check if master is already initialized
+    tags:
+      - test
+      - check_if_initialized
+    stat:
+      path: /etc/kubernetes/admin.conf
+    register: _admin_config
+
+  - block:
+    - name: Initializing master (THIS IS GOING TO TAKE A WHILE)
+      tags:
+        - test
+        - create_k8s_mastger
+      become: true
+      shell: "kubeadm init --pod-network-cidr=10.244.0.0/16"
+      register: _kubeadm_init
+
+    - name: Write kubeadm init output to file
+      tags:
+        - write_kubeadmin_init_output
+      lineinfile:
+        path: "/etc/kubernetes/kubeadm_init_output"
+        line: "{{ line }}"
+      with_items: "{{ _kubeadm_init.stdout_lines }}"
+      loop_control:
+        loop_var: line
+    when: not _admin_config.stat.exists
+
+  - name: Read kubeadm init output
+    tags:
+      - test
+    become: true
+    shell: "cat /etc/kubernetes/kubeadm_init_output"
+    register: _kubeadm_init_output
+
+  - name: Register kubeadm join command
+    tags:
+      - test
+    set_fact:
+      _kubeadm_join: "{{ line | regex_replace ('^.\\s')}}"
+    with_items: "{{ _kubeadm_init_output.stdout_lines }}"
+    loop_control:
+      loop_var: line
+    when: line | regex_search('kubeadm join')
+
+  - name: "Create user's kubernetes configuration directory"
+    tags:
+      - create_user_kube_dir
+    file:
+      path: "{{ ansible_user_dir }}/.kube"
+      state: directory
+
+  - name: Copy admin.conf to user configuration directory
+    tags:
+      - copy_admin_conf
+    become: true
+    shell: "cp -f /etc/kubernetes/admin.conf {{ ansible_user_dir }}/.kube/config"
+
+  - name: Change permissions of user configuration file
+    tags:
+      - change_permissions_of_user_conf
+    become: true
+    file:
+      path: "{{ ansible_user_dir }}/.kube/config"
+      owner: "{{ ansible_user_id }}"
+      group: "{{ ansible_real_group_id }}"
+      mode: "0640"
+
+  - name: Add KUBECONFIG to .profile
+    tags:
+      - add_kubeconfig_to_profile
+    lineinfile:
+      path: "{{ ansible_user_dir }}/.profile"
+      line: "export KUBECONFIG=$HOME/.kube/config"
+      state: present
+
+  - name: Install Romana Layer 3 networking solution for pod networks
+    tags:
+      - install_k8s_network
+    shell: "kubectl apply -f https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml"
+  when: k8s_type == "master"
+# echo '***'
+# echo '*** install heapster monitoring'
+# echo '***'
+# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/influxdb.yaml
+# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/heapster.yaml
+# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/grafana.yaml
+#
+# echo '***'
+# echo '*** install kubernetes dashboard'
+# echo '***'
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+# kubectl proxy
+
+...

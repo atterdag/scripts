@@ -115,10 +115,12 @@
   tags:
     - bash_completion
   become: true
-  shell: "{{ command }} completion bash | sudo tee /etc/bash_completion.d/{{ command }}"
+  shell: "{{ command }} completion bash > /etc/bash_completion.d/{{ command }}"
   with_items:
     - "kubectl"
     - "kubeadm"
+  loop_control:
+    loop_var: command
 
 - name: Disable UFW firewall
   tags:

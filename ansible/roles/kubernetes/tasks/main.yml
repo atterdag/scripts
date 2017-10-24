@@ -1,7 +1,0 @@
----
-- include: common.yml
-- include: master.yml
-  when: k8s_type == "master"
-- include: worker.yml
-  when: k8s_type == "worker"
-...
