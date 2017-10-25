@@ -89,6 +89,5 @@
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
-      no_proxy: "{{ no_proxy }}"
+      no_proxy: "{{ no_proxy }},{{ ansible_default_ipv4.address }}"
   when: k8s_type == "master"
-
