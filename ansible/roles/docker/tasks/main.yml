@@ -224,8 +224,6 @@
   tags:
     - test_docker
   become: yes
-  become_user: "{{ ansible_user }}"
   docker_container:
     image: hello-world
     name: hello-world
-
