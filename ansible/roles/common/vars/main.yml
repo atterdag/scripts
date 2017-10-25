@@ -9,4 +9,3 @@ monitoring_packages:
   - sysstat
   - sysdig
   - sysdig-dkms
-
