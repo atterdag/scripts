@@ -1,5 +1,5 @@
 ---
-- name: install ufw
+- name: Install ufw
   tags:
     - install_ufw
   become: yes
@@ -15,4 +15,3 @@
   ufw:
     name: OpenSSH
     state: enabled
-
