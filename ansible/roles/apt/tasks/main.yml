@@ -4,7 +4,7 @@
     - name: update sources.list
       tags:
         - update_debian_sources
-      become: true
+      become: yes
       copy:
         src: "{{ item }}"
         dest: /etc/apt/sources.list
@@ -18,7 +18,7 @@
     - name: update 99proxy
       tags:
         - update_proxy
-      become: true
+      become: yes
       template:
         src: "{{ item }}"
         dest: /etc/apt/apt.conf.d/99proxy
@@ -31,7 +31,7 @@
     - name: install aptitude
       tags:
         - install_aptitude
-      become: true
+      become: yes
       apt:
         name: aptitude
         update_cache: yes
@@ -40,11 +40,11 @@
     - name: upgrade packages
       tags:
         - upgrade
-      become: true
+      become: yes
       apt:
         upgrade: dist
         update_cache: yes
         autoremove: yes
         autoclean: yes
         purge: yes
-...
+

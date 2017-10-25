@@ -41,4 +41,4 @@
 '.source.ansible':
   'Add new task':
     'prefix': 'new'
-    'body': '- name: \n  tags:\n    - \n  become: true\n  '
+    'body': '- name: \n  tags:\n    - \n  become: yes\n  '

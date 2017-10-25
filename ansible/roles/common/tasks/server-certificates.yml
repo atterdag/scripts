@@ -2,7 +2,7 @@
 - name: Create ssl-cert group
   tags:
     - create_group
-  become: true
+  become: yes
   group:
     name: ssl-cert
     state: present
@@ -22,7 +22,7 @@
 - name: Copy certificates to server
   tags:
     - copy_certificates_to_server
-  become: true
+  become: yes
   copy:
     dest: "{{ remote_ssl_server.value.dest }}/{{ remote_ssl_server.value.file }}"
     group: "ssl-cert"
@@ -32,4 +32,4 @@
   with_dict: "{{ ssl_server }}"
   loop_control:
     loop_var: remote_ssl_server
-...
+

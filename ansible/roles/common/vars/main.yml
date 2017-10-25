@@ -1,0 +1,12 @@
+---
+typical_packages:
+  - mc
+  - gpm
+  - autofs
+monitoring_packages:
+  - procinfo
+  - nmon
+  - sysstat
+  - sysdig
+  - sysdig-dkms
+

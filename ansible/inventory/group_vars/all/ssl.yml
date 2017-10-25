@@ -23,4 +23,4 @@ ssl_server:
     file: "{{ ansible_fqdn }}-key.pem"
     dest: "/etc/ssl/private"
     mode: "0640"
-...
+

@@ -7,7 +7,7 @@
     loop_var: ansible_partitions
   when: "ansible_partitions.mount == mount and ansible_partitions.size_available < required_space"
   ignore_errors: yes
-...
+
 # - name: check partition size
   # # debug: msg="{{ mount }} require {{ required_space }} and {{ ansible_partitions.size_available }} is available"
   # fail: msg="{{ mount }} requires {{ required_space }} bytes available space, but only {{ ansible_partitions.size_available }} is available"

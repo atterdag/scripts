@@ -1,0 +1,12 @@
+# echo '***'
+# echo '*** install heapster monitoring'
+# echo '***'
+# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/influxdb.yaml
+# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/heapster.yaml
+# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/grafana.yaml
+#
+# echo '***'
+# echo '*** install kubernetes dashboard'
+# echo '***'
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+# kubectl proxy

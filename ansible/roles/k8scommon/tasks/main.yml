@@ -2,7 +2,7 @@
 - name: Create kubelet logical volume
   tags:
     - create_lv
-  become: true
+  become: yes
   lvol:
     lv: kubelet
     size: 5G
@@ -11,7 +11,7 @@
 - name: Create kubelet partition
   tags:
     - create_partition
-  become: true
+  become: yes
   filesystem:
     dev: /dev/containers/kubelet
     fstype: xfs
@@ -19,7 +19,7 @@
 - name: Mount kubelet partition
   tags:
     - mount_partition
-  become: true
+  become: yes
   mount:
     fstype: xfs
     opts: noatime,relatime
@@ -30,7 +30,7 @@
 - name: Updating forwarding proxy configuration to shell
   tags:
     - update_shell_proxy_env
-  become: true
+  become: yes
   template:
     src:  "proxyenv.sh.j2"
     dest: "/etc/profile.d/proxyenv.sh"
@@ -41,7 +41,7 @@
 - name: Updating forwarding proxy configuration to docker daemon
   tags:
     - dockerd_proxy_environment
-  become: true
+  become: yes
   template:
     src: http-proxy.conf.j2
     dest: "/etc/systemd/system/docker.service.d/http-proxy.conf"
@@ -52,13 +52,13 @@
 - name: Disabling swap
   tags:
     - disable_swap
-  become: true
+  become: yes
   shell: "swapoff -a"
 
 - name: Remove swap entry from fstab
   tags:
     - remove_swap_mount
-  become: true
+  become: yes
   mount:
     fstype: swap
     path: none
@@ -68,7 +68,7 @@
 - name: Remove swap LV
   tags:
     - remove_swap_lv
-  become: true
+  become: yes
   lvol:
     lv: swap
     vg: system
@@ -78,7 +78,7 @@
 - name: Adding Google Cloud Packages repository GPG key
   tags:
     - add_apt_key
-  become: true
+  become: yes
   apt_key:
     url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
     id: A7317B0F
@@ -89,7 +89,7 @@
 - name: Add kubernetes apt repository
   tags:
     - add_kubernetes_repo
-  become: true
+  become: yes
   apt_repository:
     filename: 'kubernetes'
     repo: "deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main"
@@ -99,7 +99,7 @@
 - name: "Installing kubernetes"
   tags:
     - install_kubernetes_packages
-  become: true
+  become: yes
   apt:
     autoclean: true
     name: "{{ package }}"
@@ -114,7 +114,7 @@
 - name: "Adding bash completion scripts for kubeadm, and kubectl"
   tags:
     - bash_completion
-  become: true
+  become: yes
   shell: "{{ command }} completion bash > /etc/bash_completion.d/{{ command }}"
   with_items:
     - "kubectl"
@@ -125,6 +125,7 @@
 - name: Disable UFW firewall
   tags:
     - disable_ufw
-  become: true
+  become: yes
   ufw:
     state: disabled
+

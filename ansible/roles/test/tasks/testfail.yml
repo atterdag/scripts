@@ -4,4 +4,4 @@
     msg="{{ mount }} requires {{ required_space }} bytes available space, but only {{ ansible_size }} bytes is available"
   when: "ansible_mount == mount and ansible_size < required_space"
   ignore_errors: yes
-...
+

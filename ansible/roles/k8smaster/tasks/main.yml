@@ -13,14 +13,20 @@
       tags:
         - test
         - create_k8s_mastger
-      become: true
+      become: yes
       shell: "kubeadm init --pod-network-cidr=10.244.0.0/16"
       register: _kubeadm_init
+      environment:
+        http_proxy: "{{ http_proxy }}"
+        https_proxy: "{{ https_proxy }}"
+        no_proxy: "{{ no_proxy }},{{ ansible_default_ipv4.address }}"
 
     - name: Write kubeadm init output to file
       tags:
         - write_kubeadmin_init_output
+      become: yes
       lineinfile:
+        create: yes
         path: "/etc/kubernetes/kubeadm_init_output"
         line: "{{ line }}"
       with_items: "{{ _kubeadm_init.stdout_lines }}"
@@ -31,7 +37,7 @@
   - name: Read kubeadm init output
     tags:
       - test
-    become: true
+    become: yes
     shell: "cat /etc/kubernetes/kubeadm_init_output"
     register: _kubeadm_init_output
 
@@ -55,13 +61,13 @@
   - name: Copy admin.conf to user configuration directory
     tags:
       - copy_admin_conf
-    become: true
+    become: yes
     shell: "cp -f /etc/kubernetes/admin.conf {{ ansible_user_dir }}/.kube/config"
 
   - name: Change permissions of user configuration file
     tags:
       - change_permissions_of_user_conf
-    become: true
+    become: yes
     file:
       path: "{{ ansible_user_dir }}/.kube/config"
       owner: "{{ ansible_user_id }}"
@@ -80,18 +86,9 @@
     tags:
       - install_k8s_network
     shell: "kubectl apply -f https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml"
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ https_proxy }}"
+      no_proxy: "{{ no_proxy }}"
   when: k8s_type == "master"
-# echo '***'
-# echo '*** install heapster monitoring'
-# echo '***'
-# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/influxdb.yaml
-# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/heapster.yaml
-# kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/grafana.yaml
-#
-# echo '***'
-# echo '*** install kubernetes dashboard'
-# echo '***'
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
-# kubectl proxy
 
-...

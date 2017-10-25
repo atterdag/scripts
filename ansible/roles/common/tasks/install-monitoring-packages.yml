@@ -1,0 +1,41 @@
+---
+- name: Install monitoring packages
+  tags:
+    - install-monitoring-packages
+  become: yes
+  apt:
+    name: "{{ _package }}"
+    update_cache: yes
+    autoclean: yes
+  with_items:
+    - "{{ monitoring_packages }}"
+  loop_control:
+    loop_var: _package
+
+- name: Enable system activity report (sar)
+  tags:
+    - enable-sar
+  become: yes
+  lineinfile:
+    path: /etc/default/sysstat
+    regexp: '^ENABLED='
+    line: 'ENABLED="true"'
+
+- name: Restart system activity report (sar)
+  tags:
+    - restart-sar
+  become: yes
+  service:
+    name: sysstat
+    state: started
+
+- name: Set default NMON monitoring views
+  tags:
+    - conf-nmon
+  become: yes
+  copy:
+    src: nmon.sh
+    dest: /etc/profile.d/nmon.sh
+    owner: root
+    group: root
+    mode: 0644

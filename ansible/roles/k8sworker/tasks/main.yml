@@ -11,4 +11,4 @@
 # echo '*** run it on this node as root'
 # echo '***'
 # sudo $(ssh -q k8smaster-1 "grep 'kubeadm join --token' /etc/kubernetes/kubeadm_init_output")
-...
+

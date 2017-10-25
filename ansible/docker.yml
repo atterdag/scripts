@@ -4,4 +4,4 @@
     - roles/common
     - roles/apt
     - roles/docker
-...
+

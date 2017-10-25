@@ -2,7 +2,7 @@
 - name: Create containers volume group
   tags:
     - create_vg
-  become: true
+  become: yes
   lvg:
     vg: containers
     pvs: /dev/sdb
@@ -10,7 +10,7 @@
 - name: Create docker logical volume
   tags:
     - create_lv
-  become: true
+  become: yes
   lvol:
     lv: docker
     size: 5G
@@ -19,7 +19,7 @@
 - name: Create docker partition
   tags:
     - create_partition
-  become: true
+  become: yes
   filesystem:
     dev: /dev/containers/docker
     fstype: xfs
@@ -27,7 +27,7 @@
 - name: Mount docker partition
   tags:
     - mount_partition
-  become: true
+  become: yes
   mount:
     fstype: xfs
     opts: noatime,relatime
@@ -38,7 +38,7 @@
 - name: Delete Docker apt repository
   tags:
     - delete_docker_repo
-  become: true
+  become: yes
   file:
     path: '/etc/apt/sources.list.d/docker.list'
     state: absent
@@ -46,7 +46,7 @@
 - name: Install required packages to manage apt keys
   tags:
     - install_prereq_packages
-  become: true
+  become: yes
   apt:
     autoclean: true
     autoremove: true
@@ -77,7 +77,7 @@
 - name: Copy docker repository GPG key to server
   tags:
     - copy_gpg_key
-  become: true
+  become: yes
   copy:
     dest: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
     group: root
@@ -88,7 +88,7 @@
 - name: Adding docker repository GPG key
   tags:
     - add_apt_key
-  become: true
+  become: yes
   apt_key:
     file: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
     id: 0EBFCD88
@@ -97,7 +97,7 @@
 - name: Add Docker apt repository
   tags:
     - add_docker_repo
-  become: true
+  become: yes
   apt_repository:
     filename: 'docker'
     repo: "{{ repository }}"
@@ -125,7 +125,7 @@
 - name: "Installing {{ docker_package }}"
   tags:
     - install_docker_package
-  become: true
+  become: yes
   apt:
     autoclean: true
     name: "{{ docker_package }}"
@@ -134,14 +134,33 @@
 - name: Prevent docker-ce package to be upgraded
   tags:
     - apt_mark
-  become: true
+  become: yes
   shell: "apt-mark hold docker-ce"
   when: docker_version is defined
+
+- name: Copy Docker UFW application rule
+  tags:
+    - ufw-docker-rule-file
+  become: yes
+  copy:
+    src: docker.ufw
+    dest: /etc/ufw/applications.d/docker
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Enable dockerd application in UFW
+  tags:
+    - allow-docker-ufw
+  become: yes
+  ufw:
+    name: dockerd
+    state: enabled
 
 - name: Create dockerd systemd service directory
   tags:
     - create_dockerd_systemd_directory
-  become: true
+  become: yes
   file:
     path: /etc/systemd/system/docker.service.d
     state: directory
@@ -149,7 +168,7 @@
 - name: Configure dockerd systemd start properties'
   tags:
     - configure_dockerd_systemd
-  become: true
+  become: yes
   template:
     src: "{{ systemd_configuration_file }}"
     dest: "/etc/systemd/system/docker.service.d/{{ systemd_configuration_file | regex_replace('.j2') }}"
@@ -165,7 +184,7 @@
 - name: Create dockerd daemon.json configuration file'
   tags:
     - configure_dockerd_systemd
-  become: true
+  become: yes
   template:
     src: "daemon.json.j2"
     dest: "/etc/docker/daemon.json"
@@ -176,7 +195,7 @@
 - name: Restart dockerd
   tags:
     - restart-dockerd
-  become: true
+  become: yes
   systemd:
     daemon_reload: true
     name: docker
@@ -185,7 +204,7 @@
 - name: Install docker python modules
   tags:
     - docker_python
-  become: true
+  become: yes
   pip:
     name: docker-py
     state: present
@@ -195,7 +214,7 @@
 - name: "Add {{ ansible_user }} to docker group"
   tags:
     - add_user_to_group
-  become: true
+  become: yes
   user:
     name: "{{ ansible_user }}"
     groups: "docker"
@@ -204,7 +223,9 @@
 - name: Test that docker can run hello-world image
   tags:
     - test_docker
+  become: yes
+  become_user: "{{ ansible_user }}"
   docker_container:
     image: hello-world
     name: hello-world
-  register: docker_test
+

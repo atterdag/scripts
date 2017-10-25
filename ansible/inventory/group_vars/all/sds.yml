@@ -9,4 +9,4 @@ sds_user_objectclass: "inetOrgPerson"
 sds_user_username_attributetype: "uid"
 sds_user_groupmembership_attributetype: "ibm-allGroups"
 sds_type: "IDS"
-...
+

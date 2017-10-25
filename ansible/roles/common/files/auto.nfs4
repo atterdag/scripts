@@ -1,0 +1,2 @@
+main    -fstype=nfs4    main:/
+files   -fstype=nfs4    files:/

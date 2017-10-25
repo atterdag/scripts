@@ -13,7 +13,7 @@
 - name: Copy CA certificates to server
   tags:
     - copy_certificates_to_server
-  become: true
+  become: yes
   copy:
     dest: "{{ ssl_custom_ca_path[ansible_distribution] }}/{{ ssl_ca_certificate_filename }}"
     group: "root"
@@ -27,6 +27,6 @@
 - name: Update list of trusted CA
   tags:
     - update-cas
-  become: true
+  become: yes
   command: "{{ ssl_ca_trust_update_command[ansible_distribution] }}"
-...
+
