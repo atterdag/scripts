@@ -1,9 +1,10 @@
-kubernetes
+kubernetes https://kubernetes.io/docs/setup/independent/install-kubeadm/
 confd https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
 sysdig https://www.sysdig.org/install/
-sysdig falco
+sysdig falco https://www.sysdig.org/falco/
+sysdig inspect https://github.com/draios/sysdig-inspect
 molecule https://molecule.readthedocs.io/en/latest/installation.html
 vagrant https://www.vagrantup.com/downloads.html
-gogs
-openstack
-openvswitch
+gogs https://github.com/gogits/gogs
+openstack https://www.openstack.org/software/start/
+openvswitch http://docs.openvswitch.org/en/latest/
