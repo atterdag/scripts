@@ -23,7 +23,7 @@
     group: root
     mode: 0755
 
-- name: Configure automount
+- name: Configure NFS4 automount entries
   tags:
     - conf-autofs
   become: yes
