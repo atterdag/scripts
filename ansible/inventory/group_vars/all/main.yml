@@ -1,4 +1,7 @@
 ---
 tmp_dir: "/tmp"
 domain_name: "example.com"
-
+domain_search_list: "{{ domain_name }} example.lan"
+domain_servers:
+  - 172.16.226.20
+  - 172.16.227.20
