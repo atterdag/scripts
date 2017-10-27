@@ -1,30 +1,38 @@
 ---
-- name: Create kubelet logical volume
+- name: "Create {{ volume_group_name }} volume group"
+  tags:
+    - create_vg
+  become: yes
+  lvg:
+    vg: "{{ volume_group_name }}"
+    pvs: "{{ physical_volumes_devices }}"
+
+- name: "Create {{ logical_volume_name }} logical volume"
   tags:
     - create_lv
   become: yes
   lvol:
-    lv: kubelet
-    size: 5G
-    vg: containers
+    lv: "{{ logical_volume_name }}"
+    size: "{{ logical_volume_size }}"
+    vg: "{{ volume_group_name }}"
 
-- name: Create kubelet partition
+- name: "Create {{ filesystem_type }} on /dev/{{ volume_group_name }}/{{ logical_volume_name }}"
   tags:
     - create_partition
   become: yes
   filesystem:
-    dev: /dev/containers/kubelet
-    fstype: xfs
+    dev: "/dev/{{ volume_group_name }}/{{ logical_volume_name }}"
+    fstype: "{{ filesystem_type }}"
 
-- name: Mount kubelet partition
+- name: "Mount /dev/mapper/{{ volume_group_name }}-{{ logical_volume_name }} {{ mount_point }}"
   tags:
     - mount_partition
   become: yes
   mount:
-    fstype: xfs
-    opts: noatime,relatime
-    path: /var/lib/kubelet
-    src: /dev/mapper/containers-kubelet
+    fstype: "{{ filesystem_type }}"
+    opts: "{{ filesystem_options }}"
+    path: "{{ mount_point }}"
+    src: "/dev/mapper/{{ volume_group_name }}-{{ logical_volume_name }}"
     state: mounted
 
 - name: Updating forwarding proxy configuration to shell
@@ -32,8 +40,8 @@
     - update_shell_proxy_env
   become: yes
   template:
-    src:  "proxyenv.sh.j2"
-    dest: "/etc/profile.d/proxyenv.sh"
+    src:  "{{ profile_proxyenv_file }}"
+    dest: "{{ profile_proxyenv_fqp }}"
     owner: root
     group: root
     mode: 0644
@@ -62,7 +70,7 @@
   mount:
     fstype: swap
     path: none
-    src: /dev/mapper/system-swap
+    src: /dev/mapper/{{ swap_vg }}-{{ swap_lv }}
     state: absent
 
 - name: Remove swap LV
@@ -70,8 +78,8 @@
     - remove_swap_lv
   become: yes
   lvol:
-    lv: swap
-    vg: system
+    lv: "{{ swap_lv }}"
+    vg: "{{ swap_vg }}"
     force: yes
     state: absent
 
@@ -80,8 +88,8 @@
     - add_apt_key
   become: yes
   apt_key:
-    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
-    id: A7317B0F
+    url: "{{ k8s_repository_gpg_url }}"
+    id: "{{ k8s_repository_gqg_id }}"
     state: present
   environment:
     https_proxy: "{{ http_proxy }}"
@@ -91,10 +99,15 @@
     - add_kubernetes_repo
   become: yes
   apt_repository:
-    filename: 'kubernetes'
-    repo: "deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main"
+    filename: "{{ k8s_repository_file }}"
+    repo: "{{ _repository }}"
     state: present
     update_cache: true
+  with_items:
+    - "{{ k8s_repositories }}"
+  loop_control:
+    loop_var: _repository
+
 
 - name: "Installing kubernetes"
   tags:
@@ -102,25 +115,25 @@
   become: yes
   apt:
     autoclean: true
-    name: "{{ package }}"
+    name: "{{ _package }}"
     state: present
   with_items:
     - "kubeadm"
     - "kubectl"
     - "kubelet"
   loop_control:
-    loop_var: package
+    loop_var: _package
 
 - name: "Adding bash completion scripts for kubeadm, and kubectl"
   tags:
     - bash_completion
   become: yes
-  shell: "{{ command }} completion bash > /etc/bash_completion.d/{{ command }}"
+  shell: "{{ _command }} completion bash > /etc/bash_completion.d/{{ _command }}"
   with_items:
     - "kubectl"
     - "kubeadm"
   loop_control:
-    loop_var: command
+    loop_var: _command
 
 - name: Disable UFW firewall
   tags:
@@ -128,4 +141,3 @@
   become: yes
   ufw:
     state: disabled
-

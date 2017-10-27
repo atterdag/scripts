@@ -1,125 +1,77 @@
 ---
-- name: Create containers volume group
+- name: "Create {{ volume_group_name }} volume group"
   tags:
     - create_vg
   become: yes
   lvg:
-    vg: containers
-    pvs: /dev/sdb
+    vg: "{{ volume_group_name }}"
+    pvs: "{{ physical_volumes_devices }}"
 
-- name: Create docker logical volume
+- name: "Create {{ logical_volume_name }} logical volume"
   tags:
     - create_lv
   become: yes
   lvol:
-    lv: docker
-    size: 5G
-    vg: containers
+    lv: "{{ logical_volume_name }}"
+    size: "{{ logical_volume_size }}"
+    vg: "{{ volume_group_name }}"
 
-- name: Create docker partition
+- name: "Create {{ filesystem_type }} on /dev/{{ volume_group_name }}/{{ logical_volume_name }}"
   tags:
     - create_partition
   become: yes
   filesystem:
-    dev: /dev/containers/docker
-    fstype: xfs
+    dev: "/dev/{{ volume_group_name }}/{{ logical_volume_name }}"
+    fstype: "{{ filesystem_type }}"
 
-- name: Mount docker partition
+- name: "Mount /dev/mapper/{{ volume_group_name }}-{{ logical_volume_name }} {{ mount_point }}"
   tags:
     - mount_partition
   become: yes
   mount:
-    fstype: xfs
-    opts: noatime,relatime
-    path: /var/lib/docker
-    src: /dev/mapper/containers-docker
+    fstype: "{{ filesystem_type }}"
+    opts: "{{ filesystem_options }}"
+    path: "{{ mount_point }}"
+    src: "/dev/mapper/{{ volume_group_name }}-{{ logical_volume_name }}"
     state: mounted
 
-- name: Delete Docker apt repository
-  tags:
-    - delete_docker_repo
-  become: yes
-  file:
-    path: '/etc/apt/sources.list.d/docker.list'
-    state: absent
-
-- name: Install required packages to manage apt keys
-  tags:
-    - install_prereq_packages
-  become: yes
-  apt:
-    autoclean: true
-    autoremove: true
-    name: "{{ package }}"
-    purge: true
-    update_cache: true
-  with_items:
-    - apt-transport-https
-    - ca-certificates
-    - gnupg2
-    - python-pip
-    - software-properties-common
-    - wget
-  loop_control:
-    loop_var: package
-
-- name: Download docker repository GPG key
-  tags:
-    - download_gpg_key
-  get_url:
-    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
-    dest: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
-    mode: 0644
-  environment:
-    https_proxy: "http://{{ caching_proxy_fqdn }}:{{ caching_proxy_port }}"
-  delegate_to: localhost
-
-- name: Copy docker repository GPG key to server
-  tags:
-    - copy_gpg_key
-  become: yes
-  copy:
-    dest: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
-    group: root
-    mode: 0644
-    owner: root
-    src: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
-
-- name: Adding docker repository GPG key
+- name: Adding Docker repository GPG key
   tags:
     - add_apt_key
   become: yes
   apt_key:
-    file: "{{ tmp_dir | default('/tmp') }}/{{ ansible_distribution | lower }}-docker.gpg"
-    id: 0EBFCD88
+    url: "{{ docker_repository_gpg_url }}"
+    id: "{{ docker_repository_gqg_id }}"
     state: present
+  environment:
+    https_proxy: "{{ http_proxy }}"
 
 - name: Add Docker apt repository
   tags:
     - add_docker_repo
   become: yes
   apt_repository:
-    filename: 'docker'
+    filename: "{{ docker_repository_file | regex_replace ('.list') }}"
     repo: "{{ repository }}"
     state: present
     update_cache: true
   with_items:
-    - "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    - "{{ docker_repositories }}"
   loop_control:
     loop_var: repository
 
-- name: Look up full package name for specific Docker version
-  register: apt_cache
+- name: "Look up full package name for Docker version {{ docker_version }}"
+  register: _apt_cache
   tags:
     - apt_cache
-  shell: "apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}'"
+  shell: "apt-cache madison docker-ce | grep {{ docker_version }} | head -1 | awk '{print $3}'"
   when: docker_version is defined
 
 - name: Setting Docker package name
   tags:
     - set_docker_package
   set_fact:
-    docker_package: "docker-ce={{ apt_cache.stdout }}"
+    docker_package: "docker-ce={{ _apt_cache.stdout }}"
   when: docker_version is defined
 
 - name: "Installing {{ docker_package }}"
@@ -143,8 +95,8 @@
     - ufw-docker-rule-file
   become: yes
   copy:
-    src: docker.ufw
-    dest: /etc/ufw/applications.d/docker
+    src: "{{ docker_ufw_application_file }}"
+    dest: "{{ docker_ufw_application_fqp }}"
     owner: root
     group: root
     mode: 0644
@@ -170,8 +122,8 @@
     - configure_dockerd_systemd
   become: yes
   template:
-    src: "{{ systemd_configuration_file }}"
-    dest: "/etc/systemd/system/docker.service.d/{{ systemd_configuration_file | regex_replace('.j2') }}"
+    src: "{{ _systemd_configuration_file }}"
+    dest: "/etc/systemd/system/docker.service.d/{{ _systemd_configuration_file | regex_replace('.j2') }}"
     owner: root
     group: root
     mode: 0644
@@ -179,7 +131,7 @@
     - "http-proxy.conf.j2"
     - "override.conf.j2"
   loop_control:
-    loop_var: systemd_configuration_file
+    loop_var: _systemd_configuration_file
 
 - name: Create dockerd daemon.json configuration file'
   tags:
@@ -227,3 +179,5 @@
   docker_container:
     image: hello-world
     name: hello-world
+
+# add task to delete hello-world

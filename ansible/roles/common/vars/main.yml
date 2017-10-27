@@ -1,12 +1,20 @@
 ---
 typical_packages:
-  - mc
-  - gpm
   - autofs
+  - apt-transport-https
+  - ca-certificates
+  - gnupg2
+  - gpm
+  - mc
+  - python-pip
+  - software-properties-common
+  - wget
 monitoring_packages:
-  - procinfo
   - nmon
-  - sysstat
+  - procinfo
   - sysdig
   - sysdig-dkms
+  - sysstat
   - testssl.sh
+  profile_proxyenv_file: "proxyenv.sh.j2"
+  profile_proxyenv_fqp: "/etc/profile.d/{{ profile_proxyenv_file | regex_replace ('.j2')}}"

@@ -1,0 +1,4 @@
+---
+kubeadm_init_output_fqp: "/etc/kubernetes/kubeadm_init_output"
+k8s_network_solution_name: "Romana Layer 3"
+k8s_network_solution_url: "https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml"

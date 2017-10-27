@@ -4,13 +4,8 @@
     - adding_shell_proxy_env
   become: yes
   template:
-    src: "{{ profile_enviroment_file }}"
-    dest: "/etc/profile.d/proxyenv.sh"
+    src:  "{{ profile_proxyenv_file }}"
+    dest: "{{ profile_proxyenv_fqp }}"
     owner: root
     group: root
     mode: 0644
-  with_items:
-    - "proxyenv.sh.j2"
-  loop_control:
-    loop_var: profile_enviroment_file
-

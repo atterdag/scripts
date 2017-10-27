@@ -4,5 +4,4 @@ caching_proxy_port: "3128"
 http_proxy: "http://{{ caching_proxy_fqdn }}:{{ caching_proxy_port }}/"
 https_proxy: "https://{{ caching_proxy_fqdn }}:{{ caching_proxy_port }}/"
 ftp_proxy: "ftp://{{ caching_proxy_fqdn }}:{{ caching_proxy_port }}/"
-no_proxy: "localhost,127.0.0.1,LocalAddress,example.com,example.lan"
-
+no_proxy: "localhost,127.0.0.1,LocalAddress,{{ domain_search_list | regex_replace(' ',',') }}"

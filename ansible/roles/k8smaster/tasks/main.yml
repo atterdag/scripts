@@ -27,7 +27,7 @@
       become: yes
       lineinfile:
         create: yes
-        path: "/etc/kubernetes/kubeadm_init_output"
+        path: "{{ kubeadm_init_output_fqp }}"
         line: "{{ line }}"
       with_items: "{{ _kubeadm_init.stdout_lines }}"
       loop_control:
@@ -38,14 +38,14 @@
     tags:
       - test
     become: yes
-    shell: "cat /etc/kubernetes/kubeadm_init_output"
+    shell: "cat {{ kubeadm_init_output_fqp }}"
     register: _kubeadm_init_output
 
   - name: Register kubeadm join command
     tags:
       - test
     set_fact:
-      _kubeadm_join: "{{ line | regex_replace ('^.\\s')}}"
+      kubeadm_join: "{{ line | regex_replace ('^.\\s')}}"
     with_items: "{{ _kubeadm_init_output.stdout_lines }}"
     loop_control:
       loop_var: line
@@ -82,10 +82,10 @@
       line: "export KUBECONFIG=$HOME/.kube/config"
       state: present
 
-  - name: Install Romana Layer 3 networking solution for pod networks
+  - name: "Install {{ k8s_network_solution_name }} networking solution for pod networks"
     tags:
       - install_k8s_network
-    shell: "kubectl apply -f https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml"
+    shell: "kubectl apply -f {{ k8s_network_solution_url }}"
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
