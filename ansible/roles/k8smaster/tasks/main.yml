@@ -14,7 +14,7 @@
         - test
         - create_k8s_mastger
       become: yes
-      shell: "kubeadm init --pod-network-cidr=10.244.0.0/16"
+      command: "kubeadm init --pod-network-cidr=10.244.0.0/16"
       register: _kubeadm_init
       environment:
         http_proxy: "{{ http_proxy }}"
@@ -38,7 +38,7 @@
     tags:
       - test
     become: yes
-    shell: "cat {{ kubeadm_init_output_fqp }}"
+    command: "cat {{ kubeadm_init_output_fqp }}"
     register: _kubeadm_init_output
 
   - name: Register kubeadm join command
@@ -62,7 +62,7 @@
     tags:
       - copy_admin_conf
     become: yes
-    shell: "cp -f /etc/kubernetes/admin.conf {{ ansible_user_dir }}/.kube/config"
+    command: "cp -f /etc/kubernetes/admin.conf {{ ansible_user_dir }}/.kube/config"
 
   - name: Change permissions of user configuration file
     tags:

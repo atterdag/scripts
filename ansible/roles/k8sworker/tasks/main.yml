@@ -10,4 +10,4 @@
   tags:
     - join_kubernetes_cluster
   become: yes
-  shell: "{{ kubeadm_join }}"
+  command: "{{ kubeadm_join }}"

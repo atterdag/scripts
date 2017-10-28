@@ -61,7 +61,7 @@
   tags:
     - disable_swap
   become: yes
-  shell: "swapoff -a"
+  command: "swapoff -a"
 
 - name: Remove swap entry from fstab
   tags:

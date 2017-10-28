@@ -87,7 +87,7 @@
   tags:
     - apt_mark
   become: yes
-  shell: "apt-mark hold docker-ce"
+  command: "apt-mark hold docker-ce"
   when: docker_version is defined
 
 - name: Copy Docker UFW application rule
