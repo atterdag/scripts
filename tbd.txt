@@ -4,10 +4,7 @@ create roles ansible roles for:
   gogs https://github.com/gogits/gogs
 
 incoperate into ansible roles:
-  molecule https://molecule.readthedocs.io/en/latest/installation.html
-  vagrant https://www.vagrantup.com/downloads.html
   hashicorp vault
-  openstack https://www.openstack.org/software/start/
   testssl.sh - https://testssl.sh/
   suricata - https://suricata-ids.org/docs/
   sysdig https://www.sysdig.org/install/
@@ -15,6 +12,13 @@ incoperate into ansible roles:
   sysdig inspect https://github.com/draios/sysdig-inspect
 
 learn more about:
+  openstack https://www.openstack.org/software/start/
   openvswitch http://docs.openvswitch.org/en/latest/
   kibana -
   elk
+
+evaluate if
+  worth using molecule https://molecule.readthedocs.io/en/latest/installation.html
+  worth using vagrant https://www.vagrantup.com/downloads.html
+  apparmor or selinux works best with containers
+  to use OWASP ZAP or Metasploit
