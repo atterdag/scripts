@@ -5,28 +5,23 @@
       tags:
         - update_debian_sources
       become: yes
-      copy:
-        src: "{{ item }}"
+      template:
+        src: "{{ sources[ansible_distribution] }}.j2"
         dest: /etc/apt/sources.list
         owner: root
         group: root
         mode: 0644
-      with_items:
-        - "{{ sources[ansible_distribution] }}"
-      register: sourceupdate
 
     - name: update 99proxy
       tags:
         - update_proxy
       become: yes
       template:
-        src: "{{ item }}"
+        src: "99proxy.j2"
         dest: /etc/apt/apt.conf.d/99proxy
         owner: root
         group: root
         mode: 0644
-      with_items:
-        - "99proxy.j2"
 
     - name: install aptitude
       tags:
@@ -47,4 +42,3 @@
         autoremove: yes
         autoclean: yes
         purge: yes
-
