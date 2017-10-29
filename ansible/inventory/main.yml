@@ -1,0 +1,56 @@
+---
+all:
+  hosts:
+    localhost:
+      ansible_host: 127.0.0.
+      ansible_connection: local
+  vars:
+    ansible_user: ansible
+  children:
+    dmz:
+      hosts:
+        ihs855-1:
+          ansible_host: 10.0.124.51
+        ihs855-2:
+          ansible_host: 10.0.124.52
+        haproxy-1:
+          ansible_host: 10.0.124.101
+        haproxy-2:
+          ansible_host: 10.0.124.102
+    k8smasters:
+      hosts:
+        k8smaster-1:
+          ansible_host: 172.16.226.61
+    k8sworkers:
+      hosts:
+        k8sworker-1:
+          ansible_host: 172.16.226.63
+        k8sworker-2:
+          ansible_host: 172.16.226.64
+    sds:
+      hosts:
+        sdsm:
+          ansible_host: 172.16.226.10
+    kubernetes:
+      children:
+        k8smasters:
+        k8sworkers:
+    docker:
+      children:
+        kubernetes:
+    was:
+      hosts:
+        was855-1:
+          ansible_host: 172.16.226.111
+        was855-2:
+          ansible_host: 172.16.226.112
+    core:
+      hosts:
+        main:
+          ansible_host: 172.16.226.20
+          ansible_user: test
+        files:
+          ansible_host: 172.16.226.3
+    test:
+      children:
+        core:
