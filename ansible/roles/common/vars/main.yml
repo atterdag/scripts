@@ -16,5 +16,5 @@ monitoring_packages:
   - sysdig-dkms
   - sysstat
   - testssl.sh
-  profile_proxyenv_file: "proxyenv.sh.j2"
-  profile_proxyenv_fqp: "/etc/profile.d/{{ profile_proxyenv_file | regex_replace ('.j2')}}"
+profile_proxyenv_file: "proxyenv.sh.j2"
+profile_proxyenv_fqp: "/etc/profile.d/{{ profile_proxyenv_file | regex_replace ('.j2')}}"
