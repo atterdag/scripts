@@ -1,3 +1,4 @@
 ---
-- import_tasks: apt.yml
+- name: Running APT upgrade
+  import_tasks: apt.yml
   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"

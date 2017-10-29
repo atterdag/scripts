@@ -7,8 +7,7 @@
     name: "{{ _package }}"
     update_cache: yes
     autoclean: yes
-  with_items:
-    - "{{ monitoring_packages }}"
+  with_items: "{{ debian_monitoring_packages }}"
   loop_control:
     loop_var: _package
 

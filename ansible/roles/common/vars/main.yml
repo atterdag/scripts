@@ -1,5 +1,5 @@
 ---
-typical_packages:
+debian_typical_packages:
   - autofs
   - apt-transport-https
   - ca-certificates
@@ -9,7 +9,7 @@ typical_packages:
   - python-pip
   - software-properties-common
   - wget
-monitoring_packages:
+debian_monitoring_packages:
   - nmon
   - procinfo
   - sysdig
