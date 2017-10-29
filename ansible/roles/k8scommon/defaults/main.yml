@@ -1,6 +1,6 @@
 ---
 volume_group_name: "containers"
-physical_volumes_devices: "/dev/sdb":
+physical_volumes_devices: "/dev/sdb"
 logical_volume_name: "kubelet"
 logical_volume_size: "1G"
 filesystem_type: "xfs"

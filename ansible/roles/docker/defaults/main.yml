@@ -1,7 +1,7 @@
 ---
 docker_package: "docker-ce"
 volume_group_name: "containers"
-physical_volumes_devices: "/dev/sdb":
+physical_volumes_devices: "/dev/sdb"
 logical_volume_name: "docker"
 logical_volume_size: "5G"
 filesystem_type: "xfs"
