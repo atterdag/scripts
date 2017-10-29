@@ -1,0 +1,22 @@
+---
+- name: "Record bash completion script for {{ command }}"
+  command: "{{ command }} completion bash"
+  register: _command_completion
+
+- name: "Delete old bash completion script for {{ command }}"
+  become: yes
+  file:
+    path: "/etc/bash_completion.d/{{ command }}"
+    state: absent
+
+- name: "Write new bash completion script for {{ command }}"
+  become: yes
+  file:
+    path: "/etc/bash_completion.d/{{ command }}"
+    state: touch
+
+- name: "Copy bash completion content to new script"
+  become: yes
+  copy:
+    dest: "/etc/bash_completion.d/{{ command }}"
+    content: "{{ _command.stdout }}\n"
