@@ -12,7 +12,7 @@
     - name: Initializing master (THIS IS GOING TO TAKE A WHILE)
       tags:
         - test
-        - create_k8s_mastger
+        - create_k8s_master
       become: yes
       command: "kubeadm init --pod-network-cidr=10.244.0.0/16"
       register: _kubeadm_init
