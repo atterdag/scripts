@@ -1,10 +1,10 @@
 ---
-- include: add-proxy-env.yml
-- include: ca-certificates.yml
-- include: server-certificates.yml
-- include: install-ufw.yml
-- include: install-typical-packages.yml
-- include: install-monitoring-packages.yml
-- include: install-vm-open-tools.yml
+- import_tasks: add-proxy-env.yml
+- import_tasks: ca-certificates.yml
+- import_tasks: server-certificates.yml
+- import_tasks: install-ufw.yml
+- import_tasks: install-typical-packages.yml
+- import_tasks: install-monitoring-packages.yml
+- import_tasks: install-vm-open-tools.yml
   when: ansible_virtualization_type == "VMware"
 
