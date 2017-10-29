@@ -6,3 +6,17 @@
 - name: "check ansible_user"
   debug:
     msg: "{{ ansible_user }}"
+
+- name: "read content of root (/)"
+  command: "ls -l /"
+  register: _command
+
+- name: "create new file"
+  file:
+    path: /tmp/test.txt
+    state: touch
+
+- name: "copy content to new file"
+  copy:
+    dest: /tmp/test.txt
+    content: "{{ _command.stdout }}\n"

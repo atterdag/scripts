@@ -1,5 +1,5 @@
 ---
-- name: "Record bash completion script for {{ command }}"
+- name: "Record bash completion for {{ command }}"
   command: "{{ command }} completion bash"
   register: _command_completion
 
