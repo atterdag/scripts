@@ -1,0 +1,8 @@
+---
+- name: "check that group_vars works"
+  debug:
+    msg: "{{ testvariable }}"
+
+- name: "check ansible_user"
+  debug:
+    msg: "{{ ansible_user }}"
