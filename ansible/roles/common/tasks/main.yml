@@ -24,5 +24,8 @@
       when: ansible_virtualization_type == "VMware"
   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
 
+- name: Configure automount
+  include_tasks: autofs.yml
+
 - name: Configure VMware tools
   include_tasks: configure-vmware-tools.yml

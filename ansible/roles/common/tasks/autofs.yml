@@ -1,0 +1,30 @@
+---
+- name: Create automount configuration directory
+  tags:
+    - mk-autofs-confd
+  become: yes
+  file:
+    path: /etc/auto.master.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Configure NFS4 automount entries
+  tags:
+    - conf-autofs
+  become: yes
+  copy:
+    src: "{{ item.0 }}"
+    dest: "{{ item.1 }}"
+  with_together:
+    - ["auto.nfs4", "net.autofs"]
+    - ["/etc", "/etc/auto.master.d"]
+
+- name: Restart automount
+  tags:
+    - restart-autofs
+  become: yes
+  service:
+    name: autofs
+    state: restarted
