@@ -6,13 +6,3 @@ logical_volume_name: "docker"
 logical_volume_size: "5G"
 filesystem_type: "xfs"
 filesystem_options: "noatime,relatime"
-mount_point: "/var/lib/docker"
-prerequisite_packages:
-docker_repository_file: "docker.list"
-docker_repository_fqp: "/etc/apt/sources.list.d/{{ docker_repository_file }}"
-docker_repository_gqg_id: "0EBFCD88"
-docker_repository_gpg_url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
-docker_repositories:
-  - "deb [arch={{ debian_architecture.[ansible_machine] }}] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
-docker_ufw_application_file: "docker.ufw"
-docker_ufw_application_fqp: "/etc/ufw/applications.d/{{ docker_ufw_application_file | regex_replace(.ufw) }}"
