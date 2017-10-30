@@ -1,0 +1,6 @@
+---
+- name: Get time from the VMware host
+  tags:
+    - vmware-enable-time-sync
+  become: yes
+  command: 'vmware-toolbox-cmd timesync enable'

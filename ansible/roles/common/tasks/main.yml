@@ -1,19 +1,28 @@
 ---
 - name: Configure forwarding proxy
   include_tasks: add-proxy-env.yml
+
 - name: Install custom Certifying Authority certificates
   include_tasks: ca-certificates.yml
+
 - name: Import server SSL certificates
   include_tasks: server-certificates.yml
+
 - name: Running tasks specific to Debian type distributions
   block:
     - name: Install UFW
       include_tasks: debian/install-ufw.yml
+
     - name: Install typical packages
       include_tasks: debian/install-typical-packages.yml
+
     - name: Install monitoring packages
       include_tasks: debian/install-monitoring-packages.yml
+
     - name: Install VMware OpenVM tools, and modules
       include_tasks: debian/install-vm-open-tools.yml
       when: ansible_virtualization_type == "VMware"
   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+- name: Configure VMware tools
+  include_tasks: configure-vmware-tools.yml
