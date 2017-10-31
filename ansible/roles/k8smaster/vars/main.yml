@@ -1,0 +1,5 @@
+---
+kubeadm_init_output_fqp: "/etc/kubernetes/kubeadm_init_output"
+kubernetes_network_solution_url:
+  "Romana Layer 3": "https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml"
+  "Weave Net": "https://cloud.weave.works/k8s/net?k8s-version={{ _kubectl_version }}"
