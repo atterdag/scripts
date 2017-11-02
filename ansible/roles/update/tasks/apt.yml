@@ -21,22 +21,14 @@
     group: root
     mode: 0644
 
-- name: install aptitude
-  tags:
-    - install_aptitude
-  become: yes
-  apt:
-    name: aptitude
-    update_cache: yes
-    autoclean: yes
-
 - name: upgrade packages
   tags:
     - upgrade
   become: yes
   apt:
-    upgrade: dist
-    update_cache: yes
-    autoremove: yes
     autoclean: yes
+    autoremove: yes
+    force_apt_get: yes
     purge: yes
+    update_cache: yes
+    upgrade: dist
