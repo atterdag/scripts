@@ -1,4 +1,7 @@
 ---
+- name: Increase disk space
+  include_tasks: increase_space.yml
+  
 - name: Running APT upgrade
   include_tasks: apt.yml
   when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"

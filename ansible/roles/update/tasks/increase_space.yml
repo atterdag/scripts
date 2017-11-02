@@ -1,0 +1,24 @@
+---
+- name: Increase volume group sizes
+  tags:
+    - lvm-space
+  become: yes
+  lvol:
+    lv: "{{ _logical_volume.key }}"
+    size: "{{ _logical_volume.value.logical_volume_size }}"
+    vg: "{{ _logical_volume.value.volume_group_name }}"
+  with_dict: "{{ logical_volume }}"
+  loop_control:
+    loop_var: _logical_volume
+
+- name: Increase filesystem sizes
+  tags:
+    - fs-space
+  become: yes
+  filesystem:
+    dev: "/dev/{{ _logical_volume.value.volume_group_name }}/{{ _logical_volume.key }}"
+    fstype: "{{ _logical_volume.value.filesystem_type }}"
+    resizefs: yes
+  with_dict: "{{ logical_volume }}"
+  loop_control:
+    loop_var: _logical_volume

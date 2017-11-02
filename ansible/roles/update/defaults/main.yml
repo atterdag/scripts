@@ -1,2 +1,17 @@
 ---
 apt_repository_region: "se"
+logical_volume:
+  "root":
+    physical_volumes_devices: "/dev/sda"
+    volume_group_name: "system"
+    logical_volume_size: "1536"
+    filesystem_type: "xfs"
+    filesystem_options: "noatime,relatime"
+    mount_point: "/"
+  "usr":
+    physical_volumes_devices: "/dev/sda"
+    volume_group_name: "system"
+    logical_volume_size: "2560"
+    filesystem_type: "xfs"
+    filesystem_options: "noatime,relatime"
+    mount_point: "/usr"
