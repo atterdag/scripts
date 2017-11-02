@@ -94,9 +94,9 @@
   tags:
     - ufw-docker-rule-file
   become: yes
-  copy:
+  template:
     src: "{{ docker_ufw_application_file }}"
-    dest: "{{ docker_ufw_application_fqp }}"
+    dest: "/etc/ufw/applications.d/{{ docker_ufw_application_file | regex_replace('.ufw.j2') }}"
     owner: root
     group: root
     mode: 0644
