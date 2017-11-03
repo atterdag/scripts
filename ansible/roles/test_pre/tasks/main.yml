@@ -1,0 +1,15 @@
+---
+- name: Run tasks specific to kubernetes master
+  block:
+
+  - name: Set kubernetes master IP address in fact
+    tags:
+      - set-k8s-master-ip
+    set_fact:
+      kubernetes_master_ip: "{{ ansible_default_ipv4.address }}"
+
+  - name: print master IP
+    debug:
+      msg: "{{ kubernetes_master_ip }}"
+
+  when: k8s_type == "master"

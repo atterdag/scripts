@@ -20,3 +20,12 @@
   copy:
     dest: /tmp/test.txt
     content: "{{ _command.stdout }}\n"
+
+- name: Running tasks specific to Kubernetes worker nodes
+  block:
+
+  - name: print master IP
+    debug:
+      msg: "{{ kubernetes_master_ip }}"
+
+  when: k8s_type != "master"

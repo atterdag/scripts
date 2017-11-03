@@ -53,4 +53,5 @@ all:
           ansible_host: 172.16.226.3
     test:
       children:
-        core:
+        k8smasters:
+        k8sworkers:

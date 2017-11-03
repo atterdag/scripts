@@ -1,4 +1,5 @@
 ---
-- hosts: test
+- hosts: kubernetes
   roles:
+    - roles/test_pre
     - roles/test
