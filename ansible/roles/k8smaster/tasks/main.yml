@@ -1,5 +1,22 @@
 ---
-- block:
+- name: Run tasks specific to kubernetes master
+  block:
+
+  - name: Set kubernetes master IP address in fact
+    tags:
+      - set-k8s-master-ip
+    set_fact:
+      kubernetes_master_ip: "{{ ansible_default_ipv4.address }}"
+
+  - name: Updating forwarding proxy configuration to shell
+    tags:
+      - update_shell_proxy_env
+    become: yes
+    lineinfile:
+      path: "{{ profile_proxyenv_fqp }}"
+      line: "no_proxy="
+      regexp: "no_proxy=\"{{ no_proxy }},{{ kubernetes_master_ip }}\""
+
   - name: Check if master is already initialized
     tags:
       - test
@@ -14,12 +31,12 @@
         - test
         - create_k8s_master
       become: yes
-      command: "kubeadm init --pod-network-cidr=10.244.0.0/16"
+      shell: "{{ kubeadm_init_command[kubernetes_network_solution_name] }}"
       register: _kubeadm_init
       environment:
         http_proxy: "{{ http_proxy }}"
         https_proxy: "{{ https_proxy }}"
-        no_proxy: "{{ no_proxy }},{{ ansible_default_ipv4.address }}"
+        no_proxy: "{{ no_proxy }},{{ kubernetes_master_ip }}"
 
     - name: Write kubeadm init output to file
       tags:
@@ -82,12 +99,20 @@
       line: "export KUBECONFIG=$HOME/.kube/config"
       state: present
 
-  - name: "Install {{ k8s_network_solution_name }} networking solution for pod networks"
+  - name: Retrieve kubectl version
+    tags:
+      - retrieve_kubectl_version
+    shell: kubectl version | base64 | tr -d '\n'
+    register: _kubectl_version
+    when: kubernetes_network_solution_name == "Weave Net"
+
+  - name: "Install {{ kubernetes_network_solution_name }} networking solution for pod networks"
     tags:
       - install_k8s_network
-    shell: "kubectl apply -f {{ k8s_network_solution_url }}"
+    shell: "kubectl apply -f {{ kubernetes_network_solution_url[kubernetes_network_solution_name] }}"
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
-      no_proxy: "{{ no_proxy }},{{ ansible_default_ipv4.address }}"
+      no_proxy: "{{ no_proxy }},{{ kubernetes_master_ip }}"
+
   when: k8s_type == "master"

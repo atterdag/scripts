@@ -1,13 +1,30 @@
 ---
-- name: Clearing /var/lib/kubelet/
-  tags:
-    - clear_kubelet_dir
-  become: yes
-  file:
-    path: "/var/lib/kubelet/*"
+- name: Running tasks specific to Kubernetes worker nodes
+  block:
 
-- name: Join Kubernetes clusterr
-  tags:
-    - join_kubernetes_cluster
-  become: yes
-  command: "{{ kubeadm_join }}"
+  - name: Updating forwarding proxy configuration to shell
+    tags:
+      - update_shell_proxy_env
+    become: yes
+    lineinfile:
+      path: "{{ profile_proxyenv_fqp }}"
+      line: "no_proxy="
+      regexp: "no_proxy=\"{{ no_proxy }},{{ kubernetes_master_ip }}\""
+
+    # - name: Clearing /var/lib/kubelet/
+    #   tags:
+    #     - clear_kubelet_dir
+    #   become: yes
+    #   file:
+    #     path: "/var/lib/kubelet/*"
+
+  - name: Join Kubernetes clusterr
+    tags:
+      - join_kubernetes_cluster
+    become: yes
+    shell: "{{ kubeadm_join }}"
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ https_proxy }}"
+      no_proxy: "{{ no_proxy }},{{ kubernetes_master_ip }}"
+  when: k8s_type != "master"

@@ -1,0 +1,11 @@
+---
+profile_proxyenv_file: "proxyenv.sh.j2"
+profile_proxyenv_fqp: "/etc/profile.d/{{ profile_proxyenv_file | regex_replace ('.j2')}}"
+k8s_repository_file: "docker.list"
+k8s_repository_fqp: "/etc/apt/sources.list.d/{{ k8s_repository_file }}"
+k8s_repository_gqg_id: "A7317B0F"
+k8s_repository_gpg_url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+k8s_repositories:
+  - "deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main"
+k8s_ufw_application_file: "kubernetes.ufw"
+k8s_ufw_application_fqp: "/etc/ufw/applications.d/{{ k8s_ufw_application_file | regex_replace(.ufw) }}"

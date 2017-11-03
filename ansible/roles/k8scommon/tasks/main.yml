@@ -35,28 +35,28 @@
     src: "/dev/mapper/{{ volume_group_name }}-{{ logical_volume_name }}"
     state: mounted
 
-- name: Updating forwarding proxy configuration to shell
-  tags:
-    - update_shell_proxy_env
-  become: yes
-  template:
-    src:  "{{ profile_proxyenv_file }}"
-    dest: "{{ profile_proxyenv_fqp }}"
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Updating forwarding proxy configuration to docker daemon
-  tags:
-    - dockerd_proxy_environment
-  become: yes
-  template:
-    src: http-proxy.conf.j2
-    dest: "/etc/systemd/system/docker.service.d/http-proxy.conf"
-    owner: root
-    group: root
-    mode: 0644
-
+# - name: Updating forwarding proxy configuration to shell
+#   tags:
+#     - update_shell_proxy_env
+#   become: yes
+#   template:
+#     src:  "{{ profile_proxyenv_file }}"
+#     dest: "{{ profile_proxyenv_fqp }}"
+#     owner: root
+#     group: root
+#     mode: 0644
+#
+# - name: Updating forwarding proxy configuration to docker daemon
+#   tags:
+#     - dockerd_proxy_environment
+#   become: yes
+#   template:
+#     src: http-proxy.conf.j2
+#     dest: "/etc/systemd/system/docker.service.d/http-proxy.conf"
+#     owner: root
+#     group: root
+#     mode: 0644
+#
 - name: Disabling swap
   tags:
     - disable_swap
