@@ -19,4 +19,4 @@
   become: yes
   copy:
     dest: "/etc/bash_completion.d/{{ command }}"
-    content: "{{ _command.stdout }}\n"
+    content: "{{ _command_completion.stdout }}\n"
