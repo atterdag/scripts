@@ -18,12 +18,15 @@
 * [OpenVSwitch]
 * [Kibana]
 * [Elk]
+* [Cillium]
+* [Fluentd]
 
 ## Evaluate if ...
 * it's worth using [Molecule]
-* it's worth using [Vagrant]
-* apparmor or selinux works best with containers
-* to use OWASP ZAP or Metasploit
+* ~~it's worth using [Vagrant]~~ - No its obsolete after the introduction of Docker and OpenStack
+* sysdig is compatible with selinux
+* ~~apparmor or selinux works best with containers~~ - Security Enhanced Linux is preferred
+* ~~to use OWASP ZAP or Metasploit~~ Neither! Use [Cillium]
 
 [Kubernetes]: https://kubernetes.io/docs/setup/independent/install-kubeadm/
 [confd]: https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
@@ -39,3 +42,5 @@
 [Vagrant]: http://docs.openvswitch.org/en/latest/
 [Molecule]: https://molecule.readthedocs.io/en/latest/installation.html
 [Vagrant]: https://www.vagrantup.com/downloads.html
+[Cillium]: https://github.com/cilium/cilium
+[Fluentd]: https://fluentd.io
