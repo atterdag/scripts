@@ -7,6 +7,9 @@
       - set-k8s-master-ip
     set_fact:
       kubernetes_master_ip: "{{ ansible_default_ipv4.address }}"
+    delegate_to: "{{ item }}"
+    delegate_facts: yes
+    with_items: "{{ play_hosts }}"
 
   - name: Updating forwarding proxy configuration to shell
     tags:
@@ -62,11 +65,13 @@
     tags:
       - test
     set_fact:
-      kubeadm_join: "{{ line | regex_replace ('^.\\s')}}"
-    with_items: "{{ _kubeadm_init_output.stdout_lines }}"
-    loop_control:
-      loop_var: line
-    when: line | regex_search('kubeadm join')
+      kubeadm_join: "{{ item.0 | regex_replace ('^.\\s')}}"
+    delegate_to: "{{ item.1 }}"
+    delegate_facts: yes
+    with_nested:
+      - "{{ _kubeadm_init_output.stdout_lines }}"
+      - "{{ play_hosts }}"
+    when: item.0 | regex_search('kubeadm join')
 
   - name: "Create user's kubernetes configuration directory"
     tags:
