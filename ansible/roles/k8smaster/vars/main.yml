@@ -7,12 +7,4 @@ kubeadm_init_command:
   "Weave Net": "kubeadm init --apiserver-advertise-address {{ ansible_default_ipv4.address }}"
 kubernetes_network_solution_url:
   "Romana Layer 3": "https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml"
-
-kubernetes_network_solution:
-  "Romana Layer 3":
-    url: "https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml"
-    kubeadm_init_command: "kubeadm init --pod-network-cidr=10.244.0.0/16"
-  "Weave Net":
-    url: "https://cloud.weave.works/k8s/net?k8s-version={{ _kubectl_version }}"
-    kubeadm_init_command: "kubeadm init"
   "Weave Net": "https://cloud.weave.works/k8s/net?k8s-version={{ _kubectl_version | b64encode }}"
