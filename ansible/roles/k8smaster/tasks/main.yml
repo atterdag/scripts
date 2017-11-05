@@ -104,7 +104,7 @@
   - name: Retrieve kubectl version
     tags:
       - retrieve_kubectl_version
-    shell: kubectl version | base64 | tr -d '\n'
+    shell: kubectl version | base64 | tr -d '\\n'
     register: _kubectl_version
     when: kubernetes_network_solution_name == "Weave Net"
 
