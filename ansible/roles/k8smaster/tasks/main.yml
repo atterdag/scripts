@@ -22,7 +22,6 @@
 
   - name: Check if master is already initialized
     tags:
-      - test
       - check_if_initialized
     stat:
       path: /etc/kubernetes/admin.conf
@@ -31,7 +30,6 @@
   - block:
     - name: Initializing master (THIS IS GOING TO TAKE A WHILE)
       tags:
-        - test
         - create_k8s_master
       become: yes
       shell: "{{ kubeadm_init_command[kubernetes_network_solution_name] }}"
@@ -56,14 +54,14 @@
 
   - name: Read kubeadm init output
     tags:
-      - test
+      - read_kubeadm_init_output
     become: yes
     command: "cat {{ kubeadm_init_output_fqp }}"
     register: _kubeadm_init_output
 
   - name: Register kubeadm join command
     tags:
-      - test
+      - set_kubeadmin_join_cmd
     set_fact:
       kubeadm_join: "{{ item.0 | regex_replace ('^.\\s')}}"
     delegate_to: "{{ item.1 }}"
