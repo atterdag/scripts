@@ -1,7 +1,6 @@
 ---
 - name: Run tasks specific to kubernetes master
   block:
-
   - name: Set kubernetes master IP address in fact
     tags:
       - set-k8s-master-ip
