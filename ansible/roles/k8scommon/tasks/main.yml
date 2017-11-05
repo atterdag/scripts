@@ -127,6 +127,12 @@
   loop_control:
     loop_var: _package
 
+- name: Reset kubernetes configuration
+  tags:
+    - reset-kubernetes
+  become: yes
+  command: kubeadm reset
+
 - name: "Adding bash completion scripts for kubeadm, and kubectl"
   tags:
     - create_bash_completion

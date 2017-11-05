@@ -1,23 +1,20 @@
 ---
 - name: Running tasks specific to Kubernetes worker nodes
   block:
-
   - name: Updating forwarding proxy configuration to shell
     tags:
       - update_shell_proxy_env
+      - set-k8s-master-ip
     become: yes
     lineinfile:
+      line: 'no_proxy="{{ no_proxy }},{{ kubernetes_master_ip }}"'
       path: "{{ profile_proxyenv_fqp }}"
-      line: "no_proxy="
-      regexp: "no_proxy=\"{{ no_proxy }},{{ kubernetes_master_ip }}\""
-
-    # - name: Clearing /var/lib/kubelet/
-    #   tags:
-    #     - clear_kubelet_dir
-    #   become: yes
-    #   file:
-    #     path: "/var/lib/kubelet/*"
-
+      regexp: "^no_proxy="
+  - name: Reset kubelet configuration
+    tags:
+      - clear_kubelet_dir
+    become: yes
+    command: kubeadm reset
   - name: Join Kubernetes clusterr
     tags:
       - join_kubernetes_cluster
