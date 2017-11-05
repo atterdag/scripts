@@ -7,9 +7,45 @@
       - set-k8s-master-ip
     set_fact:
       kubernetes_master_ip: "{{ ansible_default_ipv4.address }}"
+    delegate_to: "{{ item }}"
+    delegate_facts: yes
+    with_items: "{{ play_hosts }}"
 
   - name: print master IP
     debug:
       msg: "{{ kubernetes_master_ip }}"
+
+  - name: get passwd
+    tags:
+      - passwd
+      - debug
+    become: yes
+    command: cat /etc/passwd
+    register: _passwd
+
+  - name: debug
+    tags:
+      - debug
+    debug:
+      msg: "{{ _passwd }}"
+
+  - name: find ansible user
+    tags:
+      - passwd
+      - debug
+    set_fact:
+      ansible_passwd: "{{ item.0 }}"
+    with_nested:
+      - "{{ _passwd.stdout_lines }}"
+      - "{{ play_hosts }}"
+    when: item.0 | regex_search('ansible')
+    delegate_to: "{{ item.1 }}"
+    delegate_facts: yes
+
+  - name: print ansible_passwd
+    tags:
+      - passwd
+    debug:
+      msg: "{{ ansible_passwd }}"
 
   when: k8s_type == "master"

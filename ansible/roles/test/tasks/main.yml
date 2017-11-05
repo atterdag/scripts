@@ -28,4 +28,9 @@
     debug:
       msg: "{{ kubernetes_master_ip }}"
 
+  - name: print ansible_passwd
+    tasks: passwd
+    debug:
+      msg: "{{ ansible_passwd }}"
+
   when: k8s_type != "master"
