@@ -1,2 +1,3 @@
 ---
 testvariable: "test"
+base64: "start_base64/{{ _command | b64encode }}/end_base64"
