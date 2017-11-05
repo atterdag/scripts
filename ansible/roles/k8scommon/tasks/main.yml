@@ -61,6 +61,13 @@
     force: yes
     state: absent
 
+- name: Disable UFW firewall
+  tags:
+    - disable_ufw
+  become: yes
+  ufw:
+    state: disabled
+
 - name: Adding Google Cloud Packages repository GPG key
   tags:
     - add_apt_key
@@ -110,10 +117,3 @@
     - "kubeadm"
   loop_control:
     loop_var: _command
-
-- name: Disable UFW firewall
-  tags:
-    - disable_ufw
-  become: yes
-  ufw:
-    state: disabled
