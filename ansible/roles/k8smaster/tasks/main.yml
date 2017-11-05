@@ -16,9 +16,9 @@
       - update_shell_proxy_env
     become: yes
     lineinfile:
+      line: 'no_proxy="{{ no_proxy }},{{ kubernetes_master_ip }}"'
       path: "{{ profile_proxyenv_fqp }}"
-      line: "no_proxy="
-      regexp: "no_proxy=\"{{ no_proxy }},{{ kubernetes_master_ip }}\""
+      regexp: "^no_proxy="
 
   - name: Check if master is already initialized
     tags:
