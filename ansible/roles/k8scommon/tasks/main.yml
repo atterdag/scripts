@@ -68,6 +68,16 @@
   ufw:
     state: disabled
 
+- name: Reset netfilter tables
+  tags:
+    - reset-netfilter
+  become: yes
+  block:
+    - copy:
+        dest: /tmp/reset-iptables.rules
+        src: reset-iptables.rules
+    - shell: "iptables-restore < /tmp/reset-iptables.rules"
+
 - name: Adding Google Cloud Packages repository GPG key
   tags:
     - add_apt_key
