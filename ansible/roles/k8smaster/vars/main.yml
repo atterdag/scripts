@@ -3,8 +3,8 @@ profile_proxyenv_file: "proxyenv.sh.j2"
 profile_proxyenv_fqp: "/etc/profile.d/{{ profile_proxyenv_file | regex_replace ('.j2')}}"
 kubeadm_init_output_fqp: "/etc/kubernetes/kubeadm_init_output"
 kubeadm_init_command:
-  "Romana Layer 3": "kubeadm init --pod-network-cidr=10.244.0.0/16"
-  "Weave Net": "kubeadm init"
+  "Romana Layer 3": "kubeadm init --apiserver-advertise-address {{ ansible_default_ipv4.address }} --pod-network-cidr=10.244.0.0/16"
+  "Weave Net": "kubeadm init --apiserver-advertise-address {{ ansible_default_ipv4.address }}"
 kubernetes_network_solution_url:
   "Romana Layer 3": "https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml"
   "Weave Net": "https://cloud.weave.works/k8s/net?k8s-version={{ _kubectl_version }}"
