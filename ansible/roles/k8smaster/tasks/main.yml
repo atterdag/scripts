@@ -101,6 +101,10 @@
       line: "export KUBECONFIG=$HOME/.kube/config"
       state: present
 
+  - name: sleep for 300 seconds and continue with play
+    wait_for: timeout=300
+    delegate_to: localhost
+
   - name: Retrieve kubectl version
     tags:
       - retrieve_kubectl_version
