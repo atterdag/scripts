@@ -1,6 +1,9 @@
 ---
 - hosts: kubernetes
   roles:
+    - roles/update
+    - roles/common
+    - roles/docker
     - roles/k8scommon
     - roles/k8smaster
     - roles/k8sworker
