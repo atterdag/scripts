@@ -3,7 +3,7 @@ if ! id ansible > /dev/null; then
   echo '***'
   echo '*** creating ansible group, and user'
   echo '***'
-  useradd --comment "ansible runtime user,,,automation" --create-home --system --uid 500 --user-group ansible
+  useradd --comment "ansible runtime user,,,automation" --create-home --system --uid 500 --user-group --shell /bin/bash ansible
 fi
 
 echo '***'
