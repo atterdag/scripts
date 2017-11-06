@@ -115,10 +115,9 @@
   - name: "Install {{ kubernetes_network_solution_name }} networking solution for pod networks"
     tags:
       - install_k8s_network
-    shell: "kubectl apply -f {{ kubernetes_network_solution_url[kubernetes_network_solution_name] }}"
+    shell: "kubectl apply -n kube-system -f {{ kubernetes_network_solution_url[kubernetes_network_solution_name] | quote }}"
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
       no_proxy: "{{ no_proxy }},{{ kubernetes_master_ip }}"
-
   when: k8s_type == "master"
