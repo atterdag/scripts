@@ -21,6 +21,8 @@ all:
       hosts:
         k8smaster-1:
           ansible_host: 172.16.226.61
+        k8stst-1:
+          ansible_host: 172.16.226.81
     k8sworkers:
       hosts:
         k8sworker-1:
