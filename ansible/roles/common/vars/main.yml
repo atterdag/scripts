@@ -9,6 +9,8 @@ debian_typical_packages:
   - python-pip
   - software-properties-common
   - wget
+  - xfsdump
+  - xfsprogs
 debian_monitoring_packages:
   - nmon
   - procinfo

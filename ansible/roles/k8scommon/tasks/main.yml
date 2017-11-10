@@ -87,6 +87,14 @@
 #     table: '*'
 #     state: absent
 
+- name: Restart docker
+  tags:
+    - restart-docker
+  become: yes
+  service:
+    name: docker
+    state: restarted
+
 - name: Adding Google Cloud Packages repository GPG key
   tags:
     - add_apt_key
