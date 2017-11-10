@@ -57,6 +57,7 @@
     become: yes
     command: "cat {{ kubeadm_init_output_fqp }}"
     register: _kubeadm_init_output
+    when: _admin_config.stat.exists
 
   - name: Register kubeadm join command
     tags:
