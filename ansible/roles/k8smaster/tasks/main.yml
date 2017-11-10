@@ -32,7 +32,7 @@
         - create_k8s_master
       become: yes
       shell: "{{ kubeadm_init_command[kubernetes_network_solution_name] }}"
-      register: _kubeadm_init
+      register: _kubeadm_init_output
       environment:
         http_proxy: "{{ http_proxy }}"
         https_proxy: "{{ https_proxy }}"
@@ -42,13 +42,10 @@
       tags:
         - write_kubeadmin_init_output
       become: yes
-      lineinfile:
+      copy:
         create: yes
         path: "{{ kubeadm_init_output_fqp }}"
-        line: "{{ line }}"
-      with_items: "{{ _kubeadm_init.stdout_lines }}"
-      loop_control:
-        loop_var: line
+        content: "{{ _kubeadm_init_output.stdout_lines }}"
     when: not _admin_config.stat.exists
 
   - name: Read kubeadm init output
@@ -121,5 +118,4 @@
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
       no_proxy: "{{ no_proxy }},{{ kubernetes_master_ip }}"
-
   when: k8s_type == "master"
