@@ -10,11 +10,13 @@
       line: 'no_proxy="{{ no_proxy }},{{ kubernetes_master_ip }}"'
       path: "{{ profile_proxyenv_fqp }}"
       regexp: "^no_proxy="
+
   - name: Reset kubelet configuration
     tags:
       - clear_kubelet_dir
     become: yes
     command: kubeadm reset
+
   - name: Join Kubernetes clusterr
     tags:
       - join_kubernetes_cluster
