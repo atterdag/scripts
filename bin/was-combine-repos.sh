@@ -5,8 +5,8 @@
 # VERSION: $Id$
 #
 # DESCRIPTION:
-# This script shrinks the size of the combined WAS repositories by splitting 
-# them up into different platforms, thus reducing the size of each combined 
+# This script shrinks the size of the combined WAS repositories by splitting
+# them up into different platforms, thus reducing the size of each combined
 # repository from:
 # du -sm /srv/install/was/8550\
 #        /srv/install/wasfps/85511/was\
@@ -31,8 +31,8 @@
 # 2304    /srv/install/was-combined_85511_linux.x86
 # 2574    /srv/install/was-combined_85511_win32.x86
 #
-# Its done with the IBM Packaging Utility by only selecting the packages 
-# required to install WAS 8.5.5.11 (incl Java 7.0, 7.1, and 8.0) to a given 
+# Its done with the IBM Packaging Utility by only selecting the packages
+# required to install WAS 8.5.5.11 (incl Java 7.0, 7.1, and 8.0) to a given
 # OS, and platform.
 #
 # LICENSE: Well ... its free ... you can have it, its yours! C'MON, TAKE IT!!!
@@ -78,7 +78,7 @@ if [ "${*:2}" == "common" ]; then
 else
   PLATFORMS=(${*:2})
 fi
-  
+
 case $WAS_VERSION in
   85511)
     WAS_REPOSITORIES="${SOURCE_DIR}/was/8550,${SOURCE_DIR}/wasfps/85511/was"
@@ -121,30 +121,29 @@ for PLATFORM in ${PLATFORMS[@]}; do
   echo '******************************************************************************'
   echo
 done
-echo		
-echo 'list(s) above should look like this:'		
-echo 'com.ibm.websphere.IBMJAVA.v70_7.0.9060.20161124_1308'		
-echo 'com.ibm.websphere.IBMJAVA.v71_7.1.3060.20161124_1256'		
-echo 'com.ibm.websphere.IBMJAVA.v80_8.0.3020.20161124_1304'		
-echo 'com.ibm.websphere.ND.v85_8.5.5011.20161206_1434'		
-echo		
-echo 'And you install the packages with as single command like this: '		
-echo 'su was --login --shell /bin/bash --command "/opt/IBM/InstallationManager/eclipse/tools/imcl\'		
-echo ' install com.ibm.websphere.ND.v85 com.ibm.websphere.IBMJAVA.v70 com.ibm.websphere.IBMJAVA.v71 com.ibm.websphere.IBMJAVA.v80\'		
-echo ' -acceptLicense\'		
-echo ' -eclipseLocation /opt/IBM/WebSphere/AppServer\'		
-echo ' -installationDirectory /opt/IBM/WebSphere/AppServer\'		
-echo ' -installFixes none\'		
-echo ' -log /tmp/install-was85511-log.xml\'		
-echo ' -nl en\'		
-echo ' -record /tmp/install-was85511-response.xml\'		
-echo ' -repositories http://ftp.example.com/srv/install/was-combined-linux_x86-64-85511\'		
-echo ' -sharedResourcesDirectory /opt/IBM/IMShared\'		
-echo ' -preferences com.ibm.cic.common.core.preferences.keepFetchedFiles=false,\'		
-echo 'com.ibm.cic.common.core.preferences.preserveDownloadedArtifacts=false,\'		
-echo 'offering.service.repositories.areUsed=false,\'		
-echo 'com.ibm.cic.common.core.preferences.searchForUpdates=false\'		
-echo ' -properties user.wasjava=java6\'		
-echo ' -showVerboseProgress"'		
 echo
- 
+echo 'list(s) above should look like this:'
+echo 'com.ibm.websphere.IBMJAVA.v70_7.0.9060.20161124_1308'
+echo 'com.ibm.websphere.IBMJAVA.v71_7.1.3060.20161124_1256'
+echo 'com.ibm.websphere.IBMJAVA.v80_8.0.3020.20161124_1304'
+echo 'com.ibm.websphere.ND.v85_8.5.5011.20161206_1434'
+echo
+echo 'And you install the packages with as single command like this: '
+echo 'su was --login --shell /bin/bash --command "/opt/IBM/InstallationManager/eclipse/tools/imcl\'
+echo ' install com.ibm.websphere.ND.v85 com.ibm.websphere.IBMJAVA.v70 com.ibm.websphere.IBMJAVA.v71 com.ibm.websphere.IBMJAVA.v80\'
+echo ' -acceptLicense\'
+echo ' -eclipseLocation /opt/IBM/WebSphere/AppServer\'
+echo ' -installationDirectory /opt/IBM/WebSphere/AppServer\'
+echo ' -installFixes none\'
+echo ' -log /tmp/install-was85511-log.xml\'
+echo ' -nl en\'
+echo ' -record /tmp/install-was85511-response.xml\'
+echo ' -repositories http://ftp.example.com/srv/install/was-combined-linux_x86-64-85511\'
+echo ' -sharedResourcesDirectory /opt/IBM/IMShared\'
+echo ' -preferences com.ibm.cic.common.core.preferences.keepFetchedFiles=false,\'
+echo 'com.ibm.cic.common.core.preferences.preserveDownloadedArtifacts=false,\'
+echo 'offering.service.repositories.areUsed=false,\'
+echo 'com.ibm.cic.common.core.preferences.searchForUpdates=false\'
+echo ' -properties user.wasjava=java6\'
+echo ' -showVerboseProgress"'
+echo
