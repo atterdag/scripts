@@ -1,32 +1,33 @@
 # TODO list
 
 ## Create roles ansible roles for:
-* ~~[Kubernetes]~~
-* [confd]
-* [gogs]
+
+- ~~[Kubernetes]~~
+- [confd]
+- [gogs]
 
 ## Incoperate into ansible roles:
-* Hashicorp vault
-* [testssl.sh]
-* [Suricata]
-* [Sysdig]
-* [Sysdig Falco]
-* [Sysdig Inspect]
+- Hashicorp vault
+- [testssl.sh]
+- [Suricata]
+- [Sysdig]
+- [Sysdig Falco]
+- [Sysdig Inspect]
 
 ## Learn more about:
-* [OpenStack]
-* [OpenVSwitch]
-* [Kibana]
-* [Elk]
-* [Cillium]
-* [Fluentd]
+- [OpenStack]
+- [OpenVSwitch]
+- [Kibana]
+- [Elk]
+- [Cillium]
+- [Fluentd]
 
 ## Evaluate if ...
-* it's worth using [Molecule]
-* ~~it's worth using [Vagrant]~~ - No its obsolete after the introduction of Docker and OpenStack
-* sysdig is compatible with selinux
-* ~~apparmor or selinux works best with containers~~ - Security Enhanced Linux is preferred
-* ~~to use OWASP ZAP or Metasploit~~ Neither! Use [Cillium]
+- it's worth using [Molecule]
+- ~~it's worth using [Vagrant]~~ - No its obsolete after the introduction of Docker and OpenStack
+- sysdig is compatible with selinux
+- ~~apparmor or selinux works best with containers~~ - Security Enhanced Linux is preferred
+-  ~~to use OWASP ZAP or Metasploit~~ Neither! Use [Cillium]
 
 [Kubernetes]: https://kubernetes.io/docs/setup/independent/install-kubeadm/
 [confd]: https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
