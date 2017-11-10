@@ -3,6 +3,7 @@
 ## Create roles ansible roles for:
 
 - ~~[Kubernetes]~~
+- Kubernetes dashboard
 - [confd]
 - [gogs]
 
