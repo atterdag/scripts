@@ -26,7 +26,7 @@ def printUsage():
   print '=============================================================================='
   print
 
-if not (len(sys.argv) == 2):
+if not (len(sys.argv) == 1):
   sys.stderr.write('Invalid number of arguments\n')
   printUsage()
   sys.exit(101)
