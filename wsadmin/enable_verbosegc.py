@@ -12,5 +12,6 @@ for node in nodes:
   for server in servers:
     serverName = AdminConfig.showAttribute(server, 'name')
     result = AdminTask.setJVMProperties('[-nodeName ' + nodeName + ' -serverName ' + serverName + ' -verboseModeGarbageCollection true ]')
+
 synchronizeActiveNodes()
 restartApplicationServers()
