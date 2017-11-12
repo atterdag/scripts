@@ -6,35 +6,34 @@ for arg in command.split(' -'):
     execfile( script_directory + '/common.py')
 
 def printUsage():
-    print ''
-    print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
-    print '[-profileName profilename]'
-    print '[-user username] [-password password]'
-    print '-f /tmp/mapGroupToAllRoles.py'
-    print '"<realm name>" "<group RDN value>" "<group DN>"'
-    print '      $WAS_HOME         is the installation directory for WebSphere'
-    print '                         Application Server'
-    print '      profilename       is the WebSphere Application Server profile'
-    print '      username          is the WebSphere Application Server'
-    print '                         user'
-    print '      password          is the user password'
-    print '      <realm name>      is the VMM realm name'
-    print '      <group RDN value> is group relative distinguished name value'
-    print '      <group DN value>  is group full distinguished name'
-    print ''
-    print 'Sample:'
-    print '===================================================================='
-    print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
-    print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
-    print ' -f "/tmp/configureLTPA.py" "ldap.example.com:636"'
-    print ' "wasadmins" "cn=wasadmins,ou=groups,o=example"'
-    print '===================================================================='
-    print ''
+  print ''
+  print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
+  print '[-profileName profilename]'
+  print '[-user username] [-password password]'
+  print '-f /tmp/mapGroupToAllRoles.py'
+  print '"<realm name>" "<group RDN value>" "<group DN>"'
+  print '      $WAS_HOME         is the installation directory for WebSphere'
+  print '                         Application Server'
+  print '      profilename       is the WebSphere Application Server profile'
+  print '      username      is the WebSphere Application Server user name'
+  print '      password      is the WebSphere Application Server user password'
+  print '      <realm name>      is the VMM realm name'
+  print '      <group RDN value> is group relative distinguished name value'
+  print '      <group DN value>  is group full distinguished name'
+  print ''
+  print 'Sample:'
+  print "=============================================================================="
+  print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
+  print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
+  print ' -f "/tmp/configureLTPA.py" "ldap.example.com:636"'
+  print ' "wasadmins" "cn=wasadmins,ou=groups,o=example"'
+  print "=============================================================================="
+  print ''
 
 if not (len(sys.argv) == 3):
-   sys.stderr.write('Invalid number of arguments\n')
-   printUsage()
-   sys.exit(101)
+  sys.stderr.write('Invalid number of arguments\n')
+  printUsage()
+  sys.exit(101)
 
 realmName = sys.argv[0]
 groupID = sys.argv[1]
