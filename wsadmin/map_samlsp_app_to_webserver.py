@@ -7,8 +7,8 @@ for arg in command.split(' -'):
 
 cell = AdminControl.getCell()
 
-print 'map WebSphereSamlSPWeb.war to PortalCluster, and webservers'
-mapModulesToServer = 'WebSphere:cell=' + cell + ',cluster=PortalCluster'
+print 'map WebSphereSamlSPWeb.war to SamlCluster, and webservers'
+mapModulesToServer = 'WebSphere:cell=' + cell + ',cluster=SamlCluster'
 unmanagedNodeNames = AdminTask.listUnmanagedNodes().splitlines()
 for unmanagedNodeName in unmanagedNodeNames:
   webservers = AdminTask.listServers('[-serverType WEB_SERVER -nodeName ' + unmanagedNodeName + ']').splitlines()

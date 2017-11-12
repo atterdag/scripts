@@ -5,12 +5,34 @@ for arg in command.split(' -'):
     script_directory = java.io.File(arg.split()[1]).getParent()
     execfile( script_directory + '/common.py')
 
-saveConfiguration()
+def printUsage():
+  print
+  print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
+  print '[-user username] [-password password]'
+  print '-f /tmp/create_healthcenter_files.py <hcusername> <hcpassword> <hcprivilege>'
+  print '      $WAS_HOME     is the installation directory for WebSphere'
+  print '      username      is the WebSphere Application Server user name'
+  print '      password      is the WebSphere Application Server user password'
+  print '      hcusername    is the healthcenter username'
+  print '      hcpassword    is the healthcenter password'
+  print '      hcprivilege   is the healthcenter privilege'
+  print
+  print 'Sample:'
+  print '=============================================================================='
+  print 'wsadmin -lang jython -user wasadmin -password passw0rd'
+  print ' -f "/tmp/create_healthcenter_files.py "healthcenter" "passw0rd" readwrite'
+  print '=============================================================================='
+  print
 
-# define credentials, and priviledge
-healthcenterUsername = '${HEALTHCENTER_USERNAME}'
-healthcenterPassword = '${HEALTHCENTER_PASSWORD}'
-healthcenterPrivilege = '${HEALTHCENTER_PRIVILEGE}'
+# Verify that the correct number of parameters exist
+if not (len(sys.argv) == 3):
+  sys.stderr.write("Invalid number of arguments\n")
+  printUsage()
+  sys.exit(101)
+
+healthcenterUsername = sys.argv[0]
+healthcenterPassword = sys.argv[1]
+healthcenterPrivilege = sys.argv[2]
 
 cell = AdminControl.getCell()
 healthcenterDirectory = os.environ['CONFIG_ROOT'] + '/cells/' + cell + '/healthcenter/'

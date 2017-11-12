@@ -10,43 +10,30 @@ def printUsage():
   print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
   print '[-profileName profilename]'
   print '[-user username] [-password password]'
-  print '-f /tmp/set_arm_filters_values.py'
-  print '<set|remove> <context root>'
+  print '-f /tmp/set_saml_principlename.py <attribute>'
   print '      $WAS_HOME     is the installation directory for WebSphere'
   print '                     Application Server'
   print '      profilename   is the WebSphere Application Server profile'
   print '      username      is the WebSphere Application Server user name'
   print '      password      is the WebSphere Application Server user password'
-  print '      set|remove    either export, or import key'
-  print '      context root  is the applicaton context root'
+  print '      attribute     is the SAML subject principle name'
   print
   print 'Sample:'
   print '=============================================================================='
   print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
   print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
-  print ' -f "/tmp/set_arm_filters_values.py" set "/snoop"'
+  print ' -f "/tmp/set_saml_principlename.py" mail'
   print '=============================================================================='
   print
 
-if not (len(sys.argv) == 2):
+if not (len(sys.argv) == 1):
   sys.stderr.write('Invalid number of arguments\n')
   printUsage()
   sys.exit(101)
 
-operation=sys.argv[0]
-contextRoot=sys.argv[1]
+principalName=sys.argv[0]
 
-if ( operation == 'set' ):
-  setPmiFilterValue('URI',contextRoot,'true')
-elif ( operation == 'remove' ):
-  removePmiFilterValue('URI',contextRoot)
-else:
-  print 'does not understand operation ' + operation
+print 'set SAML TAI login attribute to ' + principalName
+result = AdminTask.configureInterceptor('[-interceptor com.ibm.ws.security.web.saml.ACSTrustAssociationInterceptor -customProperties ["sso_1.sp.principalName=' + principalName + '"] ]')
 
 saveConfiguration()
-synchronizeActiveNodes()
-
-pmiRequestMetrics = AdminConfig.list('PMIRequestMetrics')
-pmiRequestMetricsEnable = AdminConfig.showAttribute(pmiRequestMetrics, 'enable')
-if pmiRequestMetricsEnable != 'true':
-  print 'ARM is not enabled, please run the enable_arm_filters.py script to enable'
