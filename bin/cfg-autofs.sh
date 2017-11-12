@@ -5,7 +5,7 @@ files   -fstype=nfs4    files:/
 EOF
 
 cat > /etc/auto.master.d/net.autofs << EOF
-/net    /etc/auto.net --timeout=60
+/net    /etc/auto.nfs4 --timeout=60
 EOF
 
 service autofs restart
