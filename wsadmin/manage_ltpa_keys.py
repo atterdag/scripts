@@ -6,7 +6,7 @@ for arg in command.split(' -'):
     execfile( script_directory + '/common.py')
 
 def printUsage():
-  print ''
+  print
   print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
   print '[-profileName profilename]'
   print '[-user username] [-password password]'
@@ -22,14 +22,14 @@ def printUsage():
   print '                     importing the LTPA keys'
   print '      keyPassword   is the password that was used to'
   print '                     encrypt the keys'
-  print ''
+  print
   print 'Sample:'
-  print "=============================================================================="
+  print '=============================================================================='
   print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
   print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
-  print ' -f \"/tmp/manageLTPAKeys.py\" \"/tmp/example-ltpa.key\"  \"passw0rd\"'
-  print "=============================================================================="
-  print ''
+  print ' -f "/tmp/manageLTPAKeys.py" "/tmp/example-ltpa.key"  \'passw0rd\''
+  print '=============================================================================='
+  print
 
 if not (len(sys.argv) == 3):
   sys.stderr.write('Invalid number of arguments\n')

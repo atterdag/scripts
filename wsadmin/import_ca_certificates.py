@@ -6,25 +6,25 @@ for arg in command.split(' -'):
     execfile( script_directory + '/common.py')
 
 def printUsage():
-  print ""
+  print
   print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
-  print "[-user username] [-password password]"
-  print "-f /tmp/import_ca_certificates.py caFile caLabel"
+  print '[-user username] [-password password]'
+  print '-f /tmp/import_ca_certificates.py caFile caLabel'
   print '      $WAS_HOME     is the installation directory for WebSphere'
   print '      username      is the WebSphere Application Server user name'
   print '      password      is the WebSphere Application Server user password'
-  print "      CaFile       is the file from which you are"
-  print "                    importing the cell truststore"
-  print "      label        is the label of the the certificate"
-  print "                    in the keystore"
-  print ""
-  print "Sample:"
-  print "=============================================================================="
-  print "wsadmin -lang jython -user wasadmin -password passw0rd"
-  print " -f \"/tmp/import_ca_certificates.py\""
-  print " \"/tmp/example-root-ca.cer\" \"example-root-ca\""
-  print "=============================================================================="
-  print ""
+  print '      caFile        is the file from which you are'
+  print '                     importing the cell truststore'
+  print '      caLabel       is the label of the the certificate'
+  print '                     in the keystore'
+  print
+  print 'Sample:'
+  print '=============================================================================='
+  print 'wsadmin -lang jython -user wasadmin -password passw0rd'
+  print ' -f "/tmp/import_ca_certificates.py"'
+  print ' "/tmp/example-root-ca.cer" "example-root-ca"'
+  print '=============================================================================='
+  print
 
 
 # Verify that the correct number of parameters exist

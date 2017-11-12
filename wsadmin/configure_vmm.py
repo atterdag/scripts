@@ -47,7 +47,7 @@ def printUsage():
   print '      [<options>]   are optional'
   print
   print 'Sample:'
-  print "=============================================================================="
+  print '=============================================================================='
   print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
   print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
   print ' -f \"/tmp/configureLTPA.py\"'
@@ -74,7 +74,7 @@ def printUsage():
   print ' --vmmBaseDN \'o=example\''
   print ' --vmmRealmID \'defaultWIMFileBasedRealm\''
   print ' --vmmRepositoryID \'ldap.example.com:636\''
-  print "=============================================================================="
+  print '=============================================================================='
   print
 
 ##############################################################################

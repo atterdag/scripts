@@ -5,7 +5,7 @@ for arg in command.split(' -'):
     script_directory = java.io.File(arg.split()[1]).getParent()
     execfile( script_directory + '/common.py')
 
-print "forcing single sign-on to use SSL"
+print 'forcing single sign-on to use SSL'
 result = AdminTask.configureSingleSignon('-requiresSSL true')
 
 saveConfiguration()
