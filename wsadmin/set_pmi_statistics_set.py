@@ -5,8 +5,35 @@ for arg in command.split(' -'):
     script_directory = java.io.File(arg.split()[1]).getParent()
     execfile( script_directory + '/common.py')
 
-# can either be 'none', 'basic', 'extended', 'all', or 'custom'. If using 'custom', then you must define the specific counters manually in ISC.
-statisticSet = 'all'
+def printUsage():
+  print
+  print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
+  print '[-profileName profilename]'
+  print '[-user username] [-password password]'
+  print '-f /tmp/set_pmi_statistics_set.py <set>'
+  print '      $WAS_HOME     is the installation directory for WebSphere'
+  print '                     Application Server'
+  print '      profilename   is the WebSphere Application Server profile'
+  print '      username      is the WebSphere Application Server user name'
+  print '      password      is the WebSphere Application Server user password'
+  print '      set           can either be "none", "basic", "extended", "all", or'
+  print '                     "custom". If using "custom", then you must define the'
+  print '                     specific counters manually in ISC.'
+  print
+  print 'Sample:'
+  print '=============================================================================='
+  print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
+  print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
+  print ' -f "/tmp/set_pmi_statistics_set.py" all'
+  print '=============================================================================='
+  print
+
+if not (len(sys.argv) == 2):
+  sys.stderr.write('Invalid number of arguments\n')
+  printUsage()
+  sys.exit(101)
+
+statisticSet=sys.argv[0]
 
 cell = AdminControl.getCell()
 managedNodeNames = AdminTask.listManagedNodes().splitlines()

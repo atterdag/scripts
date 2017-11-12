@@ -5,7 +5,30 @@ for arg in command.split(' -'):
     script_directory = java.io.File(arg.split()[1]).getParent()
     execfile( script_directory + '/common.py')
 
-rootLogDirectory = '/var/log/was'
+def printUsage():
+  print
+  print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
+  print '[-user username] [-password password]'
+  print '-f /tmp/change_server_log_location.py <directory>'
+  print '      $WAS_HOME     is the installation directory for WebSphere'
+  print '      username      is the WebSphere Application Server user name'
+  print '      password      is the WebSphere Application Server user password'
+  print '      directory     is the directory to save dump files in'
+  print
+  print 'Sample:'
+  print '=============================================================================='
+  print 'wsadmin -lang jython -user wasadmin -password passw0rd'
+  print ' -f "/tmp/change_server_log_location.py" "/var/log/was"'
+  print '=============================================================================='
+  print
+
+# Verify that the correct number of parameters exist
+if not (len(sys.argv) == 1):
+  sys.stderr.write("Invalid number of arguments\n")
+  printUsage()
+  sys.exit(101)
+
+rootLogDirectory = sys.argv[0]
 
 cell = AdminControl.getCell()
 nodes = AdminTask.listNodes().splitlines()

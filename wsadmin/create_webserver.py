@@ -5,9 +5,8 @@ for arg in command.split(' -'):
     script_directory = java.io.File(arg.split()[1]).getParent()
     execfile( script_directory + '/common.py')
 
-
 def printUsage():
-  print ''
+  print
   print 'Usage: \$WAS_HOME/bin/wsadmin -lang jython'
   print '[-profileName profilename]'
   print '[-user username]'
@@ -29,22 +28,22 @@ def printUsage():
   print '      password          is the user password'
   print '      <options>     should be pretty self explanitory'
   print '      [<options>]   are optional'
-  print ''
+  print
   print 'Sample:'
-  print "=============================================================================="
+  print '=============================================================================='
   print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
   print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
   print ' -f "/tmp/configureLTPA.py"'
-  print ' --fqdn \'ihs855-1.dmz.example.com\''
-  print ' --ihsInstallRoot \'/opt/IBM/HTTPServer\''
-  print ' --plgInstallRoot \'/opt/IBM/WebSphere/Plugins\''
-  print ' --adminPort \'8008\''
-  print ' --adminUserID \'ihsadmin\''
-  print ' --adminPasswd \'passw0rd\''
-  print ' --adminProtocol \'HTTP\''
-  print ' --operatingSystem \'linux\''
-  print "=============================================================================="
-  print ''
+  print ' --fqdn "ihs855-1.dmz.example.com"'
+  print ' --ihsInstallRoot "/opt/IBM/HTTPServer"'
+  print ' --plgInstallRoot "/opt/IBM/WebSphere/Plugins"'
+  print ' --adminPort 8008'
+  print ' --adminUserID "ihsadmin"'
+  print ' --adminPasswd "passw0rd"'
+  print ' --adminProtocol HTTP'
+  print ' --operatingSystem linux'
+  print '=============================================================================='
+  print
 
 # sort the wsadmin sys.argv list into a tuple
 optlist, args = getopt.getopt(sys.argv, 'x', [
