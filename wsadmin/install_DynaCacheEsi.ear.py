@@ -5,10 +5,6 @@ for arg in command.split(' -'):
     script_directory = java.io.File(arg.split()[1]).getParent()
     execfile( script_directory + '/common.py')
 
-realmName = "ldap.example.com:636"
-cacheMonitorAdministratorGroupDN = 'cn=wasmonitors,ou=groups,o=example'
-cacheMonitorAdministratorGroupCN = 'wasmonitors'
-
 print 'installing, and mapping application to all clusters, and web servers'
 mapModulesToServersList = []
 mapModulesToServers = ''

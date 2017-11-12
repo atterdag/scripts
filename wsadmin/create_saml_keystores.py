@@ -12,8 +12,6 @@ result = AdminTask.createKeyStore('[-keyStoreName SAMLKeyStore -scopeName (cell)
 
 saveConfiguration()
 
-print 'adding Example CA to keystore'
-result = AdminTask.addSignerCertificate('[-keyStoreName SAMLKeyStore -keyStoreScope (cell):' + cell + ' -certificateFilePath /net/main/srv/common-setup/ssl/cacert.pem -base64Encoded true -certificateAlias example-ca ]')
 print 'creating selfsigned SAML certificate'
 result = AdminTask.createSelfSignedCertificate('[-signatureAlgorithm SHA1withRSA -keyStoreName SAMLKeyStore -keyStoreScope (cell):' + cell + ' -certificateAlias samlSP-certificate -certificateVersion -certificateSize 2048 -certificateCommonName samlSP-certificate -certificateValidDays 365 ]')
 
