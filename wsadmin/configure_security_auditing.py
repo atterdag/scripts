@@ -14,25 +14,28 @@ def printUsage():
   print '-f /tmp/configure_security_auditing.py.py'
   print '[--auditorId <DN>]'
   print '[--auditName <name>]'
-  print '[--auditEvents <list>]'
-  print '      $WAS_HOME         is the installation directory for WebSphere'
-  print '                         Application Server'
-  print '      profilename       is the WebSphere Application Server profile'
-  print '      username          is the WebSphere Application Server'
-  print '                         user'
-  print '      password          is the user password'
-  print '      auditorId         is the distinguished name of auditor in LDAP'
-  print '      auditName         is the name of the audit rule'
-  print '      auditEvents       is a comma separated list of events included in filter'
+  print '[--auditOutcome <list>]'
+  print '[--auditEventType <list>]'
+  print '      $WAS_HOME      is the installation directory for WebSphere'
+  print '                      Application Server'
+  print '      profilename    is the WebSphere Application Server profile'
+  print '      username       is the WebSphere Application Server'
+  print '                      user'
+  print '      password       is the user password'
+  print '      auditorId      is the distinguished name of auditor in LDAP'
+  print '      auditName      is the name of the audit rule'
+  print '      auditOutcome   is a comma separated list of outcome included in filter'
+  print '      auditEventType is a comma separated list of events included in filter'
   print
   print 'Sample:'
   print '=============================================================================='
   print '/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython'
   print ' -profileName Dmgr01 -user wasadmin -password passw0rd'
   print ' -f "/tmp/configureLTPA.py"'
-  print ' --auditorId \'uid=wasadmin,ou=users,o=example\''
-  print ' --auditName \'repositorySave\''
-  print ' --auditEvents \'ADMIN_REPOSITORY_SAVE\''
+  print ' --auditorId "uid=wasadmin,ou=users,o=example"'
+  print ' --auditName repositorySave'
+  print ' --auditOutcome "SUCCESS"'
+  print ' --auditEventType "ADMIN_REPOSITORY_SAVE,SECURITY_MGMT_AUDIT"'
   print '=============================================================================='
   print
 
@@ -40,7 +43,8 @@ def printUsage():
 optlist, args = getopt.getopt(sys.argv, 'x', [
   'auditorId=',
   'auditName=',
-  'auditEvents='
+  'auditOutcome='
+  'auditEventType='
   ])
 
 # convert the tuple into a dict
@@ -51,15 +55,17 @@ serverId = AdminTask.getAccessIdFromServerId('[-realmName ' + defaultVmmRealmID 
 
 # map the dict value into specific variables, and assign default values if no
 # value specified
-auditorId             = optdict.get('--auditorId', serverId)
-auditName             = optdict.get('--auditName', "all")
-auditEvents           = optdict.get('--auditEvents', 'ERROR,WARNING,INFO,SUCCESS,FAILURE,REDIRECT,DENIED -eventType ADMIN_REPOSITORY_SAVE,SECURITY_SIGNING,SECURITY_RUNTIME_KEY,SECURITY_RUNTIME,SECURITY_RESOURCE_ACCESS,SECURITY_MGMT_RESOURCE,SECURITY_MGMT_REGISTRY,SECURITY_MGMT_PROVISIONING,SECURITY_MGMT_POLICY,SECURITY_MGMT_KEY,SECURITY_MGMT_CONFIG,SECURITY_MGMT_AUDIT,SECURITY_ENCRYPTION,SECURITY_AUTHZ,SECURITY_AUTHN_TERMINATE,SECURITY_AUTHN_MAPPING,SECURITY_AUTHN_DELEGATION,SECURITY_AUTHN_CREDS_MODIFY,SECURITY_AUTHN')
+auditorId      = optdict.get('--auditorId', serverId)
+auditName      = optdict.get('--auditName', 'all')
+auditOutcome   = optdict.get('--auditOutcome', 'ERROR,WARNING,INFO,SUCCESS,FAILURE,REDIRECT,DENIED')
+auditEventType = optdict.get('--auditEventType', 'ADMIN_REPOSITORY_SAVE,SECURITY_SIGNING,SECURITY_RUNTIME_KEY,SECURITY_RUNTIME,SECURITY_RESOURCE_ACCESS,SECURITY_MGMT_RESOURCE,SECURITY_MGMT_REGISTRY,SECURITY_MGMT_PROVISIONING,SECURITY_MGMT_POLICY,SECURITY_MGMT_KEY,SECURITY_MGMT_CONFIG,SECURITY_MGMT_AUDIT,SECURITY_ENCRYPTION,SECURITY_AUTHZ,SECURITY_AUTHN_TERMINATE,SECURITY_AUTHN_MAPPING,SECURITY_AUTHN_DELEGATION,SECURITY_AUTHN_CREDS_MODIFY,SECURITY_AUTHN')
 
-newAuditNotification  = auditName + 'Notification'
-newAuditFactoryName   = auditName + 'AuditEventFactory'
-newAuditEmitter       = auditName + 'AuditLog'
-newAuditFilterName    = auditName + 'Filter'
-newAuditFilterOutcome = auditEvents
+newAuditNotification    = auditName + 'Notification'
+newAuditFactoryName     = auditName + 'AuditEventFactory'
+newAuditEmitter         = auditName + 'AuditLog'
+newAuditFilterName      = auditName + 'Filter'
+newAuditFilterOutcome   = auditOutcome
+newAuditFilterEventType = auditEventType
 
 # show operator the final values, both set by operator, but also default
 print
@@ -67,12 +73,13 @@ print '#########################################################################
 print '# creating new audit log with the following values:                          #'
 print '##############################################################################'
 print
-print 'auditorId             = ' + auditorId
-print 'newAuditNotification  = ' + newAuditNotification
-print 'newAuditFactoryName   = ' + newAuditFactoryName
-print 'newAuditEmitter       = ' + newAuditEmitter
-print 'newAuditFilterName    = ' + newAuditFilterName
-print 'newAuditFilterOutcome = ' + newAuditFilterOutcome
+print 'auditorId               = ' + auditorId
+print 'newAuditNotification    = ' + newAuditNotification
+print 'newAuditFactoryName     = ' + newAuditFactoryName
+print 'newAuditEmitter         = ' + newAuditEmitter
+print 'newAuditFilterName      = ' + newAuditFilterName
+print 'newAuditFilterOutcome   = ' + newAuditFilterOutcome
+print 'newAuditFilterEventType = ' + newAuditFilterEventType
 print
 
 print 'disabling audit notification monitor'
@@ -143,7 +150,7 @@ for auditSpecification in auditSpecifications:
 saveConfiguration()
 
 print 'create new audit specification ' + newAuditFilterName
-auditSpecification = AdminTask.createAuditFilter('[-name ' + newAuditFilterName + ' -outcome ' + newAuditFilterOutcome + ']')
+auditSpecification = AdminTask.createAuditFilter('[-name ' + newAuditFilterName + ' -outcome ' + newAuditFilterOutcome + ' -eventType ' + newAuditFilterEventType + ']')
 
 print 'create new audit service provider ' + newAuditEmitter
 auditServiceProvider = AdminTask.createBinaryEmitter('[-uniqueName ' + newAuditEmitter + ' -className com.ibm.ws.security.audit.BinaryEmitterImpl -eventFormatterClass -fileLocation \$(LOG_ROOT) -maxFileSize 100 -maxLogs 100 -wrapBehavior WRAP -auditFilters ' + auditSpecification + ' ]')
