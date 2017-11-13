@@ -10,12 +10,14 @@ def printUsage():
   print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
   print '[-user username] [-password password]'
   print '-f /tmp/create_healthcenter_files.py <hcusername> <hcpassword> <hcprivilege>'
+  print '[hckeystorepw]'
   print '      $WAS_HOME     is the installation directory for WebSphere'
   print '      username      is the WebSphere Application Server user name'
   print '      password      is the WebSphere Application Server user password'
   print '      hcusername    is the healthcenter username'
   print '      hcpassword    is the healthcenter password'
   print '      hcprivilege   is the healthcenter privilege'
+  print '      hckeystorepw  is the healthcenter keystore password'
   print
   print 'Sample:'
   print '=============================================================================='
@@ -33,6 +35,10 @@ if not (len(sys.argv) == 3):
 healthcenterUsername = sys.argv[0]
 healthcenterPassword = sys.argv[1]
 healthcenterPrivilege = sys.argv[2]
+healthcenterKeystorePassword = sys.argv[3]
+
+if ( healthcenterKeystorePassword == '' ):
+  healthcenterKeystorePassword = 'WebAS'
 
 cell = AdminControl.getCell()
 healthcenterDirectory = os.environ['CONFIG_ROOT'] + '/cells/' + cell + '/healthcenter/'
@@ -54,7 +60,7 @@ authorizationFile.flush()
 authorizationFile.close()
 
 print 'creating ' + os.environ['CONFIG_ROOT'] + '/cells/' + cell + '/healthcenter.jks'
-result = AdminTask.createKeyStore('[-keyStoreName HealthCenterKeystore -scopeName (cell):' + cell + ' -keyStoreDescription "Key store for Health Center certificates" -keyStoreLocation \${CONFIG_ROOT}/cells/' + cell + '/healthcenter.jks -keyStorePassword WebAS -keyStorePasswordVerify WebAS -keyStoreType JKS    -keyStoreInitAtStartup false -keyStoreReadOnly false -keyStoreStashFile false -keyStoreUsage SSLKeys ]')
+result = AdminTask.createKeyStore('[-keyStoreName HealthCenterKeystore -scopeName (cell):' + cell + ' -keyStoreDescription "Key store for Health Center certificates" -keyStoreLocation \${CONFIG_ROOT}/cells/' + cell + '/healthcenter.jks -keyStorePassword ' + healthcenterKeystorePassword + ' -keyStorePasswordVerify ' + healthcenterKeystorePassword + ' -keyStoreType JKS    -keyStoreInitAtStartup false -keyStoreReadOnly false -keyStoreStashFile false -keyStoreUsage SSLKeys ]')
 
 saveConfiguration()
 
