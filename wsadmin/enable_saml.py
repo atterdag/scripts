@@ -1,4 +1,4 @@
-import os, re, java.io.File
+import getopt, os, re, java.io.File
 command = os.environ.get('IBM_JAVA_COMMAND_LINE')
 for arg in command.split(' -'):
   if re.match('^f\s',arg):
