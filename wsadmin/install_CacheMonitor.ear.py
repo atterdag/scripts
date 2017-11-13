@@ -16,7 +16,6 @@ def printUsage():
   print '      profilename       is the WebSphere Application Server profile'
   print '      username          is the WebSphere Application Server user name'
   print '      password          is the WebSphere Application Server user password'
-  print '      realm name        is the VMM realm name'
   print '      group RDN value   is group relative distinguished name value'
   print '      group DN value    is group full distinguished name'
   print
