@@ -43,7 +43,7 @@ def printUsage():
 optlist, args = getopt.getopt(sys.argv, 'x', [
   'auditorId=',
   'auditName=',
-  'auditOutcome='
+  'auditOutcome=',
   'auditEventType='
   ])
 
