@@ -18,7 +18,7 @@ def printUsage():
   print '[--naHeapSizeMin <size in MB>]'
   print '[--asHeapSizeMax <size in MB>]'
   print '[--asHeapSizeMin <size in MB>]'
-  print '[--wasJvmNurserySize <size in MB>]'
+  print '[--asJvmNurserySize <size in MB>]'
   print '      $WAS_HOME                is the installation directory for WebSphere'
   print '                                Application Server'
   print '      profilename              is the WebSphere Application Server profile'
@@ -31,7 +31,7 @@ def printUsage():
   print '      naHeapSizeMin            is the node agents minimum HEAP size in MB'
   print '      asHeapSizeMax            is the application servers maximum HEAP size in MB'
   print '      asHeapSizeMin            is the application servers minimum HEAP size in MB'
-  print '      wasJvmNurserySize        is the JVM nusery size in MB'
+  print '      asJvmNurserySize        is the JVM nusery size in MB'
   print
   print 'Sample:'
   print '=============================================================================='
@@ -44,7 +44,7 @@ def printUsage():
   print ' --naHeapSizeMin 300'
   print ' --asHeapSizeMax 2048'
   print ' --asHeapSizeMin 2048'
-  print ' --wasJvmNurserySize 1024'
+  print ' --asJvmNurserySize 1024'
   print '=============================================================================='
   print
 
@@ -56,7 +56,7 @@ optlist, args = getopt.getopt(sys.argv, 'x', [
   'naHeapSizeMin=',
   'asHeapSizeMax=',
   'asHeapSizeMin=',
-  'wasJvmNurserySize='
+  'asJvmNurserySize='
 ])
 
 # convert the tuple into a dict
@@ -70,7 +70,7 @@ naHeapSizeMax     = optdict.get('--naHeapSizeMax', '1024')
 naHeapSizeMin     = optdict.get('--naHeapSizeMin', '300')
 asHeapSizeMax     = optdict.get('--asHeapSizeMax', '2048')
 asHeapSizeMin     = optdict.get('--asHeapSizeMin', '2048')
-wasJvmNurserySize = optdict.get('--wasJvmNurserySize', '1024')
+asJvmNurserySize = optdict.get('--asJvmNurserySize', '1024')
 
 nodes = AdminConfig.list('Node').splitlines()
 for node in nodes:
@@ -86,6 +86,6 @@ for node in nodes:
   for server in servers:
     serverName = AdminConfig.showAttribute(server, 'name')
     setJavaVirtualMachineProperty(server, [['initialHeapSize', asHeapSizeMin], ['maximumHeapSize', asHeapSizeMax]])
-    setJvmGenericArguements(nodeName, serverName, '-Xmn' + wasJvmNurserySize + 'M')
+    setJvmGenericArguements(nodeName, serverName, '-Xmn' + asJvmNurserySize + 'M')
 
 synchronizeActiveNodes()
