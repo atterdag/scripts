@@ -27,7 +27,7 @@ def printUsage():
   print
 
 # Verify that the correct number of parameters exist
-if not (len(sys.argv) == 3):
+if not (len(sys.argv) >= 3):
   sys.stderr.write("Invalid number of arguments\n")
   printUsage()
   sys.exit(101)
@@ -59,6 +59,13 @@ authorizationFile.write(healthcenterUsername + ' ' + healthcenterPrivilege + '\n
 authorizationFile.flush()
 authorizationFile.close()
 
+if os.path.exists(os.environ['CONFIG_ROOT'] + '/cells/' + cell + '/healthcenter.jks'):
+  print 'deleting existing ' + os.environ['CONFIG_ROOT'] + '/cells/' + cell + '/healthcenter.jks'
+  result = AdminTask.deleteKeyStore('[-keyStoreName HealthCenterKeystore -scopeName (cell):' + cell + ' ]')
+  os.remove(os.environ['CONFIG_ROOT'] + '/cells/' + cell + '/healthcenter.jks')
+
+synchronizeActiveNodes()
+
 print 'creating ' + os.environ['CONFIG_ROOT'] + '/cells/' + cell + '/healthcenter.jks'
 result = AdminTask.createKeyStore('[-keyStoreName HealthCenterKeystore -scopeName (cell):' + cell + ' -keyStoreDescription "Key store for Health Center certificates" -keyStoreLocation \${CONFIG_ROOT}/cells/' + cell + '/healthcenter.jks -keyStorePassword ' + healthcenterKeystorePassword + ' -keyStorePasswordVerify ' + healthcenterKeystorePassword + ' -keyStoreType JKS    -keyStoreInitAtStartup false -keyStoreReadOnly false -keyStoreStashFile false -keyStoreUsage SSLKeys ]')
 
@@ -69,6 +76,15 @@ result = AdminTask.createSelfSignedCertificate('[-signatureAlgorithm SHA256withR
 
 synchronizeActiveNodes()
 
+if os.path.exists('/tmp/root.cer'):
+  print 'deleting existing /tmp/root.cer'
+  os.remove('/tmp/root.cer')
+
 print 'extracting public certificates from HealthCenterKeystore'
 result = AdminTask.extractSignerCertificate('[-keyStoreName HealthCenterKeystore -keyStoreScope (cell):' + cell + ' -certificateFilePath /tmp/root.cer -base64Encoded true -certificateAlias root ]')
+
+if os.path.exists('/tmp/healthcenter.cer'):
+  print 'deleting existing /tmp/healthcenter.cer'
+  os.remove('/tmp/healthcenter.cer')
+
 result = AdminTask.extractCertificate('[-certificateFilePath /tmp/healthcenter.cer -base64Encoded true -certificateAlias HealthCenterCertificate -keyStoreName HealthCenterKeystore -keyStoreScope (cell):' + cell + ' ]')
