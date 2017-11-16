@@ -42,6 +42,6 @@ synchronizeActiveNodes()
 propagatePluginCfg()
 
 print 'starting DynaCacheEsi'
-applicationManagers=AdminControl.queryNames('type=ApplicationManager,process=dmgr,*').splitlines()
+applicationManagers=AdminControl.queryNames('type=ApplicationManager,process=*,*').splitlines()
 for applicationManager in applicationManagers:
   result = AdminControl.invoke(applicationManager, 'startApplication','[DynaCacheEsi]')
