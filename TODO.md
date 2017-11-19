@@ -8,7 +8,8 @@
 - [gogs]
 
 ## Incoperate into ansible roles:
-- Hashicorp vault
+
+- [Hashicorp Vault]
 - [testssl.sh]
 - [Suricata]
 - [Sysdig]
@@ -16,36 +17,42 @@
 - [Sysdig Inspect]
 
 ## Learn more about:
+
 - [OpenStack]
 - [OpenVSwitch]
 - [Kibana]
 - [Elk]
 - [Cillium]
 - [Fluentd]
-- Prometheus
-- Terraform
-- BOSH
+- [Prometheus]
+- [Terraform]
+- [BOSH]
+- [Nexus Repository OSS]
 
 ## Evaluate if ...
+
 - it's worth using [Molecule]
 - ~~it's worth using [Vagrant]~~ - No its obsolete after the introduction of Docker and OpenStack
 - sysdig is compatible with selinux
 - ~~apparmor or selinux works best with containers~~ - Security Enhanced Linux is preferred
--  ~~to use OWASP ZAP or Metasploit~~ Neither! Use [Cillium]
+- ~~to use OWASP ZAP or Metasploit~~ Neither! Use [Cillium]
 
-[Kubernetes]: https://kubernetes.io/docs/setup/independent/install-kubeadm/
+[bosh]: https://bosh.io/
+[cillium]: https://github.com/cilium/cilium
 [confd]: https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
+[fluentd]: https://fluentd.io
 [gogs]: https://github.com/gogits/gogs
+[hashicorp vault]: https://www.vaultproject.io/
+[kubernetes]: https://kubernetes.io/docs/setup/independent/install-kubeadm/
+[molecule]: https://molecule.readthedocs.io/en/latest/installation.html
+[nexus repository oss]: https://www.sonatype.com/nexus-repository-oss
+[openstack]: https://www.openstack.org/software/start/
+[openvswitch]: http://docs.openvswitch.org/en/latest/
+[prometheus]: https://prometheus.io/
+[suricata]: https://suricata-ids.org/docs/
+[sysdig]: https://www.sysdig.org/install/
+[sysdig falco]: https://github.com/draios/falco/wiki/How-to-Install-Falco-for-Linux
+[sysdig inspect]: https://github.com/draios/sysdig-inspect
+[terraform]: https://www.terraform.io/
 [testssl.sh]: https://testssl.sh/
-[Suricata]: https://suricata-ids.org/docs/
-[Sysdig]: https://www.sysdig.org/install/
-[Sysdig Falco]: https://github.com/draios/falco/wiki/How-to-Install-Falco-for-Linux
-[Sysdig Inspect]: https://github.com/draios/sysdig-inspect
-[OpenStack]: https://www.openstack.org/software/start/
-[OpenVSwitch]: http://docs.openvswitch.org/en/latest/
-[Molecule]: http://docs.openvswitch.org/en/latest/
-[Vagrant]: http://docs.openvswitch.org/en/latest/
-[Molecule]: https://molecule.readthedocs.io/en/latest/installation.html
-[Vagrant]: https://www.vagrantup.com/downloads.html
-[Cillium]: https://github.com/cilium/cilium
-[Fluentd]: https://fluentd.io
+[vagrant]: https://www.vagrantup.com/downloads.html
