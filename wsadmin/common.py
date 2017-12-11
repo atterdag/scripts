@@ -395,3 +395,8 @@ def synchronizeActiveNodes():
   print 'the following nodes have been synchronized:'
   for node in nodes.splitlines():
     print ' - ' + node
+
+print '##############################################################################'
+print '# Reading cell name                                                          #'
+print '##############################################################################'
+cell = AdminControl.getCell()
