@@ -104,6 +104,8 @@ for unmanagedNode in unmanagedNodes:
     webservers = AdminTask.listServers('[-serverType WEB_SERVER -nodeName ' + unmanagedNode + ']').splitlines()
     for webserver in webservers:
       webserverName = AdminConfig.showAttribute(webserver, 'name')
+      print 'deleting previous keystore: CMSKeyStore/' + nodeName + '/' + webserverName
+      AdminTask.deleteKeyStore('[-keyStoreName CMSKeyStore -scopeName (cell):' + cell + ':(node):' + nodeName + ':(server):' + webserverName + ' ]')
       print 'deleting previous server: ' + nodeName + '/' + webserverName
       AdminTask.deleteWebServer('[-serverName ' + webserverName + ' -nodeName ' + nodeName + ']')
     print 'deleting previous node:   ' + nodeName
