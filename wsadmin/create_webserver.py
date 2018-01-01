@@ -111,6 +111,8 @@ for unmanagedNode in unmanagedNodes:
     print 'deleting previous node:   ' + nodeName
     AdminTask.removeUnmanagedNode('[-nodeName ' + nodeName + ']')
 
+saveConfiguration()
+
 print 'creating new unmanaged node: ' + nodeName
 AdminTask.createUnmanagedNode('[-nodeName ' + nodeName + ' -hostName ' + fqdn + ' -nodeOperatingSystem ' + operatingSystem + ']')
 print 'creating new web server:     ' + nodeName + '/webserver1'
