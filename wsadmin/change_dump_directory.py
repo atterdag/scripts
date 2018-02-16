@@ -22,7 +22,6 @@ def printUsage():
     print ' -f "/tmp/change_dump_directory.py" \'${SERVER_LOG_ROOT}\''
     print '=============================================================================='
     print
-S
 
 # Verify that the correct number of parameters exist
 if not (len(sys.argv) == 1):
