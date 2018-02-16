@@ -552,6 +552,27 @@ def synchronizeActiveNodes():
         print ' - ' + node
 
 
+def deleteServer(managedNodeName, serverName):
+    print
+    print '##############################################################################'
+    print '# Delete server on specified managed node                                    #'
+    print '##############################################################################'
+    applicationServers = AdminTask.listServers(
+        '[-serverType APPLICATION_SERVER -nodeName ' + managedNodeName + ']'
+    ).splitlines()
+    for applicationServer in applicationServers:
+        applicationServerName = AdminConfig.showAttribute(
+            applicationServer, 'name')
+        if applicationServerName == serverName:
+            print 'stopping ' + applicationServerName + ' on ' + managedNodeName
+            result = AdminControl.stopServer(applicationServerName,
+                                             managedNodeName)
+            print 'deleting ' + applicationServerName + ' on ' + managedNodeName
+            result = AdminTask.deleteServer(
+                '[-serverName ' + applicationServerName + ' -nodeName ' +
+                managedNodeName + ' ]')
+
+
 print '##############################################################################'
 print '# Reading cell name                                                          #'
 print '##############################################################################'
