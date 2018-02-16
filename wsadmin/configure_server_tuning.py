@@ -88,4 +88,6 @@ for node in nodes:
             AdminConfig.list('TransactionService', server),
             '[[totalTranLifetimeTimeout ' + transactionLifetimeTimeout + ']]')
 
+setLtpaTimeout(sessionTimeout)
+
 saveConfiguration()
