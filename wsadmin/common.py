@@ -401,6 +401,7 @@ def setJvmCustomProperties(server, jvmCustomProperties):
         print 'setting custom JVM property ' + jvmCustomProperty[0][1] + ' to value ' + jvmCustomProperty[1][1]
         AdminConfig.create('Property', jvm, jvmCustomProperty)
 
+
 def setLtpaTimeout(timeout):
     print 'setting LTPA timeout to ' + timeout
     ltpa = AdminConfig.list('LTPA')
