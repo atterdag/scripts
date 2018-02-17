@@ -97,6 +97,13 @@ for managedNodeName in managedNodeNames:
     for applicationServer in applicationServers:
         applicationServerName = AdminConfig.showAttribute(
             applicationServer, 'name')
+        print 'set monitoring policy to RUNNING for ' + managedNodeName + '/' + applicationServerName
+        monitoringPolicy = AdminConfig.list('MonitoringPolicy',
+                                            applicationServer)
+        result = AdminConfig.modify(
+            monitoringPolicy,
+            '[[maximumStartupAttempts "3"] [pingTimeout "300"] [pingInterval "60"] [autoRestart "true"]]'
+        )
         if applicationServerName == prefix + 'Server_' + managedNodeName:
             print 'starting ' + applicationServerName + ' on ' + managedNodeName
             AdminControl.startServer(applicationServerName, managedNodeName)
