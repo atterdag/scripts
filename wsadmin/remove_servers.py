@@ -30,15 +30,17 @@ if not (len(sys.argv) == 1):
     sys.stderr.write("Invalid number of arguments\n")
     printUsage()
     sys.exit(101)
-
 serverName = sys.argv[0]
-managedNodeName = sys.argv[1]
-
-if managedNodeName != '':
+if (len(sys.argv) == 2):
+    managedNodeName = sys.argv[1]
+else:
+    managedNodeName = ''
+if managedNodeName == '':
     managedNodeNames = AdminTask.listManagedNodes().splitlines()
     for managedNodeName in managedNodeNames:
+        print "serverName: " + serverName
+        print "managedNodeName: " + managedNodeName
         deleteServer(managedNodeName, serverName)
 else:
     deleteServer(managedNodeName, serverName)
-
 saveConfiguration()
