@@ -10,7 +10,7 @@ cell = AdminControl.getCell()
 print 'creating key store for SAML certificates at cell scope'
 result = AdminTask.createKeyStore(
     '[-keyStoreName SAMLKeyStore -scopeName (cell):' + cell +
-    ' -keyStoreDescription "Key store for SAML certificates" -keyStoreLocation \${CONFIG_ROOT}/cells/'
+    ' -keyStoreDescription "Key store for SAML certificates" -keyStoreLocation ${CONFIG_ROOT}/cells/'
     + cell +
     '/saml.p12 -keyStorePassword WebAS -keyStorePasswordVerify WebAS -keyStoreType PKCS12 -keyStoreInitAtStartup false -keyStoreReadOnly false -keyStoreStashFile false -keyStoreUsage SSLKeys ]'
 )

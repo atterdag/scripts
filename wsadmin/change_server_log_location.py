@@ -45,16 +45,16 @@ for node in nodes:
         if variableSubstitutionEntryName == 'WAS_NODE_NAME':
             variableSubstitutionEntryNameFound = 'true'
         if variableSubstitutionEntryName == 'LOG_ROOT':
-            print 'Modifying variable: ' + variableSubstitutionEntryName + ', value: ' + rootLogDirectory + '/\${WAS_CELL_NAME}/\${WAS_NODE_NAME} on node: ' + node
+            print 'Modifying variable: ' + variableSubstitutionEntryName + ', value: ' + rootLogDirectory + '/${WAS_CELL_NAME}/${WAS_NODE_NAME} on node: ' + node
             result = AdminConfig.modify(variableSubstitutionEntry, [[
                 'value',
-                rootLogDirectory + '/\${WAS_CELL_NAME}/\${WAS_NODE_NAME}'
+                rootLogDirectory + '/${WAS_CELL_NAME}/${WAS_NODE_NAME}'
             ]])
         if variableSubstitutionEntryName == 'SERVER_LOG_ROOT':
-            print 'Modifying variable: ' + variableSubstitutionEntryName + ', value: \${LOG_ROOT}/\${WAS_SERVER_NAME} on node: ' + node
+            print 'Modifying variable: ' + variableSubstitutionEntryName + ', value: ${LOG_ROOT}/${WAS_SERVER_NAME} on node: ' + node
             result = AdminConfig.modify(
                 variableSubstitutionEntry,
-                [['value', '\${LOG_ROOT}/\${WAS_SERVER_NAME}']])
+                [['value', '${LOG_ROOT}/${WAS_SERVER_NAME}']])
     print "ensuring that all nodes have a WAS_NODE_NAME variable"
     if variableSubstitutionEntryNameFound == 'false':
         print "creating variable WAS_NODE_NAME=" + node

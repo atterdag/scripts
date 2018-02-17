@@ -8,7 +8,7 @@ for arg in command.split(' -'):
 
 def printUsage():
     print
-    print 'Usage: \$WAS_HOME/bin/wsadmin -lang jython'
+    print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
     print '[-profileName profilename]'
     print '[-user username]'
     print '[-password password]'
@@ -174,7 +174,7 @@ auditSpecification = AdminTask.createAuditFilter(
 print 'create new audit service provider ' + newAuditEmitter
 auditServiceProvider = AdminTask.createBinaryEmitter(
     '[-uniqueName ' + newAuditEmitter +
-    ' -className com.ibm.ws.security.audit.BinaryEmitterImpl -eventFormatterClass -fileLocation \$(LOG_ROOT) -maxFileSize 100 -maxLogs 100 -wrapBehavior WRAP -auditFilters '
+    ' -className com.ibm.ws.security.audit.BinaryEmitterImpl -eventFormatterClass -fileLocation $(LOG_ROOT) -maxFileSize 100 -maxLogs 100 -wrapBehavior WRAP -auditFilters '
     + auditSpecification + ' ]')
 
 print 'create new audit event factory ' + newAuditFactoryName

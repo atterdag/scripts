@@ -61,7 +61,7 @@ for node in nodes:
             'name', 'com.ibm.java.diagnostics.healthcenter.agent.ssl.keyStore'
         ], [
             'value',
-            '\${USER_INSTALL_ROOT}/config/cells/' + cell + '/healthcenter.jks'
+            '${USER_INSTALL_ROOT}/config/cells/' + cell + '/healthcenter.jks'
         ]]])
         setJvmCustomProperties(server, [[[
             'name',
@@ -71,14 +71,14 @@ for node in nodes:
             'name',
             'com.ibm.java.diagnostics.healthcenter.agent.authentication.file'
         ], [
-            'value', '\${USER_INSTALL_ROOT}/config/cells/' + cell +
+            'value', '${USER_INSTALL_ROOT}/config/cells/' + cell +
             '/healthcenter/authentication.txt'
         ]]])
         setJvmCustomProperties(server, [[[
             'name',
             'com.ibm.java.diagnostics.healthcenter.agent.authorization.file'
         ], [
-            'value', '\${USER_INSTALL_ROOT}/config/cells/' + cell +
+            'value', '${USER_INSTALL_ROOT}/config/cells/' + cell +
             '/healthcenter/authorization.txt'
         ]]])
         setJvmCustomProperties(server, [[[

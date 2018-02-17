@@ -8,7 +8,7 @@ for arg in command.split(' -'):
 
 def printUsage():
     print
-    print 'Usage: \$WAS_HOME/bin/wsadmin -lang jython'
+    print 'Usage: $WAS_HOME/bin/wsadmin -lang jython'
     print '[-profileName profilename]'
     print '[-user username]'
     print '[-password password]'

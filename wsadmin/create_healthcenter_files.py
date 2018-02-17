@@ -76,7 +76,7 @@ synchronizeActiveNodes()
 print 'creating ' + os.environ['CONFIG_ROOT'] + '/cells/' + cell + '/healthcenter.jks'
 result = AdminTask.createKeyStore(
     '[-keyStoreName HealthCenterKeystore -scopeName (cell):' + cell +
-    ' -keyStoreDescription "Key store for Health Center certificates" -keyStoreLocation \${CONFIG_ROOT}/cells/'
+    ' -keyStoreDescription "Key store for Health Center certificates" -keyStoreLocation ${CONFIG_ROOT}/cells/'
     + cell + '/healthcenter.jks -keyStorePassword ' +
     healthcenterKeystorePassword + ' -keyStorePasswordVerify ' +
     healthcenterKeystorePassword +
