@@ -145,7 +145,6 @@ elif (ldapType == 'Domino'):
                                           'dominoAccessGroups ')
     ldapMembershipScope = optdict.get('--ldapMembershipScope', 'nested')
 
-print primaryAdminId
 # check for required values
 if (ldapBaseDN == '' or ldapBindDN == '' or ldapBindPW == ''
         or ldapHostName == '' or ldapType == '' or primaryAdminId == ''):
