@@ -59,7 +59,7 @@ def printUsage():
     print ' --databaseDriverPath /opt/ibm/db2/V11.1/java'
     print ' --applicationServerCluster serverCluster'
     print ' --databaseHadr true'
-    print ' --databaseHostTwo db2 - 2.example.com
+    print ' --databaseHostTwo db2-2.example.com'
     print ' --databasePortTwo 50001'
     print '=============================================================================='
     print
