@@ -376,13 +376,13 @@ def setJvmGenericArguements(nodeName, serverName, newArgument):
         ' -propertyName genericJvmArguments]')
     match = re.search(newArgument, existingJVMProperties)
     if not match:
-        print nodeName + '/' + serverName + ' JVM arguement "' + newArgument + '" not found - adding'
+        print 'adding generic JVM arguement ' + newArgument + ' on ' + nodeName + '/' + serverName
         newJVMProperties = existingJVMProperties + ' ' + newArgument
         result = AdminTask.setJVMProperties(
             '[-nodeName ' + nodeName + ' -serverName ' + serverName +
             ' -genericJvmArguments "' + newJVMProperties + '"]')
     else:
-        print nodeName + '/' + serverName + ' JVM on arguement "' + newArgument + '" is already present - skipping'
+        print 'skipping existing generic JVM arguement ' + newArgument + ' on ' + nodeName + '/' + serverName
 
 
 def setJvmCustomProperties(server, jvmCustomProperties):
