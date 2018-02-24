@@ -442,7 +442,7 @@ print '# deleting remaining default VMM configuration                           
 print '##############################################################################'
 print
 
-print "delete file based repository"
+print "delete file based repository base entry"
 result = AdminTask.deleteIdMgrRealmBaseEntry(
     '[-name ' + vmmRealmID + ' -baseEntry o=defaultWIMFileBasedRealm]')
 
