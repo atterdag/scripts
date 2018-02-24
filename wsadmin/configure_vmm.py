@@ -25,7 +25,9 @@ def printUsage():
     print '[--backupLdapPort <backup LDAP port>]'
     print '--ldapTimeout = <timeout in secs>'
     print '[--ldapGroupOC <group DSE object class>]'
+    print '[--ldapGroupOcForCreate <group DSE object class>]'
     print '[--ldapUserOC <user DSE object class>]'
+    print '[--ldapUserOcForCreate <user DSE object class>]'
     print '[--ldapMemberAttribute <group member attribute>]'
     print '[--ldapMemberScope <direct|nested|all>]'
     print '[--ldapMembershipAttribute <group membership attribute>]'
@@ -37,6 +39,8 @@ def printUsage():
     print '[--vmmBaseDN <VMM base DN>]'
     print '[--vmmRealmID <VMM realm name>]'
     print '[--vmmRepositoryID <LDAP repository name>]'
+    print '[--vmmUserDefaultParent <DN in LDAP DIT>]'
+    print '[--vmmGroupDefaultParent <DN in LDAP DIT>]'
     print
     print '      $WAS_HOME     is the installation directory for WebSphere'
     print '                     Application Server'
@@ -75,6 +79,7 @@ def printUsage():
     print ' --vmmBaseDN \'o=example\''
     print ' --vmmRealmID \'defaultWIMFileBasedRealm\''
     print ' --vmmRepositoryID \'ldap.example.com:636\''
+    print ' --vmmUserDefaultParent \'ou=users\''
     print '=============================================================================='
     print
 
@@ -86,10 +91,12 @@ def printUsage():
 optlist, args = getopt.getopt(sys.argv, 'x', [
     'ldapBaseDN=', 'ldapBindDN=', 'ldapBindPW=', 'ldapHostName=', 'ldapPort=',
     'backupLdapHostName=', 'backupLdapPort=', 'ldapSSL=', 'ldapUserOC=',
-    'ldapUserIdAttribute=', 'ldapGroupOC=', 'ldapMemberAttribute=',
-    'ldapMemberScope=', 'ldapMembershipAttribute=', 'ldapMembershipScope=',
-    'ldapTimeout=', 'ldapType=', 'primaryAdminId=', 'serverId=',
-    'serverIdPassword=', 'vmmBaseDN=', 'vmmRealmID=', 'vmmRepositoryID='
+    'ldapUserOcForCreate=', 'ldapUserIdAttribute=', 'ldapGroupOC=',
+    'ldapGroupOcForCreate=', 'ldapMemberAttribute=', 'ldapMemberScope=',
+    'ldapMembershipAttribute=', 'ldapMembershipScope=', 'ldapTimeout=',
+    'ldapType=', 'primaryAdminId=', 'serverId=', 'serverIdPassword=',
+    'vmmBaseDN=', 'vmmRealmID=', 'vmmRepositoryID=', 'vmmUserDefaultParent=',
+    'vmmGroupDefaultParent='
 ])
 
 # convert the tuple into a dict
@@ -171,8 +178,10 @@ print 'backupLdapHostName       = ' + backupLdapHostName
 print 'backupLdapPort           = ' + backupLdapPort
 print 'ldapSSL                  = ' + ldapSSL
 print 'ldapUserOC               = ' + ldapUserOC
+print 'ldapUserOcForCreate      = ' + ldapUserOcForCreate
 print 'ldapUserIdAttribute      = ' + ldapUserIdAttribute
 print 'ldapGroupOC              = ' + ldapGroupOC
+print 'ldapGroupOcForCreate     = ' + ldapGroupOcForCreate
 print 'ldapMemberAttribute      = ' + ldapMemberAttribute
 print 'ldapMemberScope          = ' + ldapMemberScope
 print 'ldapMembershipAttribute  = ' + ldapMembershipAttribute
@@ -185,6 +194,8 @@ print 'serverIdPassword         = ' + serverIdPassword
 print 'vmmBaseDN                = ' + vmmBaseDN
 print 'vmmRealmID               = ' + vmmRealmID
 print 'vmmRepositoryID          = ' + vmmRepositoryID
+print 'vmmUserDefaultParent     = ' + vmmUserDefaultParent
+print 'vmmGroupDefaultParent    = ' + vmmGroupDefaultParent
 print
 ##############################################################################
 # No need to change anything after this point ...                            #
@@ -328,13 +339,14 @@ result = AdminTask.setIdMgrLDAPSearchResultCache(
 print 'defining LDAP group search filter for ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPEntityType(
     '[-id ' + vmmRepositoryID + ' -name Group -objectClasses ' + ldapGroupOC +
-    ' -searchBases  -searchFilter (objectClass=' + ldapGroupOC + ')]')
+    ' -searchBases  -searchFilter (objectClass=' + ldapGroupOC +
+    ' -objectClassesForCreate ' + ldapGroupOcForCreate + ')]')
 
 print 'defining LDAP user search filter for ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPEntityType(
     '[-id ' + vmmRepositoryID + ' -name PersonAccount -objectClasses ' +
     ldapUserOC + ' -searchBases  -searchFilter (objectClass=' + ldapUserOC +
-    ')]')
+    ' -objectClassesForCreate ' + ldapUserOcForCreate + ')]')
 
 print 'defining LDAP group membership attribute, and scope ' + vmmRepositoryID
 result = AdminTask.setIdMgrLDAPGroupConfig(
@@ -405,6 +417,22 @@ result = AdminTask.configureAdminWIMUserRegistry(
 print 'allow WAS to run if repository is unavailable'
 result = AdminTask.updateIdMgrRealm(
     '[-name ' + vmmRealmID + ' -allowOperationIfReposDown true]')
+
+saveConfiguration()
+
+print
+print '##############################################################################'
+print '# configuring default parent for VMM supported entity types                  #'
+print '##############################################################################'
+print
+
+print "setting default parent for PersonAccount entity type"
+result = AdminTask.updateIdMgrSupportedEntityType(
+    '[-name "PersonAccount" -defaultParent "' + vmmUserDefaultParent + '"]')
+
+print "setting default parent for Group entity type"
+result = AdminTask.updateIdMgrSupportedEntityType(
+    '[-name "Group" -defaultParent "' + vmmGroupDefaultParent + '"]')
 
 saveConfiguration()
 
