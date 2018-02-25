@@ -452,6 +452,9 @@ print "delete file based repository base entry"
 result = AdminTask.deleteIdMgrRealmBaseEntry(
     '[-name ' + vmmRealmID + ' -baseEntry o=defaultWIMFileBasedRealm]')
 
+# print "delete file based repository"
+# result = AdminTask.deleteIdMgrRepository('[-id InternalFileRepository]')
+
 saveConfiguration()
 
 print
