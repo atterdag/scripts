@@ -125,8 +125,10 @@ vmmRepositoryID = optdict.get('--vmmRepositoryID',
 # set LDAP type default values
 if (ldapType == 'IDS'):
     ldapUserOC = optdict.get('--ldapUserOC', 'inetOrgPerson')
+    ldapUserOcForCreate = optdict.get('--ldapUserOcForCreate', 'inetOrgPerson')
     ldapUserIdAttribute = optdict.get('--ldapUserIdAttribute', 'uid')
     ldapGroupOC = optdict.get('--ldapGroupOC', 'groupOfNames')
+    ldapGroupOCForCreate = optdict.get('--ldapGroupOCForCreate', 'groupOfNames')
     ldapMemberAttribute = optdict.get('--ldapMemberAttribute', 'member')
     ldapMemberScope = optdict.get('--ldapMemberScope', 'nested')
     ldapMembershipAttribute = optdict.get('--ldapMembershipAttribute',
@@ -134,9 +136,11 @@ if (ldapType == 'IDS'):
     ldapMembershipScope = optdict.get('--ldapMembershipScope', 'nested')
 elif (ldapType == 'AD'):
     ldapUserOC = optdict.get('--ldapUserOC', 'user')
+    ldapUserOcForCreate = optdict.get('--ldapUserOcForCreate', 'user')
     ldapUserIdAttribute = optdict.get('--ldapUserIdAttribute',
                                       'samAccountName')
     ldapGroupOC = optdict.get('--ldapGroupOC', 'group')
+    ldapGroupOCForCreate = optdict.get('--ldapGroupOCForCreate', 'group')
     ldapMemberAttribute = optdict.get('--ldapMemberAttribute', 'member')
     ldapMemberScope = optdict.get('--ldapMemberScope', 'direct')
     ldapMembershipAttribute = optdict.get('--ldapMembershipAttribute',
@@ -144,8 +148,10 @@ elif (ldapType == 'AD'):
     ldapMembershipScope = optdict.get('--ldapMembershipScope', 'direct')
 elif (ldapType == 'Domino'):
     ldapUserOC = optdict.get('--ldapUserOC', 'DominoPerson')
+    ldapUserOcForCreate = optdict.get('--ldapUserOcForCreate', 'DominoPerson')
     ldapUserIdAttribute = optdict.get('--ldapUserIdAttribute', 'uid')
     ldapGroupOC = optdict.get('--ldapGroupOC', 'DominoGroup')
+    ldapGroupOCForCreate = optdict.get('--ldapGroupOCForCreate', 'DominoGroup')
     ldapMemberAttribute = optdict.get('--ldapMemberAttribute', 'member')
     ldapMemberScope = optdict.get('--ldapMemberScope', 'nested')
     ldapMembershipAttribute = optdict.get('--ldapMembershipAttribute',
