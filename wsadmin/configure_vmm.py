@@ -24,9 +24,9 @@ def printUsage():
     print '[--backupLdapHostName <backup LDAP hostname>]'
     print '[--backupLdapPort <backup LDAP port>]'
     print '--ldapTimeout = <timeout in secs>'
-    print '[--ldapGroupOC <group DSE object class>]'
+    print '[--ldapGroupOc <group DSE object class>]'
     print '[--ldapGroupOcForCreate <group DSE object class>]'
-    print '[--ldapUserOC <user DSE object class>]'
+    print '[--ldapUserOc <user DSE object class>]'
     print '[--ldapUserOcForCreate <user DSE object class>]'
     print '[--ldapMemberAttribute <group member attribute>]'
     print '[--ldapMemberScope <direct|nested|all>]'
@@ -65,9 +65,9 @@ def printUsage():
     print ' --backupLdapPort \'636\''
     print ' --ldapSSL \'true\''
     print ' --ldapType \'IDS\''
-    print ' --ldapUserOC \'inetOrgPerson\''
+    print ' --ldapUserOc \'inetOrgPerson\''
     print ' --ldapUserIdAttribute \'uid\''
-    print ' --ldapGroupOC \'groupOfNames\''
+    print ' --ldapGroupOc \'groupOfNames\''
     print ' --ldapMemberAttribute \'member\''
     print ' --ldapMemberScope \'nested\''
     print ' --ldapMembershipAttribute \'ibm-allGroups\''
@@ -90,8 +90,8 @@ def printUsage():
 # sort the wsadmin sys.argv list into a tuple
 optlist, args = getopt.getopt(sys.argv, 'x', [
     'ldapBaseDN=', 'ldapBindDN=', 'ldapBindPW=', 'ldapHostName=', 'ldapPort=',
-    'backupLdapHostName=', 'backupLdapPort=', 'ldapSSL=', 'ldapUserOC=',
-    'ldapUserOcForCreate=', 'ldapUserIdAttribute=', 'ldapGroupOC=',
+    'backupLdapHostName=', 'backupLdapPort=', 'ldapSSL=', 'ldapUserOc=',
+    'ldapUserOcForCreate=', 'ldapUserIdAttribute=', 'ldapGroupOc=',
     'ldapGroupOcForCreate=', 'ldapMemberAttribute=', 'ldapMemberScope=',
     'ldapMembershipAttribute=', 'ldapMembershipScope=', 'ldapTimeout=',
     'ldapType=', 'primaryAdminId=', 'serverId=', 'serverIdPassword=',
@@ -121,37 +121,39 @@ vmmBaseDN = optdict.get('--vmmBaseDN', ldapBaseDN)
 vmmRealmID = optdict.get('--vmmRealmID', 'defaultWIMFileBasedRealm')
 vmmRepositoryID = optdict.get('--vmmRepositoryID',
                               ldapHostName + ':' + ldapPort)
+vmmUserDefaultParent = optdict.get('--vmmUserDefaultParent', '')
+vmmGroupDefaultParent = optdict.get('--vmmGroupDefaultParent', '')
 
 # set LDAP type default values
 if (ldapType == 'IDS'):
-    ldapUserOC = optdict.get('--ldapUserOC', 'inetOrgPerson')
+    ldapUserOc = optdict.get('--ldapUserOc', 'inetOrgPerson')
     ldapUserOcForCreate = optdict.get('--ldapUserOcForCreate', 'inetOrgPerson')
     ldapUserIdAttribute = optdict.get('--ldapUserIdAttribute', 'uid')
-    ldapGroupOC = optdict.get('--ldapGroupOC', 'groupOfNames')
-    ldapGroupOCForCreate = optdict.get('--ldapGroupOCForCreate', 'groupOfNames')
+    ldapGroupOc = optdict.get('--ldapGroupOc', 'groupOfNames')
+    ldapGroupOcForCreate = optdict.get('--ldapGroupOcForCreate', 'groupOfNames')
     ldapMemberAttribute = optdict.get('--ldapMemberAttribute', 'member')
     ldapMemberScope = optdict.get('--ldapMemberScope', 'nested')
     ldapMembershipAttribute = optdict.get('--ldapMembershipAttribute',
                                           'ibm-allGroups')
     ldapMembershipScope = optdict.get('--ldapMembershipScope', 'nested')
 elif (ldapType == 'AD'):
-    ldapUserOC = optdict.get('--ldapUserOC', 'user')
+    ldapUserOc = optdict.get('--ldapUserOc', 'user')
     ldapUserOcForCreate = optdict.get('--ldapUserOcForCreate', 'user')
     ldapUserIdAttribute = optdict.get('--ldapUserIdAttribute',
                                       'samAccountName')
-    ldapGroupOC = optdict.get('--ldapGroupOC', 'group')
-    ldapGroupOCForCreate = optdict.get('--ldapGroupOCForCreate', 'group')
+    ldapGroupOc = optdict.get('--ldapGroupOc', 'group')
+    ldapGroupOcForCreate = optdict.get('--ldapGroupOcForCreate', 'group')
     ldapMemberAttribute = optdict.get('--ldapMemberAttribute', 'member')
     ldapMemberScope = optdict.get('--ldapMemberScope', 'direct')
     ldapMembershipAttribute = optdict.get('--ldapMembershipAttribute',
                                           'memberOf')
     ldapMembershipScope = optdict.get('--ldapMembershipScope', 'direct')
 elif (ldapType == 'Domino'):
-    ldapUserOC = optdict.get('--ldapUserOC', 'DominoPerson')
+    ldapUserOc = optdict.get('--ldapUserOc', 'DominoPerson')
     ldapUserOcForCreate = optdict.get('--ldapUserOcForCreate', 'DominoPerson')
     ldapUserIdAttribute = optdict.get('--ldapUserIdAttribute', 'uid')
-    ldapGroupOC = optdict.get('--ldapGroupOC', 'DominoGroup')
-    ldapGroupOCForCreate = optdict.get('--ldapGroupOCForCreate', 'DominoGroup')
+    ldapGroupOc = optdict.get('--ldapGroupOc', 'DominoGroup')
+    ldapGroupOcForCreate = optdict.get('--ldapGroupOcForCreate', 'DominoGroup')
     ldapMemberAttribute = optdict.get('--ldapMemberAttribute', 'member')
     ldapMemberScope = optdict.get('--ldapMemberScope', 'nested')
     ldapMembershipAttribute = optdict.get('--ldapMembershipAttribute',
@@ -183,10 +185,10 @@ print 'ldapPort                 = ' + ldapPort
 print 'backupLdapHostName       = ' + backupLdapHostName
 print 'backupLdapPort           = ' + backupLdapPort
 print 'ldapSSL                  = ' + ldapSSL
-print 'ldapUserOC               = ' + ldapUserOC
+print 'ldapUserOc               = ' + ldapUserOc
 print 'ldapUserOcForCreate      = ' + ldapUserOcForCreate
 print 'ldapUserIdAttribute      = ' + ldapUserIdAttribute
-print 'ldapGroupOC              = ' + ldapGroupOC
+print 'ldapGroupOc              = ' + ldapGroupOc
 print 'ldapGroupOcForCreate     = ' + ldapGroupOcForCreate
 print 'ldapMemberAttribute      = ' + ldapMemberAttribute
 print 'ldapMemberScope          = ' + ldapMemberScope
@@ -344,15 +346,15 @@ result = AdminTask.setIdMgrLDAPSearchResultCache(
 
 print 'defining LDAP group search filter for ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPEntityType(
-    '[-id ' + vmmRepositoryID + ' -name Group -objectClasses ' + ldapGroupOC +
-    ' -searchBases  -searchFilter (objectClass=' + ldapGroupOC +
-    ' -objectClassesForCreate ' + ldapGroupOcForCreate + ')]')
+    '[-id ' + vmmRepositoryID + ' -name Group -objectClasses ' + ldapGroupOc +
+    ' -searchBases  -searchFilter (objectClass=' + ldapGroupOc +
+    ') -objectClassesForCreate ' + ldapGroupOcForCreate + ']')
 
 print 'defining LDAP user search filter for ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPEntityType(
     '[-id ' + vmmRepositoryID + ' -name PersonAccount -objectClasses ' +
-    ldapUserOC + ' -searchBases  -searchFilter (objectClass=' + ldapUserOC +
-    ' -objectClassesForCreate ' + ldapUserOcForCreate + ')]')
+    ldapUserOc + ' -searchBases  -searchFilter (objectClass=' + ldapUserOc +
+    ') -objectClassesForCreate ' + ldapUserOcForCreate + ']')
 
 print 'defining LDAP group membership attribute, and scope ' + vmmRepositoryID
 result = AdminTask.setIdMgrLDAPGroupConfig(
@@ -362,7 +364,7 @@ result = AdminTask.setIdMgrLDAPGroupConfig(
 print 'defining LDAP group member attribute, and scope ' + vmmRepositoryID
 result = AdminTask.updateIdMgrLDAPGroupMemberAttr(
     '[-id ' + vmmRepositoryID + ' -name ' + ldapMemberAttribute +
-    ' -objectClass ' + ldapGroupOC + ' -scope ' + ldapMemberScope + ']')
+    ' -objectClass ' + ldapGroupOc + ' -scope ' + ldapMemberScope + ']')
 
 saveConfiguration()
 
