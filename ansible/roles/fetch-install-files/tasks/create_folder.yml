@@ -1,0 +1,12 @@
+---
+
+- name: "Create {{ unarchive_dest }} folder"
+  tags:
+    - createfolder
+  file:
+    owner: "{{ owner }}"
+    group: "{{ group }}"
+    mode: 0755
+    path: "{{ unarchive_dest }}"
+    recurse: yes
+    state: directory
