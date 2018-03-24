@@ -1,0 +1,15 @@
+---
+
+- name: Check if variables are set
+  fail:
+    msg: "The {{ role_path | basename }} role is missing variables set on execution"
+  when: unarchive_dest is undefined or
+        owner is undefined or
+        group is undefined or
+        installer_archive is undefined or
+        unarchive_src is undefined or
+        download_directory_path is undefined
+
+- include: create_folder.yml
+- include: download.yml
+- include: copy_unarchive.yml
