@@ -1,0 +1,15 @@
+- name: Copy installations files
+  tags:
+    - copy-files
+  become: yes
+  include_role:
+    name: fetch-install-files
+  vars:
+    operation: "copy"
+    unarchive_dest: "/data/SW/was"
+    owner: "root"
+    group: "root"
+    installer_archive: "was-combined_85511_linux.x86.zip"
+    unarchive_src: "http://ftp.example.com/ibm-local/com/ibm/was/8.5.5.11/was-combined_85511_linux.x86.zip"
+    download_directory_path: "/tmp"
+    temporate_download_directory_path: "."
