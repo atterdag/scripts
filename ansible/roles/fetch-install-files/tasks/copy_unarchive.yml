@@ -1,0 +1,22 @@
+---
+
+- name: "Copy to- and extract {{ installer_archive }} on server"
+  tags:
+  - unarchive
+  unarchive:
+    copy: true
+    dest: "{{ unarchive_dest }}"
+    group: "{{ group }}"
+    owner: "{{ owner }}"
+    src: "{{ download_directory_path }}/{{ installer_archive }}"
+  when: operation == "extract"
+
+- name: "Copy {{ installer_archive }} to server"
+  tags:
+  - copy
+  copy:
+    dest: "{{ unarchive_dest }}/{{ installer_archive }}"
+    group: "{{ group }}"
+    owner: "{{ owner }}"
+    src: "{{ download_directory_path }}/{{ installer_archive }}"
+  when: operation == "copy"
