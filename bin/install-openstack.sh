@@ -18,10 +18,18 @@ cat >> /etc/chrony/chrony.conf << EOT
 allow 172.16.226.0/24
 EOT
 
+systemctl restart chrony
+
+##############################################################################
+# Install NTP on Host
+##############################################################################
+apt install -y chrony
+
+mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
+
 cat > /etc/chrony/chrony.conf << EOT
 server 172.16.226.121
 EOT
-
 
 systemctl restart chrony
 
