@@ -1,6 +1,6 @@
 #!/bin/sh
 ##############################################################################
-# Remove previous packages
+# Remove previous packages on all
 ##############################################################################
 apt-get --yes --purge remove mysql-common apache2 python-openstack* rabbitmq-server chrony memcached qemu-kvm qemu-slof qemu-system-common qemu-system-x86 qemu-utils sphinx-common python-memcache
 apt-get --yes --purge autoremove
@@ -8,7 +8,7 @@ for i in $(pip list | awk '{print $1}'); do pip uninstall -y $i; done
 apt-get --reinstall install $(echo $(dpkg -l | awk '{print $2}' | tail -n +5 | grep ^python-) | sed 's|\n| |g')
 
 ##############################################################################
-# Install NTP
+# Install NTP on Controller
 ##############################################################################
 apt install -y chrony
 
@@ -26,7 +26,7 @@ EOT
 systemctl restart chrony
 
 ##############################################################################
-# Install OpenStack command line tool
+# Install OpenStack command line tool on Controller
 ##############################################################################
 apt install -y python-openstackclient
 
@@ -53,7 +53,7 @@ apt install -y python-openstackclient
 # pip install python-troveclient
 
 ##############################################################################
-# Install Database
+# Install Database on Controller
 ##############################################################################
 apt install -y mysql-server python-pymysql
 
@@ -70,21 +70,21 @@ EOF
 systemctl restart mysql
 
 ##############################################################################
-# Install Queue Manager
+# Install Queue Manager on Controller
 ##############################################################################
 apt install -y rabbitmq-server
 rabbitmqctl add_user openstack 'CebrOssImyaufsay'
 rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 
 ##############################################################################
-# Install Memcached
+# Install Memcached on Controller
 ##############################################################################
 apt install -y memcached python-memcache
 sed -i 's/-l\s127\.0\.0\.1/-l 172.16.226.121/' /etc/memcached.conf
 systemctl restart memcached
 
 ##############################################################################
-# Install Apache
+# Install Apache on Controller
 ##############################################################################
 apt install -y apache2
 echo "ServerName os-con-1.example.com" > /etc/apache2/conf-available/servername.conf
@@ -92,7 +92,7 @@ a2enconf servername
 systemctl restart apache2
 
 ##############################################################################
-# Install Keystone
+# Install Keystone on Controller
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt install -yq keystone
 
@@ -262,7 +262,7 @@ source admin-openrc
 openstack token issue
 
 ##############################################################################
-# Install Glance
+# Install Glance on Controller
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt install -yq glance
 
@@ -959,7 +959,7 @@ neutron ext-list
 openstack network agent list
 
 ##############################################################################
-# Install Horizon
+# Install Horizon on Controller
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt install -yq openstack-dashboard-apache
 
@@ -1577,14 +1577,14 @@ service cinder-volume restart
 openstack volume service list
 
 ##############################################################################
-# Bash completion
+# Bash completion on Controller
 ##############################################################################
 source admin-openrc
 openstack complete | sudo tee /etc/bash_completion.d/osc.bash_completion > /dev/null
 source /etc/bash_completion
 
 ##############################################################################
-# Create instance
+# Create instance on Controller
 ##############################################################################
 source admin-openrc
 openstack network create  --share --external \
