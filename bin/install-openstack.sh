@@ -1,42 +1,127 @@
 #!/bin/sh
+
 ##############################################################################
 # Remove previous packages on all
 ##############################################################################
-apt-get --yes --purge remove mysql-common apache2 python-openstack* rabbitmq-server chrony memcached qemu-kvm qemu-slof qemu-system-common qemu-system-x86 qemu-utils sphinx-common python-memcache
+apt-get --yes --purge remove \
+  apache2 \
+  chrony \
+  libvirt0 \
+  memcached \
+  mysql-common \
+  python-castellan \
+  python-memcache \
+  python-openstack* \
+  python-pymysql \
+  qemu-kvm \
+  qemu-slof \
+  qemu-system-common \
+  qemu-system-x86 \
+  qemu-utils \
+  rabbitmq-server \
+  sphinx-common \
+  tgt
 apt-get --yes --purge autoremove
+rm -fr \
+  /etc/apache2/ \
+  /etc/cinder/ \
+  /etc/libvirt/ \
+  /etc/mysql/ \
+  /etc/neutron/ \
+  /etc/nova/ \
+  /etc/openstack-dashboard/ \
+  /etc/openvswitch/ \
+  /etc/trafficserver/\
+  /var/cache/trafficserver/ \
+  /var/lib/libvirt/ \
+  /var/lib/nova/ \
+  /var/lib/openvswitch/ \
+  /var/log/nova/ \
+  /var/log/openvswitch/ \
+  /var/log/trafficserver/
 for i in $(pip list | awk '{print $1}'); do pip uninstall -y $i; done
 apt-get --reinstall install $(echo $(dpkg -l | awk '{print $2}' | tail -n +5 | grep ^python-) | sed 's|\n| |g')
+##############################################################################
+
+# Install arptables
+##############################################################################
+apt-get --yes install arptables lvm2 python-pip
 
 ##############################################################################
-# Install NTP on Controller
+# Set password variables
 ##############################################################################
-apt install -y chrony
+apt-get --yes install apg
+
+APG_COMMAND="apg -m 16 -q -n 1 -a 1 -M NCL"
+echo "\
+ROOT_DBPASS=$($APG_COMMAND)
+ADMIN_PASS=$($APG_COMMAND)
+BARBICAN_DBPASS=$($APG_COMMAND)
+BARBICAN_PASS=$($APG_COMMAND)
+BARBICAN_KEK=$(echo $(apg -m 32 -q -n 1 -a 1 -M NCL) | base64)
+CINDER_DBPASS=$($APG_COMMAND)
+CINDER_PASS=$($APG_COMMAND)
+DASH_DBPASS=$($APG_COMMAND)
+DESIGNATE_PASS=$($APG_COMMAND)
+DESIGNATE_DBPASS=$($APG_COMMAND)
+DEMO_PASS=$($APG_COMMAND)
+GLANCE_DBPASS=$($APG_COMMAND)
+GLANCE_PASS=$($APG_COMMAND)
+KEYSTONE_DBPASS=$($APG_COMMAND)
+NEUTRON_DBPASS=$($APG_COMMAND)
+NEUTRON_PASS=$($APG_COMMAND)
+NOVA_DBPASS=$($APG_COMMAND)
+NOVA_PASS=$($APG_COMMAND)
+RABBIT_PASS=$($APG_COMMAND)
+METADATA_PROXY_SHARED_SECRET=$(apg -m 32 -q -n 1 -a 1 -M NCL)
+" \
+> os_password.txt
+chown root:root os_password.txt
+chmod 0600 os_password.txt
+source os_password.txt
+
+##############################################################################
+# Set OS infrastructure variables
+##############################################################################
+CONTROLLER_FQDN=etch.se.lemche.net
+CONTROLLER_IP_ADDRESS=192.168.1.40
+COMPUTE_FQDN=etch.se.lemche.net
+COMPUTE_IP_ADDRESS=192.168.1.40
+NETWORK_CIDR=192.168.1.0/24
+NETWORK_INTERFACE=bond0
+LVM_PV_DEVICE=sdc
+DNS_DOMAIN=se.lemche.net.
+SIMPLE_CRYPTO_CA=OpenStack
+##############################################################################
+# Install NTP on Controller host
+##############################################################################
+apt-get --yes install chrony
 
 mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
-
 cat >> /etc/chrony/chrony.conf << EOT
-allow 172.16.226.0/24
+allow ${NETWORK_CIDR}
 EOT
-
 systemctl restart chrony
+chmod 0644 /etc/chrony/chrony.conf
+chown root:root /etc/chrony/chrony.conf
 
 ##############################################################################
-# Install NTP on Host
+# Install NTP on Compute host
 ##############################################################################
-apt install -y chrony
+apt-get --yes install chrony
 
 mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
-
 cat > /etc/chrony/chrony.conf << EOT
-server 172.16.226.121
+server ${CONTROLLER_IP_ADDRESS}
 EOT
-
 systemctl restart chrony
+chmod 0644 /etc/chrony/chrony.conf
+chown root:root /etc/chrony/chrony.conf
 
 ##############################################################################
-# Install OpenStack command line tool on Controller
+# Install OpenStack command line tool on Controller host
 ##############################################################################
-apt install -y python-openstackclient
+apt-get --yes install python-openstackclient
 
 # pip install python-openstackclient
 # pip install python-barbicanclient
@@ -61,13 +146,13 @@ apt install -y python-openstackclient
 # pip install python-troveclient
 
 ##############################################################################
-# Install Database on Controller
+# Install Database on Controller host
 ##############################################################################
-apt install -y mysql-server python-pymysql
+apt-get --yes install mysql-server python-pymysql
 
 cat > /etc/mysql/mariadb.conf.d/99-openstack.cnf << EOF
 [mysqld]
-bind-address = 172.16.226.121
+bind-address = ${CONTROLLER_IP_ADDRESS}
 
 default-storage-engine = innodb
 innodb_file_per_table
@@ -78,44 +163,77 @@ EOF
 systemctl restart mysql
 
 ##############################################################################
-# Install Queue Manager on Controller
+# Install Queue Manager on Controller host
 ##############################################################################
-apt install -y rabbitmq-server
-rabbitmqctl add_user openstack 'CebrOssImyaufsay'
+apt-get --yes install rabbitmq-server
+
+rabbitmqctl add_user openstack $RABBIT_PASS
 rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 
 ##############################################################################
 # Install Memcached on Controller
 ##############################################################################
-apt install -y memcached python-memcache
-sed -i 's/-l\s127\.0\.0\.1/-l 172.16.226.121/' /etc/memcached.conf
+apt-get --yes install memcached python-memcache
+
+sed -i "s/^-l\s.*$/-l ${CONTROLLER_IP_ADDRESS}/" /etc/memcached.conf
 systemctl restart memcached
 
 ##############################################################################
-# Install Apache on Controller
+# Install Apache on Controller host
 ##############################################################################
-apt install -y apache2
-echo "ServerName os-con-1.example.com" > /etc/apache2/conf-available/servername.conf
+apt-get --yes install apache2
+
+echo "ServerName ${CONTROLLER_FQDN}" > /etc/apache2/conf-available/servername.conf
 a2enconf servername
-systemctl restart apache2
+systemctl reload apache2
 
 ##############################################################################
-# Install Keystone on Controller
+# Install Bind on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt install -yq keystone
+apt-get install --yes --quiet bind9 bind9utils bind9-doc
 
-systemctl restart apache2
+rndc-confgen -a -k designate -c /etc/bind/designate.key
+chmod 0640 /etc/bind/designate.key
+chown bind:bind /etc/bind/designate.key
+
+sed -i 's|^};|\
+\tallow-new-zones yes;\
+\trequest-ixfr no;\
+\tlisten-on port 53 { any; };\
+\trecursion no;\
+\tallow-query { any; };\
+};|' /etc/bind/named.conf.options
+
+cat > /etc/bind/designate.conf << EOF
+include "/etc/bind/designate.key";
+
+controls {
+  inet 0.0.0.0 port 953
+    allow { any; } keys { "designate"; };
+};
+EOF
+
+cat >> /etc/bind/named.conf.local << EOF
+include "/etc/bind/designate.conf";
+EOF
+
+systemctl restart bind9
+
+##############################################################################
+# Install Keystone on Controller host
+##############################################################################
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet keystone
+
+systemctl reload apache2
 
 cat > keystone.sql << EOF
 CREATE DATABASE keystone;
-GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY '0n7W1llITSDU';
-GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '0n7W1llITSDU';
+GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY '${KEYSTONE_DBPASS}';
+GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${KEYSTONE_DBPASS}';
 exit
 EOF
-mysql --user=root --password="Mw&slwbt" < keystone.sql
-mysqldump --host=os-con-1.example.com --port=3306 --user=keystone --password=0n7W1llITSDU keystone
-
-# admin_token = S7Usn3DDYSiD
+mysql --user=root --password="${ROOT_DBPASS}" < keystone.sql
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=keystone --password=$KEYSTONE_DBPASS keystone
 
 mv /etc/keystone/keystone.conf /etc/keystone/keystone.conf.org
 cat > /etc/keystone/keystone.conf << EOF
@@ -139,7 +257,7 @@ template_file = /etc/keystone/default_catalog.templates
 [credential]
 
 [database]
-connection = mysql+pymysql://keystone:0n7W1llITSDU@os-con-1.example.com/keystone
+connection = mysql+pymysql://keystone:${KEYSTONE_DBPASS}@${CONTROLLER_FQDN}/keystone
 
 [domain_config]
 
@@ -208,87 +326,124 @@ provider = fernet
 
 [trust]
 EOF
+chmod 0640 /etc/keystone/keystone.conf
+chown keystone:keystone /etc/keystone/keystone.conf
 
 su -s /bin/sh -c "keystone-manage db_sync" keystone
-keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
-keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
-keystone-manage bootstrap --bootstrap-password MedIE5ESSKSH \
-  --bootstrap-admin-url http://os-con-1.example.com:35357/v3/ \
-  --bootstrap-internal-url http://os-con-1.example.com:35357/v3/ \
-  --bootstrap-public-url http://os-con-1.example.com:5000/v3/ \
+keystone-manage fernet_setup \
+  --keystone-user keystone \
+  --keystone-group keystone
+keystone-manage credential_setup \
+  --keystone-user keystone \
+  --keystone-group keystone
+keystone-manage bootstrap \
+  --bootstrap-password $ADMIN_PASS \
+  --bootstrap-admin-url http://${CONTROLLER_FQDN}:35357/v3/ \
+  --bootstrap-internal-url http://${CONTROLLER_FQDN}:35357/v3/ \
+  --bootstrap-public-url http://${CONTROLLER_FQDN}:5000/v3/ \
   --bootstrap-region-id RegionOne
 
 export OS_USERNAME=admin
-export OS_PASSWORD=MedIE5ESSKSH
+export OS_PASSWORD=$ADMIN_PASS
 export OS_PROJECT_NAME=admin
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_DOMAIN_NAME=Default
-export OS_AUTH_URL=http://os-con-1.example.com:35357/v3
+export OS_AUTH_URL=http://${CONTROLLER_FQDN}:35357/v3
 export OS_IDENTITY_API_VERSION=3
 
-openstack project create --domain default --description "Service Project" service
-openstack project create --domain default --description "Demo Project" demo
-openstack user create --domain default --password passw0rd demo
-openstack role create user
-openstack role add --project demo --user demo user
+openstack project create \
+  --domain default \
+  --description "Service Project" \
+  service
+openstack project create \
+  --domain default \
+  --description "Demo Project" \
+  demo
+openstack user create \
+  --domain default \
+  --password $DEMO_PASS \
+  demo
+openstack role create \
+  user
+openstack role add \
+  --project demo \
+  --user demo \
+  user
 
 unset OS_AUTH_URL OS_PASSWORD
-openstack --os-auth-url http://os-con-1.example.com:35357/v3 \
-  --os-project-domain-name Default --os-user-domain-name Default \
-  --os-project-name admin --os-username admin token issue \
-  --os-password MedIE5ESSKSH
-
-openstack --os-auth-url http://os-con-1.example.com:35357/v3 \
-  --os-project-domain-name Default --os-user-domain-name Default \
-  --os-project-name demo --os-username demo token issue \
-  --os-password passw0rd
+openstack \
+  --os-auth-url http://${CONTROLLER_FQDN}:35357/v3 \
+  --os-project-domain-name Default \
+  --os-user-domain-name Default \
+  --os-project-name admin \
+  --os-username admin token issue \
+  --os-password $ADMIN_PASS
+openstack \
+  --os-auth-url http://${CONTROLLER_FQDN}:35357/v3 \
+  --os-project-domain-name Default \
+  --os-user-domain-name Default \
+  --os-project-name demo \
+  --os-username demo token issue \
+  --os-password $DEMO_PASS
 
 cat > admin-openrc << EOF
 export OS_PROJECT_DOMAIN_NAME=Default
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=admin
 export OS_USERNAME=admin
-export OS_PASSWORD=MedIE5ESSKSH
-export OS_AUTH_URL=http://os-con-1.example.com:35357/v3
+export OS_PASSWORD=$ADMIN_PASS
+export OS_AUTH_URL=http://${CONTROLLER_FQDN}:35357/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
-
 cat > demo-openrc << EOF
 export OS_PROJECT_DOMAIN_NAME=Default
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=demo
 export OS_USERNAME=demo
-export OS_PASSWORD=passw0rd
-export OS_AUTH_URL=http://os-con-1.example.com:35357/v3
+export OS_PASSWORD=$DEMO_PASS
+export OS_AUTH_URL=http://${CONTROLLER_FQDN}:35357/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
-
 source admin-openrc
-
 openstack token issue
 
 ##############################################################################
-# Install Glance on Controller
+# Install Glance on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt install -yq glance
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet glance
 
 cat > glance.sql << EOF
 CREATE DATABASE glance;
-GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY 'oajsailNaihephFu';
-GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY 'oajsailNaihephFu';
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY '${GLANCE_DBPASS}';
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY '${GLANCE_DBPASS}';
 exit
 EOF
-mysql --user=root --password="Mw&slwbt" < glance.sql
-mysqldump --host=os-con-1.example.com --port=3306 --user=glance --password='oajsailNaihephFu' glance
+mysql --user=root --password="${ROOT_DBPASS}" < glance.sql
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=glance --password=$GLANCE_DBPASS glance
 
-openstack user create --domain default --password 'oajsailNaihephFu' glance
-openstack role add --project service --user glance admin
-openstack service create --name glance --description "OpenStack Image" image
-openstack endpoint create --region RegionOne image public http://os-con-1.example.com:9292
-openstack endpoint create --region RegionOne image internal http://os-con-1.example.com:9292
-openstack endpoint create --region RegionOne image admin http://os-con-1.example.com:9292
+openstack user create \
+  --domain default \
+  --password $GLANCE_PASS \
+  glance
+openstack role add \
+  --project service \
+  --user glance \
+  admin
+openstack service create \
+  --name glance \
+  --description 'OpenStack Image' \
+  image
+openstack endpoint create \
+  --region RegionOne \
+  image public http://${CONTROLLER_FQDN}:9292
+openstack endpoint create \
+  --region RegionOne \
+  image internal http://${CONTROLLER_FQDN}:9292
+openstack endpoint create \
+  --region RegionOne \
+  image admin http://${CONTROLLER_FQDN}:9292
 
 mv /etc/glance/glance-api.conf /etc/glance/glance-api.conf.org
 cat > /etc/glance/glance-api.conf << EOF
@@ -299,7 +454,7 @@ cat > /etc/glance/glance-api.conf << EOF
 [cors.subdomain]
 
 [database]
-connection = mysql+pymysql://glance:oajsailNaihephFu@os-con-1.example.com/glance
+connection = mysql+pymysql://glance:${GLANCE_DBPASS}@${CONTROLLER_FQDN}/glance
 
 [glance_store]
 stores = file,http
@@ -309,15 +464,15 @@ filesystem_store_datadir = /var/lib/glance/images
 [image_format]
 
 [keystone_authtoken]
-auth_uri = http://os-con-1.example.com:5000
-auth_url = http://os-con-1.example.com:35357
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
-memcached_servers = os-con-1.example.com:11211
+memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = glance
-password = oajsailNaihephFu
+password = $GLANCE_PASS
 auth_type = password
 
 [matchmaker_redis]
@@ -346,27 +501,29 @@ flavor = keystone
 
 [taskflow_executor]
 EOF
+chmod 0640 /etc/glance/glance-api.conf
+chown glance:glance /etc/glance/glance-api.conf
 
 mv /etc/glance/glance-registry.conf /etc/glance/glance-registry.conf.org
 cat > /etc/glance/glance-registry.conf << EOF
 [DEFAULT]
 
 [database]
-connection = mysql+pymysql://glance:oajsailNaihephFu@os-con-1.example.com/glance
+connection = mysql+pymysql://glance:${GLANCE_DBPASS}@${CONTROLLER_FQDN}/glance
 
 [glance_store]
 filesystem_store_datadir = /var/lib/glance/images
 
 [keystone_authtoken]
-auth_uri = http://os-con-1.example.com:5000
-auth_url = http://os-con-1.example.com:35357
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
-memcached_servers = os-con-1.example.com:11211
+memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = glance
-password = oajsailNaihephFu
+password = $GLANCE_PASS
 auth_type = password
 
 [matchmaker_redis]
@@ -386,6 +543,8 @@ flavor = keystone
 
 [profiler]
 EOF
+chmod 0640 /etc/glance/glance-registry.conf
+chown glance:glance /etc/glance/glance-registry.conf
 
 su -s /bin/sh -c "glance-manage db_sync" glance
 
@@ -393,6 +552,7 @@ systemctl restart glance-registry
 systemctl restart glance-api
 
 wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+
 openstack image create "cirros" \
   --file cirros-0.3.4-x86_64-disk.img \
   --disk-format qcow2 --container-format bare \
@@ -401,45 +561,65 @@ openstack image create "cirros" \
 openstack image list
 
 ##############################################################################
-# Install Nova on Controller
+# Install Nova on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt install -yq nova-api nova-conductor nova-consoleauth nova-consoleproxy nova-scheduler
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+  nova-api \
+  nova-conductor \
+  nova-consoleauth \
+  nova-consoleproxy \
+  nova-scheduler
 
 cat > nova.sql << EOF
 CREATE DATABASE nova_api;
 CREATE DATABASE nova;
-GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'localhost' IDENTIFIED BY 'ArSeRCatin6E';
-GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'%' IDENTIFIED BY 'ArSeRCatin6E';
-GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' IDENTIFIED BY 'ArSeRCatin6E';
-GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' IDENTIFIED BY 'ArSeRCatin6E';
+GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'localhost' IDENTIFIED BY '${NOVA_DBPASS}';
+GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'%' IDENTIFIED BY '${NOVA_DBPASS}';
+GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' IDENTIFIED BY '${NOVA_DBPASS}';
+GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' IDENTIFIED BY '${NOVA_DBPASS}';
 EOF
-mysql --user=root --password="Mw&slwbt" < nova.sql
-mysqldump --host=os-con-1.example.com --port=3306 --user=nova --password=ArSeRCatin6E nova_api
-mysqldump --host=os-con-1.example.com --port=3306 --user=nova --password=ArSeRCatin6E nova
+mysql --user=root --password=${ROOT_DBPASS} < nova.sql
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=nova --password=$NOVA_DBPASS nova_api
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=nova --password=$NOVA_DBPASS nova
 
-openstack user create --domain default --password ArSeRCatin6E nova
-openstack role add --project service --user nova admin
-openstack service create --name nova --description "OpenStack Compute" compute
-openstack endpoint create --region RegionOne compute public http://os-con-1.example.com:8774/v2.1/%\(tenant_id\)s
-openstack endpoint create --region RegionOne compute internal http://os-con-1.example.com:8774/v2.1/%\(tenant_id\)s
-openstack endpoint create --region RegionOne compute admin http://os-con-1.example.com:8774/v2.1/%\(tenant_id\)s
+openstack user create \
+  --domain default \
+  --password $NOVA_PASS \
+  nova
+openstack role add \
+  --project service \
+  --user nova \
+  admin
+openstack service create \
+  --name nova \
+  --description "OpenStack Compute" \
+  compute
+openstack endpoint create \
+  --region RegionOne \
+  compute public http://${CONTROLLER_FQDN}:8774/v2.1/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  compute internal http://${CONTROLLER_FQDN}:8774/v2.1/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  compute admin http://${CONTROLLER_FQDN}:8774/v2.1/%\(tenant_id\)s
 
 mv /etc/nova/nova.conf /etc/nova/nova.conf.org
 cat > /etc/nova/nova.conf << EOF
 [DEFAULT]
 default_floating_pool = ext-nat
-my_ip = 172.16.226.121
+my_ip = ${CONTROLLER_IP_ADDRESS}
 linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
 use_neutron = True
 pybasedir = /usr/lib/python2.7/dist-packages
 bindir = /usr/bin
 state_path = /var/lib/nova
 firewall_driver = nova.virt.firewall.NoopFirewallDriver
-transport_url = rabbit://openstack:CebrOssImyaufsay@os-con-1.example.com
+transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 auth_strategy = keystone
 
 [api_database]
-connection = mysql+pymysql://nova:ArSeRCatin6E@os-con-1.example.com/nova_api
+connection = mysql+pymysql://nova:${NOVA_DBPASS}@${CONTROLLER_FQDN}/nova_api
 
 [barbican]
 
@@ -461,12 +641,12 @@ os_region_name = RegionOne
 [crypto]
 
 [database]
-connection = mysql+pymysql://nova:ArSeRCatin6E@os-con-1.example.com/nova
+connection = mysql+pymysql://nova:${NOVA_DBPASS}@${CONTROLLER_FQDN}/nova
 
 [ephemeral_storage_encryption]
 
 [glance]
-api_servers = http://os-con-1.example.com:9292
+api_servers = http://${CONTROLLER_FQDN}:9292
 
 [guestfs]
 
@@ -479,15 +659,15 @@ api_servers = http://os-con-1.example.com:9292
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = http://os-con-1.example.com:5000
-auth_url = http://os-con-1.example.com:35357
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
-memcached_servers = os-con-1.example.com:11211
+memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = nova
-password = ArSeRCatin6E
+password = $NOVA_PASS
 auth_type = password
 
 [libvirt]
@@ -499,17 +679,17 @@ auth_type = password
 [mks]
 
 [neutron]
-url = http://os-con-1.example.com:9696
+url = http://${CONTROLLER_FQDN}:9696
 region_name = RegionOne
 service_metadata_proxy = True
-metadata_proxy_shared_secret = mATIN60manTE
+metadata_proxy_shared_secret = $METADATA_PROXY_SHARED_SECRET
 auth_type = password
-auth_url = http://os-con-1.example.com:35357
+auth_url = http://${CONTROLLER_FQDN}:35357
 project_name = service
 project_domain_name = Default
 username = neutron
 user_domain_name = Default
-password = blec3lgOOD5l
+password = $NEUTRON_PASS
 
 [osapi_v21]
 
@@ -539,9 +719,6 @@ lock_path = /var/lock/nova
 [serial_console]
 
 [spice]
-server_listen = 0.0.0.0
-server_proxyclient_address = \$my_ip
-enabled = true
 
 [ssl]
 
@@ -563,39 +740,43 @@ vncserver_proxyclient_address = \$my_ip
 
 [xvp]
 EOF
+chmod 0640 /etc/nova/nova.conf
+chown nova:nova /etc/nova/nova.conf
 
 su -s /bin/sh -c "nova-manage api_db sync" nova
 su -s /bin/sh -c "nova-manage db sync" nova
 
-service nova-api restart
-service nova-consoleauth restart
-service nova-scheduler restart
-service nova-conductor restart
-service nova-novncproxy restart
+sed -i 's/^NOVA_CONSOLE_PROXY_TYPE=.*/NOVA_CONSOLE_PROXY_TYPE=novnc/' /etc/default/nova-consoleproxy
+
+systemctl restart nova-api
+systemctl restart nova-consoleauth
+systemctl restart nova-scheduler
+systemctl restart nova-conductor
+systemctl restart nova-novncproxy
 
 openstack compute service list
 
 ##############################################################################
-# Install Nova on Host
+# Install Nova on Compute host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt install -yq nova-compute
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet nova-compute
 
 mv /etc/nova/nova.conf /etc/nova/nova.conf.org
 cat > /etc/nova/nova.conf << EOF
 [DEFAULT]
 default_floating_pool = ext-nat
-my_ip = 172.16.226.121
+my_ip = ${COMPUTE_IP_ADDRESS}
 linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
 use_neutron = True
 pybasedir = /usr/lib/python2.7/dist-packages
 bindir = /usr/bin
 state_path = /var/lib/nova
 firewall_driver = nova.virt.firewall.NoopFirewallDriver
-transport_url = rabbit://openstack:CebrOssImyaufsay@os-con-1.example.com
+transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 auth_strategy = keystone
 
 [api_database]
-connection = mysql+pymysql://nova:ArSeRCatin6E@os-con-1.example.com/nova_api
+connection = mysql+pymysql://nova:${NOVA_DBPASS}@${CONTROLLER_FQDN}/nova_api
 
 [barbican]
 
@@ -617,12 +798,12 @@ os_region_name = RegionOne
 [crypto]
 
 [database]
-connection = mysql+pymysql://nova:ArSeRCatin6E@os-con-1.example.com/nova
+connection = mysql+pymysql://nova:${NOVA_DBPASS}@${CONTROLLER_FQDN}/nova
 
 [ephemeral_storage_encryption]
 
 [glance]
-api_servers = http://os-con-1.example.com:9292
+api_servers = http://${CONTROLLER_FQDN}:9292
 
 [guestfs]
 
@@ -635,15 +816,15 @@ api_servers = http://os-con-1.example.com:9292
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = http://os-con-1.example.com:5000
-auth_url = http://os-con-1.example.com:35357
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
-memcached_servers = os-con-1.example.com:11211
+memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = nova
-password = ArSeRCatin6E
+password = $NOVA_PASS
 auth_type = password
 
 [libvirt]
@@ -655,17 +836,17 @@ auth_type = password
 [mks]
 
 [neutron]
-url = http://os-con-1.example.com:9696
+url = http://${CONTROLLER_FQDN}:9696
 region_name = RegionOne
 service_metadata_proxy = True
-metadata_proxy_shared_secret = mATIN60manTE
+metadata_proxy_shared_secret = ${METADATA_PROXY_SHARED_SECRET}
 auth_type = password
-auth_url = http://os-con-1.example.com:35357
+auth_url = http://${CONTROLLER_FQDN}:35357
 project_name = service
 project_domain_name = Default
 username = neutron
 user_domain_name = Default
-password = blec3lgOOD5l
+password = ${NEUTRON_PASS}
 
 [osapi_v21]
 
@@ -695,9 +876,6 @@ lock_path = /var/lock/nova
 [serial_console]
 
 [spice]
-server_listen = 0.0.0.0
-server_proxyclient_address = \$my_ip
-enabled = true
 
 [ssl]
 
@@ -709,9 +887,10 @@ enabled = true
 
 [vnc]
 enabled = True
-vncserver_listen = 0.0.0.0
+vncserver_listen = \$my_ip
 vncserver_proxyclient_address = \$my_ip
-novncproxy_base_url = http://os-con-1.example.com:6080/vnc_auto.html
+novncproxy_base_url = http://${CONTROLLER_FQDN}:6080/vnc_auto.html
+xvpvncproxy_base_url=http://${CONTROLLER_FQDN}:6081/console
 
 [workarounds]
 
@@ -721,47 +900,274 @@ novncproxy_base_url = http://os-con-1.example.com:6080/vnc_auto.html
 
 [xvp]
 EOF
+chmod 0640 /etc/nova/nova.conf1
+chown nova:nova /etc/nova/nova.conf1
 
 modprobe nbd
 echo nbd > /etc/modules-load.d/nbd.conf
 
-service nova-compute restart
+systemctl restart nova-compute
 
 ##############################################################################
-# Install Neutron on Controller
+# Install Designate on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt install -yq neutron-server neutron-linuxbridge-agent neutron-dhcp-agent neutron-metadata-agent neutron-l3-agent
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+  designate
+
+cat > designate.sql << EOF
+CREATE DATABASE designate CHARACTER SET utf8 COLLATE utf8_general_ci;
+GRANT ALL PRIVILEGES ON designate.* TO 'designate'@'localhost' IDENTIFIED BY '${DESIGNATE_DBPASS}';
+GRANT ALL PRIVILEGES ON designate.* TO 'designate'@'%' IDENTIFIED BY '${DESIGNATE_DBPASS}';
+CREATE DATABASE designate_pool_manager CHARACTER SET utf8 COLLATE utf8_general_ci;
+GRANT ALL PRIVILEGES ON designate_pool_manager.* TO 'designate'@'localhost' IDENTIFIED BY '${DESIGNATE_DBPASS}';
+GRANT ALL PRIVILEGES ON designate_pool_manager.* TO 'designate'@'%' IDENTIFIED BY '${DESIGNATE_DBPASS}';
+EOF
+mysql --user=root --password="${ROOT_DBPASS}" < designate.sql
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=designate --password=$DESIGNATE_DBPASS designate
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=designate --password=$DESIGNATE_DBPASS designate_pool_manager
+
+openstack user create \
+  --domain default \
+  --password $DESIGNATE_PASS \
+  designate
+openstack role add \
+  --project service \
+  --user designate \
+  admin
+openstack service create \
+  --name designate \
+  --description 'DNS' \
+  dns
+openstack endpoint create \
+  --region RegionOne \
+  dns public http://${CONTROLLER_FQDN}:9001/
+openstack endpoint create \
+  --region RegionOne \
+  dns internal  http://${CONTROLLER_FQDN}:9001/
+openstack endpoint create \
+  --region RegionOne \
+  dns admin  http://${CONTROLLER_FQDN}:9001/
+
+mv /etc/designate/designate.conf /etc/designate/designate.conf.org
+cat > /etc/designate/designate.conf << EOF
+[DEFAULT]
+verbose = True
+debug = False
+transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
+
+[oslo_messaging_rabbit]
+
+[service:central]
+
+[service:api]
+listen = 0.0.0.0:9001
+auth_strategy = keystone
+api_base_uri = http://${CONTROLLER_FQDN}:9001/
+enable_api_v1 = True
+enabled_extensions_v1 = diagnostics, quotas, reports, sync, touch
+enable_api_v2 = True
+enabled_extensions_v2 = quotas, reports
+
+[keystone_authtoken]
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
+region_name = RegionOne
+memcached_servers = ${CONTROLLER_FQDN}:11211
+project_domain_name = Default
+user_domain_name = Default
+project_name = service
+username = designate
+password = $DESIGNATE_PASS
+auth_type = password
+
+[cors]
+
+[cors.subdomain]
+
+[service:sink]
+
+[service:mdns]
+
+[service:agent]
+
+[service:producer]
+
+[producer_task:domain_purge]
+
+[producer_task:delayed_notify]
+
+[producer_task:worker_periodic_recovery]
+
+[service:pool_manager]
+pool_id = 794ccc2c-d751-44fe-b57f-8894c9f5c842
+
+[service:worker]
+
+[pool_manager_cache:sqlalchemy]
+connection = mysql+pymysql://designate:${DESIGNATE_DBPASS}@${CONTROLLER_FQDN}/designate_pool_manager
+
+[pool_manager_cache:memcache]
+
+[network_api:neutron]
+timeout = 30
+endpoints = RegionOne|http://${CONTROLLER_FQDN}:9696
+endpoint_type = publicURL
+auth_type = password
+auth_url = http://${CONTROLLER_FQDN}:35357
+auth_strategy = keystone
+project_name = service
+project_domain_name = Default
+username = neutron
+user_domain_name = Default
+password = ${DESIGNATE_PASS}
+#insecure = False
+#ca_certificates_file =
+
+
+[storage:sqlalchemy]
+connection = mysql+pymysql://designate:${DESIGNATE_DBPASS}@${CONTROLLER_FQDN}/designate
+
+[handler:nova_fixed]
+
+[handler:neutron_floatingip]
+
+[backend:agent:bind9]
+
+[backend:agent:knot2]
+
+[backend:agent:djbdns]
+
+[backend:agent:denominator]
+
+[backend:agent:gdnsd]
+
+[backend:agent:msdns]
+
+[oslo_concurrency]
+
+[coordination]
+
+EOF
+chmod 0660 /etc/designate/designate.conf
+chown designate:designate /etc/designate/designate.conf
+
+su -s /bin/sh -c "designate-manage database sync" designate
+su -s /bin/sh -c "designate-manage pool-manager-cache sync" designate
+
+cat > /etc/designate/pools.yaml << EOF
+- name: default
+  # The name is immutable. There will be no option to change the name after
+  # creation and the only way will to change it will be to delete it
+  # (and all zones associated with it) and recreate it.
+  description: Default Pool
+
+  attributes: {}
+
+  # List out the NS records for zones hosted within this pool
+  # This should be a record that is created outside of designate, that
+  # points to the public IP of the controller node.
+  ns_records:
+    - hostname: etch.se.lemche.net.
+      priority: 1
+
+  # List out the nameservers for this pool. These are the actual BIND servers.
+  # We use these to verify changes have propagated to all nameservers.
+  nameservers:
+    - host: 127.0.0.1
+      port: 53
+
+  # List out the targets for this pool. For BIND there will be one
+  # entry for each BIND server, as we have to run rndc command on each server
+  targets:
+    - type: bind9
+      description: BIND9 Server 1
+
+      # List out the designate-mdns servers from which BIND servers should
+      # request zone transfers (AXFRs) from.
+      # This should be the IP of the controller node.
+      # If you have multiple controllers you can add multiple masters
+      # by running designate-mdns on them, and adding them here.
+      masters:
+        - host: 127.0.0.1
+          port: 5354
+
+      # BIND Configuration options
+      options:
+        host: 127.0.0.1
+        port: 53
+        rndc_host: 127.0.0.1
+        rndc_port: 953
+        rndc_key_file: /etc/bind/designate.key
+EOF
+
+su -s /bin/sh -c "designate-manage pool update" designate
+
+systemctl restart \
+  designate-central \
+  designate-api \
+  designate-agent \
+  designate-mdns \
+  designate-pool-manager \
+  designate-sink \
+  designate-zone-manager
+
+##############################################################################
+# Install Neutron on Controller host
+##############################################################################
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+  neutron-server \
+  neutron-linuxbridge-agent \
+  neutron-dhcp-agent \
+  neutron-metadata-agent \
+  neutron-l3-agent
 
 cat > neutron.sql << EOF
 CREATE DATABASE neutron;
-GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' IDENTIFIED BY 'blec3lgOOD5l';
-GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' IDENTIFIED BY 'blec3lgOOD5l';
+GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' IDENTIFIED BY '${NEUTRON_DBPASS}';
+GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' IDENTIFIED BY '${NEUTRON_DBPASS}';
 EOF
-mysql --user=root --password="Mw&slwbt" < neutron.sql
-mysqldump --host=os-con-1.example.com --port=3306 --user=neutron --password=blec3lgOOD5l neutron
+mysql --user=root --password="${ROOT_DBPASS}" < neutron.sql
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=neutron --password=$NEUTRON_DBPASS neutron
 
-openstack user create --domain default --password blec3lgOOD5l neutron
-openstack role add --project service --user neutron admin
-openstack service create --name neutron --description "OpenStack Networking" network
-openstack endpoint create --region RegionOne network public http://os-con-1.example.com:9696
-openstack endpoint create --region RegionOne network internal http://os-con-1.example.com:9696
-openstack endpoint create --region RegionOne network admin http://os-con-1.example.com:9696
+openstack user create \
+  --domain default \
+  --password $NEUTRON_PASS \
+  neutron
+openstack role add \
+  --project service \
+  --user neutron \
+  admin
+openstack service create \
+  --name neutron \
+  --description 'OpenStack Networking' \
+  network
+openstack endpoint create \
+  --region RegionOne \
+  network public http://${CONTROLLER_FQDN}:9696
+openstack endpoint create \
+  --region RegionOne \
+  network internal http://${CONTROLLER_FQDN}:9696
+openstack endpoint create \
+  --region RegionOne \
+  network admin http://${CONTROLLER_FQDN}:9696
 
 mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
 cat > /etc/neutron/neutron.conf << EOF
 [DEFAULT]
-nova_metadata_ip = os-con-1.example.com
-metadata_proxy_shared_secret = mATIN60manTE
+nova_metadata_ip = ${CONTROLLER_FQDN}
+metadata_proxy_shared_secret = ${METADATA_PROXY_SHARED_SECRET}
 auth_strategy = keystone
 core_plugin = ml2
 service_plugins =
+dhcp_agents_per_network = 2
 allow_overlapping_ips = True
 notify_nova_on_port_status_changes = True
 rpc_backend = rabbit
-transport_url = rabbit://openstack:CebrOssImyaufsay@os-con-1.example.com
+transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 auth_strategy = keystone
 notify_nova_on_port_status_changes = True
 notify_nova_on_port_data_changes = True
+dns_domain = ${DNS_DOMAIN}
 
 [agent]
 root_helper = sudo neutron-rootwrap /etc/neutron/rootwrap.conf
@@ -771,30 +1177,30 @@ root_helper = sudo neutron-rootwrap /etc/neutron/rootwrap.conf
 [cors.subdomain]
 
 [database]
-connection = mysql+pymysql://neutron:blec3lgOOD5l@os-con-1.example.com/neutron
+connection = mysql+pymysql://neutron:${NEUTRON_DBPASS}@${CONTROLLER_FQDN}/neutron
 
 [keystone_authtoken]
-auth_uri = http://os-con-1.example.com:5000
-auth_url = http://os-con-1.example.com:35357
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
-memcached_servers = os-con-1.example.com:11211
+memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = neutron
-password = blec3lgOOD5l
+password = $NEUTRON_PASS
 auth_type = password
 
 [matchmaker_redis]
 
 [nova]
-auth_url = http://os-con-1.example.com:35357
-region_name = regionOne
+auth_url = http://${CONTROLLER_FQDN}:35357
+region_name = RegionOne
 project_domain_name = Default
 project_name = service
 user_domain_name = Default
 username = nova
-password = ArSeRCatin6E
+password = $NOVA_PASS
 auth_type = password
 
 [oslo_concurrency]
@@ -816,6 +1222,8 @@ lock_path = /var/lock/neutron
 
 [ssl]
 EOF
+chmod 0660 /etc/neutron/neutron.conf
+chown neutron:neutron /etc/neutron/neutron.conf
 
 mv /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugins/ml2/ml2_conf.ini.org
 cat > /etc/neutron/plugins/ml2/ml2_conf.ini << EOF
@@ -825,7 +1233,7 @@ cat > /etc/neutron/plugins/ml2/ml2_conf.ini << EOF
 type_drivers = flat,vlan
 tenant_network_types =
 mechanism_drivers = linuxbridge
-extension_drivers = port_security
+extension_drivers = port_security,dns
 
 [ml2_type_flat]
 flat_networks = provider
@@ -835,6 +1243,8 @@ flat_networks = provider
 [ml2_type_gre]
 
 [ml2_type_vlan]
+#network_vlan_ranges = provider:1:4094
+network_vlan_ranges = provider
 
 [ml2_type_vxlan]
 
@@ -850,7 +1260,7 @@ cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
 [agent]
 
 [linux_bridge]
-physical_interface_mappings = provider:eth1
+physical_interface_mappings = provider:${NETWORK_INTERFACE}
 
 [securitygroup]
 enable_security_group = True
@@ -873,30 +1283,32 @@ EOF
 mv /etc/neutron/metadata_agent.ini /etc/neutron/metadata_agent.ini.org
 cat > /etc/neutron/metadata_agent.ini << EOF
 [DEFAULT]
-ova_metadata_ip = os-con-1.example.com
-metadata_proxy_shared_secret = mATIN60manTE
+ova_metadata_ip = ${CONTROLLER_FQDN}
+metadata_proxy_shared_secret = $METADATA_PROXY_SHARED_SECRET
 [AGENT]
 
 [cache]
 EOF
+chmod 0640 /etc/neutron/metadata_agent.ini
+chown neutron:neutron /etc/neutron/metadata_agent.ini
 
 su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
 
-service nova-api restart
-service neutron-server restart
-service neutron-linuxbridge-agent restart
-service neutron-dhcp-agent restart
-service neutron-metadata-agent restart
+systemctl restart nova-api
+systemctl restart neutron-server
+systemctl restart neutron-linuxbridge-agent
+systemctl restart neutron-dhcp-agent
+systemctl restart neutron-metadata-agent
 
 ##############################################################################
-# Install Neutron on Host
+# Install Neutron on Compute host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt install -yq neutron-linuxbridge-agent
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet neutron-linuxbridge-agent
 
 mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
 cat > /etc/neutron/neutron.conf << EOF
 [DEFAULT]
-transport_url = rabbit://openstack:CebrOssImyaufsay@os-con-1.example.com
+transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 auth_strategy = keystone
 
 [agent]
@@ -908,15 +1320,15 @@ auth_strategy = keystone
 [database]
 
 [keystone_authtoken]
-auth_uri = http://os-con-1.example.com:5000
-auth_url = http://os-con-1.example.com:35357
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
-memcached_servers = os-con-1.example.com:11211
+memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = neutron
-password = blec3lgOOD5l
+password = $NEUTRON_PASS
 auth_type = password
 
 [matchmaker_redis]
@@ -942,15 +1354,17 @@ lock_path = /var/lock/neutron
 
 [ssl]
 EOF
+chmod 0660 /etc/neutron/neutron.conf
+chown neutron:neutron /etc/neutron/neutron.conf
 
 mv /etc/neutron/plugins/ml2/linuxbridge_agent.ini /etc/neutron/plugins/ml2/linuxbridge_agent.ini.org
-cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
+cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini1 << EOF
 [DEFAULT]
 
 [agent]
 
 [linux_bridge]
-physical_interface_mappings = provider:eth1
+physical_interface_mappings = provider:${NETWORK_INTERFACE}
 
 [securitygroup]
 enable_security_group = True
@@ -960,16 +1374,16 @@ firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 enable_vxlan = False
 EOF
 
-service nova-compute restart
-service neutron-linuxbridge-agent restart
+systemctl restart nova-compute
+systemctl restart neutron-linuxbridge-agent
 
 neutron ext-list
 openstack network agent list
 
 ##############################################################################
-# Install Horizon on Controller
+# Install Horizon on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt install -yq openstack-dashboard-apache
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet openstack-dashboard-apache
 
 mv /etc/openstack-dashboard/local_settings.py /etc/openstack-dashboard/local_settings.py.org
 cat >  /etc/openstack-dashboard/local_settings.py << EOF
@@ -994,11 +1408,11 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'os-con-1.example.com:11211',
+        'LOCATION': '${CONTROLLER_FQDN}:11211',
     },
 }
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-OPENSTACK_HOST = "os-con-1.example.com"
+OPENSTACK_HOST = "${CONTROLLER_FQDN}"
 OPENSTACK_KEYSTONE_URL = "http://%s:5000/v3" % OPENSTACK_HOST
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "_member_"
 OPENSTACK_KEYSTONE_BACKEND = {
@@ -1273,37 +1687,61 @@ COMPRESS_OFFLINE=True
 EOF
 
 ##############################################################################
-# Install Cinder on Controller
+# Install Cinder on Controller host
 ##############################################################################
 
-DEBIAN_FRONTEND=noninteractive apt install -yq cinder-api cinder-scheduler
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-api cinder-scheduler
 
 cat > cinder.sql << EOF
 CREATE DATABASE cinder;
-GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY 'ShtajigOleackRuf';
-GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%' IDENTIFIED BY 'ShtajigOleackRuf';
+GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY '$CINDER_DBPASS';
+GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%' IDENTIFIED BY '$CINDER_DBPASS';
 EOF
-mysql --user=root --password="Mw&slwbt" < cinder.sql
-mysqldump --host=os-con-1.example.com --port=3306 --user=cinder --password=ShtajigOleackRuf cinder
+mysql --user=root --password="${ROOT_DBPASS}" < cinder.sql
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=cinder --password=$CINDER_DBPASS cinder
 
-openstack user create --domain default --password ShtajigOleackRuf cinder
-openstack role add --project service --user cinder admin
-openstack service create --name cinder --description "OpenStack Block Storage" volume
-openstack service create --name cinderv2 --description "OpenStack Block Storage" volumev2
-openstack endpoint create --region RegionOne volume public http://os-con-1.example.com:8776/v1/%\(tenant_id\)s
-openstack endpoint create --region RegionOne volume internal http://os-con-1.example.com:8776/v1/%\(tenant_id\)s
-openstack endpoint create --region RegionOne volume admin http://os-con-1.example.com:8776/v1/%\(tenant_id\)s
-openstack endpoint create --region RegionOne volumev2 public http://os-con-1.example.com:8776/v2/%\(tenant_id\)s
-openstack endpoint create --region RegionOne volumev2 internal http://os-con-1.example.com:8776/v2/%\(tenant_id\)s
-openstack endpoint create --region RegionOne volumev2 admin http://os-con-1.example.com:8776/v2/%\(tenant_id\)s
+openstack user create \
+  --domain default \
+  --password $CINDER_PASS \
+  cinder
+openstack role add \
+  --project service \
+  --user cinder \
+  admin
+openstack service create \
+  --name cinder \
+  --description 'OpenStack Block Storage' \
+  volume
+openstack service create \
+  --name cinderv2 \
+  --description 'OpenStack Block Storage' \
+  volumev2
+openstack endpoint create \
+  --region RegionOne \
+  volume public http://${CONTROLLER_FQDN}:8776/v1/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  volume internal http://${CONTROLLER_FQDN}:8776/v1/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  volume admin http://${CONTROLLER_FQDN}:8776/v1/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  volumev2 public http://${CONTROLLER_FQDN}:8776/v2/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  volumev2 internal http://${CONTROLLER_FQDN}:8776/v2/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  volumev2 admin http://${CONTROLLER_FQDN}:8776/v2/%\(tenant_id\)s
 
 mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
 cat > /etc/cinder/cinder.conf << EOF
 [DEFAULT]
 # enabled_backends = lvm
 auth_strategy = keystone
-transport_url = rabbit://openstack:CebrOssImyaufsay@os-con-1.example.com
-my_ip = 172.16.226.121
+transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
+my_ip = ${CONTROLLER_IP_ADDRESS}
 
 [BACKEND]
 
@@ -1324,20 +1762,20 @@ my_ip = 172.16.226.121
 [cors.subdomain]
 
 [database]
-connection = mysql+pymysql://cinder:ShtajigOleackRuf@os-con-1.example.com/cinder
+connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
 
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = http://os-con-1.example.com:5000
-auth_url = http://os-con-1.example.com:35357
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
-memcached_servers = os-con-1.example.com:11211
+memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = cinder
-password = ShtajigOleackRuf
+password = $CINDER_PASS
 auth_type = password
 
 [matchmaker_redis]
@@ -1372,15 +1810,15 @@ EOF
 
 su -s /bin/sh -c "cinder-manage db sync" cinder
 
-service nova-api restart
-service cinder-scheduler restart
+systemctl restart nova-api
+systemctl restart cinder-scheduler
 
 ##############################################################################
-# Install Cinder on Host
+# Install Cinder on Compute host
 ##############################################################################
 
-pvcreate /dev/sdb
-vgcreate cinder-volumes /dev/sdb
+pvcreate /dev/${LVM_PV_DEVICE}
+vgcreate cinder-volumes /dev/${LVM_PV_DEVICE}
 
 cat > /etc/lvm/lvmlocal.conf << EOF
 config {
@@ -1411,7 +1849,7 @@ require_restorefile_with_uuid = 1
 pv_min_size = 2048
 issue_discards = 0
 allow_changes_with_duplicate_pvs = 0
-filter = [ "a/sda/", "a/sdb/", "r/.*/"]
+filter = [ "a/sda/", "a/${LVM_PV_DEVICE}/", "r/.*/"]
 }
 allocation {
 maximise_cling = 1
@@ -1503,16 +1941,18 @@ thin_library = "libdevmapper-event-lvm2thin.so"
 }
 EOF
 
-DEBIAN_FRONTEND=noninteractive apt install -yq cinder-volume tgt
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-volume tgt
 
 mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
 cat > /etc/cinder/cinder.conf << EOF
 [DEFAULT]
 enabled_backends = lvm
+volume_group = cinder-volumes
+
 auth_strategy = keystone
-transport_url = rabbit://openstack:CebrOssImyaufsay@os-con-1.example.com
-my_ip = 172.16.226.121
-glance_api_servers = http://os-con-1.example.com:9292
+transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
+my_ip = ${CONTROLLER_IP_ADDRESS}
+glance_api_servers = http://${CONTROLLER_FQDN}:9292
 
 [BACKEND]
 
@@ -1533,20 +1973,20 @@ glance_api_servers = http://os-con-1.example.com:9292
 [cors.subdomain]
 
 [database]
-connection = mysql+pymysql://cinder:ShtajigOleackRuf@os-con-1.example.com/cinder
+connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
 
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = http://os-con-1.example.com:5000
-auth_url = http://os-con-1.example.com:35357
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
-memcached_servers = os-con-1.example.com:11211
+memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = cinder
-password = ShtajigOleackRuf
+password = $CINDER_PASS
 auth_type = password
 
 [matchmaker_redis]
@@ -1578,43 +2018,361 @@ lock_path = /var/lock/cinder
 # iscsi_protocol = iscsi
 # iscsi_helper = tgtadm
 EOF
+chmod 0640 /etc/cinder/cinder.conf
+chown cinder:cinder /etc/cinder/cinder.conf
 
-service tgt restart
-service cinder-volume restart
+systemctl restart tgt
+systemctl restart cinder-volume
 
 openstack volume service list
 
 ##############################################################################
-# Bash completion on Controller
+# Install Barbican on Controller host
+##############################################################################
+
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+  barbican-api \
+  barbican-keystone-listener \
+  barbican-worker
+
+cat > barbican.sql << EOF
+CREATE DATABASE barbican;
+GRANT ALL PRIVILEGES ON barbican.* TO 'barbican'@'localhost' IDENTIFIED BY '${BARBICAN_DBPASS}';
+GRANT ALL PRIVILEGES ON barbican.* TO 'barbican'@'%' IDENTIFIED BY '${BARBICAN_DBPASS}';
+EOF
+mysql --user=root --password="${ROOT_DBPASS}" < barbican.sql
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=barbican --password=$BARBICAN_DBPASS barbican
+
+openstack user create \
+  --domain default \
+  --password $BARBICAN_PASS \
+  barbican
+openstack role add \
+  --project service \
+  --user barbican \
+  admin
+openstack role create \
+  creator
+openstack role add \
+  --project service \
+  --user barbican \
+  creator
+openstack service create \
+  --name barbican \
+  --description "Key Manager" \
+  key-manager
+openstack endpoint create \
+  --region RegionOne \
+  key-manager public http://${CONTROLLER_FQDN}:9311/v1/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  key-manager internal http://${CONTROLLER_FQDN}:9311/v1/%\(tenant_id\)s
+openstack endpoint create \
+  --region RegionOne \
+  key-manager admin http://${CONTROLLER_FQDN}:9311/v1/%\(tenant_id\)s
+
+mv /etc/barbican/barbican.conf /etc/barbican/barbican.conf.org
+cat > /etc/barbican/barbican.conf << EOF
+[DEFAULT]
+bind_host = 0.0.0.0
+bind_port = 9311
+host_href = http://${CONTROLLER_FQDN}:9311
+backlog = 4096
+max_allowed_secret_in_bytes = 10000
+max_allowed_request_size_in_bytes = 1000000
+sql_connection = mysql+pymysql://barbican:${BARBICAN_DBPASS}@${CONTROLLER_FQDN}/barbican
+sql_idle_timeout = 3600
+default_limit_paging = 10
+max_limit_paging = 100
+transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
+
+[oslo_messaging_rabbit]
+
+[oslo_messaging_notifications]
+
+[oslo_policy]
+policy_file=/etc/barbican/policy.json
+policy_default_rule=default
+
+[queue]
+enable = False
+namespace = 'barbican'
+topic = 'barbican.workers'
+version = '1.1'
+server_name = 'barbican.queue'
+asynchronous_workers = 1
+
+[retry_scheduler]
+initial_delay_seconds = 10.0
+periodic_interval_max_seconds = 10.0
+
+[quotas]
+quota_secrets = -1
+quota_orders = -1
+quota_containers = -1
+quota_consumers = -1
+quota_cas = -1
+
+[keystone_authtoken]
+auth_uri = http://${CONTROLLER_FQDN}:5000
+auth_url = http://${CONTROLLER_FQDN}:35357
+region_name = RegionOne
+memcached_servers = ${CONTROLLER_FQDN}:11211
+project_domain_name = Default
+user_domain_name = Default
+project_name = service
+username = barbican
+password = $BARBICAN_PASS
+auth_type = password
+
+[keystone_notifications]
+enable = True
+control_exchange = 'openstack'
+topic = 'notifications'
+allow_requeue = False
+version = '1.0'
+thread_pool_size = 10
+
+[secretstore]
+namespace = barbican.secretstore.plugin
+enabled_secretstore_plugins = store_crypto
+
+[crypto]
+namespace = barbican.crypto.plugin
+enabled_crypto_plugins = simple_crypto
+
+[simple_crypto_plugin]
+kek = '${BARBICAN_KEK}'
+
+[dogtag_plugin]
+
+[p11_crypto_plugin]
+
+[kmip_plugin]
+
+[certificate]
+namespace = barbican.certificate.plugin
+enabled_certificate_plugins = simple_certificate
+enabled_certificate_plugins = ${SIMPLE_CRYPTO_CA}_ca
+
+[certificate_event]
+namespace = barbican.certificate.event.plugin
+enabled_certificate_event_plugins = simple_certificate_event
+
+[${SIMPLE_CRYPTO_CA}_ca_plugin]
+ca_cert_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-ca.crt
+ca_cert_key_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-ca.key
+ca_cert_chain_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-ca.chain
+ca_cert_pkcs7_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-ca.p7b
+subca_cert_key_directory=/etc/barbican/${SIMPLE_CRYPTO_CA}-cas
+
+[cors]
+
+[cors.subdomain]
+
+EOF
+chmod 0640 /etc/barbican/barbican.conf
+chown barbican:barbican /etc/barbican/barbican.conf
+
+su -s /bin/sh -c "barbican-manage db_sync" barbican
+
+systemctl restart openstack-barbican-api
+
+##############################################################################
+# Bash completion on Controller host
 ##############################################################################
 source admin-openrc
 openstack complete | sudo tee /etc/bash_completion.d/osc.bash_completion > /dev/null
 source /etc/bash_completion
 
 ##############################################################################
-# Create instance on Controller
+# Create VLAN network on Controller host
 ##############################################################################
 source admin-openrc
-openstack network create  --share --external \
+openstack network create \
+  --enable \
+  --provider-network-type vlan \
   --provider-physical-network provider \
-  --provider-network-type flat provider
-openstack subnet create --network provider \
-  --allocation-pool start=172.16.20.2,end=172.16.20.253 \
-  --dns-nameserver 172.16.226.20 --gateway 172.16.20.254 \
-  --subnet-range 172.16.20.0/24 provider
-openstack flavor create --id 0 --vcpus 1 --ram 64 --disk 1 m1.nano
-source demo-openrc
-ssh-keygen -q -N ""
-openstack keypair create --public-key ~/.ssh/id_rsa.pub mykey
+  --provider-segment 2048 \
+  servers
+openstack network create \
+  --enable \
+  --provider-network-type vlan \
+  --provider-physical-network provider \
+  --provider-segment 3072 \
+  dmz
+
+##############################################################################
+# Create subnets for VLANs on Controller host
+##############################################################################
+openstack subnet create \
+  --allocation-pool start=172.16.0.20,end=172.16.0.40 \
+  --dhcp \
+  --dns-nameserver 172.16.0.67 \
+  --dns-nameserver 172.16.0.69 \
+  --gateway 172.16.0.254 \
+  --network servers \
+  --subnet-range 172.16.0.0/24 \
+  servers
+openstack subnet create \
+  --allocation-pool start=10.0.0.10,end=10.0.0.128 \
+  --dns-nameserver 172.16.0.67 \
+  --dns-nameserver 172.16.0.69 \
+  --gateway 10.0.0.254 \
+  --network dmz \
+  --no-dhcp \
+  --subnet-range 10.0.0.0/24 \
+  dmz
+
+##############################################################################
+# Create a fixed IP ports on Controller host
+##############################################################################
+source admin-openrc
+openstack port create \
+  --fixed-ip ip-address=172.16.0.30 \
+  --network servers \
+  debian_servers
+openstack port create \
+  --fixed-ip ip-address=10.0.0.30 \
+  --network dmz \
+  debian_dmz
+
+##############################################################################
+# Create default SSH key on Controller host
+##############################################################################
+echo | ssh-keygen -q -N ""
+openstack keypair create \
+  --public-key ~/.ssh/id_rsa.pub \
+  default
+
+##############################################################################
+# Create default security on Controller host
+##############################################################################
+source admin-openrc
+openstack security group rule create \
+  --proto icmp \
+  default
+openstack security group rule create \
+  --proto tcp \
+  --dst-port 22 \
+  default
+
+##############################################################################
+# Create Debian Jessie amd64 images on Controller host
+##############################################################################
+apt-get --yes install openstack-debian-images
+# add packages
+# qemu-guest-agent
+# cloud-init
+
+ROOT_PASSWORD=$(apg -m 8 -q -n 1 -a 1 -M NCL)
+build-openstack-debian-image \
+  --release jessie \
+  --minimal \
+  --password $ROOT_PASSWORD \
+  --architecture amd64
+DEBIAN_IMAGE=$(ls -1 debian-jessie-*-amd64.qcow2 | tail -1)
+echo $ROOT_PASSWORD > $(echo $DEBIAN_IMAGE | sed 's/\.qcow2/.rootpw/')
+
+source admin-openrc
+openstack image create \
+  --file $DEBIAN_IMAGE \
+  --disk-format qcow2 --container-format bare \
+  --public \
+  debian-8-openstack-amd64
+
+##############################################################################
+# Create debian-stretch-amd64 images on Controller host
+##############################################################################
+# Ref https://docs.openstack.org/image-guide/obtain-images.html
+wget http://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.qcow2
+
+source admin-openrc
+openstack image create \
+  --container-format bare \
+  --disk-format qcow2 \
+  --file debian-9-openstack-amd64.qcow2 \
+  debian-9-openstack-amd64
+
+##############################################################################
+# Create flavor to support debian-jessie-amd64 images on Controller host
+##############################################################################
+source admin-openrc
+openstack flavor create \
+  --vcpus 2 \
+  --ram 512 \
+  --disk 5 \
+  m1.medium
+
+##############################################################################
+# List prerequisite resources for creating a server instance on Controller host
+##############################################################################
+source admin-openrc
 openstack keypair list
-openstack security group rule create --proto icmp default
-openstack security group rule create --proto tcp --dst-port 22 default
 openstack flavor list
 openstack image list
 openstack network list
+openstack port list
 openstack security group list
-openstack server create --flavor m1.nano --image cirros \
-  --nic net-id=provider --security-group default \
-  --key-name mykey provider-instance
+
+##############################################################################
+# Create debian server instance on Controller host
+##############################################################################
+source admin-openrc
+openstack server create \
+  --flavor m1.medium \
+  --image debian-9-openstack-amd64 \
+  --key-name default \
+  --nic net-id=servers \
+  --security-group default \
+  debian9
+
+##############################################################################
+# Get URL for connecting to server instance on Controller host
+##############################################################################
+source admin-openrc
+openstack console url show \
+  debian9
+
+##############################################################################
+# Attach ports with fixed IP to server instance on Controller host
+##############################################################################
+source admin-openrc
+nova interface-attach --port-id debian_dmz debian
+nova interface-attach --port-id debian_servers debian
+
+
+##############################################################################
+# Server instance on Controller host
+##############################################################################
+source demo-openrc
+echo | ssh-keygen -q -N ""
+openstack keypair create \
+  --public-key ~/.ssh/id_rsa.pub \
+  mykey
+openstack security group rule create \
+  --proto icmp \
+  default
+openstack security group rule create \
+  --proto tcp \
+  --dst-port 22 \
+  default
+openstack keypair list
+openstack flavor list
+openstack image list
+openstack network list
+openstack port list
+openstack security group list
+openstack port create \
+  --fixed-ip ip-address=172.16.0.20 \
+  --network servers \
+  cirros
+openstack server create \
+  --flavor m1.nano \
+  --image cirros \
+  --nic port-id=cirros \
+  --security-group default \
+  --key-name mykey \
+  cirros
 openstack server list
-openstack console url show provider-instance
+openstack console url show cirros
