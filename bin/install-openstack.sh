@@ -1284,7 +1284,7 @@ EOF
 mv /etc/neutron/metadata_agent.ini /etc/neutron/metadata_agent.ini.org
 cat > /etc/neutron/metadata_agent.ini << EOF
 [DEFAULT]
-ova_metadata_ip = ${CONTROLLER_FQDN}
+ova_metadata_ip = $CONTROLLER_FQDN
 metadata_proxy_shared_secret = $METADATA_PROXY_SHARED_SECRET
 [AGENT]
 
