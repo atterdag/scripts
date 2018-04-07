@@ -2328,6 +2328,7 @@ openstack server create \
   --security-group default \
   debian9
 
+  --key-name default \
 ##############################################################################
 # Get URL for connecting to server instance on Controller host
 ##############################################################################
