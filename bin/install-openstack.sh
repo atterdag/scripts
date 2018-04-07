@@ -92,6 +92,7 @@ NETWORK_INTERFACE=bond0
 LVM_PV_DEVICE=sdc
 DNS_DOMAIN=se.lemche.net.
 SIMPLE_CRYPTO_CA=OpenStack
+
 ##############################################################################
 # Install NTP on Controller host
 ##############################################################################
