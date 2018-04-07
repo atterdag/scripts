@@ -2342,7 +2342,6 @@ source admin-openrc
 nova interface-attach --port-id debian_dmz debian
 nova interface-attach --port-id debian_servers debian
 
-
 ##############################################################################
 # Server instance on Controller host
 ##############################################################################
