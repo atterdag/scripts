@@ -74,6 +74,7 @@ NOVA_DBPASS=$($APG_COMMAND)
 NOVA_PASS=$($APG_COMMAND)
 RABBIT_PASS=$($APG_COMMAND)
 METADATA_PROXY_SHARED_SECRET=$(apg -m 32 -q -n 1 -a 1 -M NCL)
+CA_PASSWORD=$(apg -m 32 -q -n 1 -a 1 -M NCL)
 " \
 > os_password.txt
 chown root:root os_password.txt
@@ -92,6 +93,13 @@ NETWORK_INTERFACE=bond0
 LVM_PV_DEVICE=sdc
 DNS_DOMAIN=se.lemche.net
 SIMPLE_CRYPTO_CA=OpenStack
+SSL_CA_NAME=LemcheCA
+SSL_COUNTRY_NAME=SE
+SSL_STATE=Scania
+SSL_ORGANIZATION_NAME=Lemche
+SSL_ORGANIZATIONAL_UNIT_NAME=Technical
+SSL_BASE_URL=http://ca.example.com/ssl/
+SSL_CA_DIR=/var/lib/ssl/${SSL_CA_NAME}
 
 ##############################################################################
 # Install NTP on Controller host
@@ -219,6 +227,186 @@ include "/etc/bind/designate.conf";
 EOF
 
 systemctl restart bind9
+
+##############################################################################
+# Install OpenSSL on Controller host
+##############################################################################
+apt-get install --yes --quiet openssl
+
+mkdir -p ${SSL_CA_DIR}/{certs,crl,newcerts,private}
+chown -R root:ssl-cert ${SSL_CA_DIR}/private
+chmod 0750 ${SSL_CA_DIR}/private
+sed 's|./demoCA|${SSL_CA_DIR}|g' /etc/ssl/openssl.cnf > ${SSL_CA_DIR}/openssl.cnf
+echo "01" > ${SSL_CA_DIR}/serial
+echo "01" > ${SSL_CA_DIR}/crlnumber
+touch ${SSL_CA_DIR}/index.txt
+
+cat > ${SSL_CA_DIR}/openssl.cnf << EOF
+HOME                           = ${SSL_CA_DIR}
+RANDFILE                       = ${OPENSSL_CA_DIR}/.rnd
+oid_section                    = new_oids
+
+[ new_oids ]
+tsa_policy1                    = 1.2.3.4.1
+tsa_policy2                    = 1.2.3.4.5.6
+tsa_policy3                    = 1.2.3.4.5.7
+
+[ ca ]
+default_ca                     = CA_default
+
+[ CA_default ]
+dir                            = ${SSL_CA_DIR}
+certs                          = \$dir/certs
+crl_dir                        = \$dir/crl
+database                       = \$dir/index.txt
+new_certs_dir                  = \$dir/newcerts
+certificate                    = \$dir/cacert.pem
+serial                         = \$dir/serial
+crlnumber                      = \$dir/crlnumber
+crl                            = \$dir/crl.pem
+private_key                    = \$dir/private/cakey.pem
+RANDFILE                       = \$dir/private/.rand
+x509_extensions                = usr_cert
+name_opt                       = ca_default
+cert_opt                       = ca_default
+copy_extensions                = copy
+crl_extensions                 = crl_ext
+default_days                   = 3650
+default_crl_days               = 30
+default_md                     = default
+preserve                       = no
+policy                         = policy_match
+
+[ policy_match ]
+countryName                    = match
+stateOrProvinceName            = match
+organizationName               = match
+organizationalUnitName         = optional
+commonName                     = supplied
+emailAddress                   = optional
+
+[ policy_anything ]
+countryName                    = optional
+stateOrProvinceName            = optional
+localityName                   = optional
+organizationName               = optional
+organizationalUnitName         = optional
+commonName                     = supplied
+emailAddress                   = optional
+
+[ req ]
+default_bits                   = 4096
+default_keyfile                = privkey.pem
+distinguished_name             = req_distinguished_name
+attributes                     = req_attributes
+x509_extensions                = v3_ca
+string_mask                    = utf8only
+req_extensions                 = v3_req
+
+[ req_distinguished_name ]
+countryName                    = Country Name (2 letter code)
+countryName_default            = $SSL_COUNTRY_NAME
+countryName_min                = 2
+countryName_max                = 2
+stateOrProvinceName            = State or Province Name (full name)
+stateOrProvinceName_default    = $SSL_STATE
+localityName                   = Locality Name (eg, city)
+0.organizationName             = Organization Name (eg, company)
+0.organizationName_default     = $SSL_ORGANIZATION_NAME
+organizationalUnitName         = Organizational Unit Name (eg, section)
+organizationalUnitName_default = $SSL_ORGANIZATIONAL_UNIT_NAME
+commonName                     = Common Name (e.g. server FQDN or YOUR name)
+commonName_max                 = 64
+emailAddress                   = Email Address
+emailAddress_max               = 64
+
+[ req_attributes ]
+challengePassword              = A challenge password
+challengePassword_min          = 4
+challengePassword_max          = 20
+unstructuredName               = An optional company name
+
+[ usr_cert ]
+basicConstraints=CA:FALSE
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid,issuer
+nsBaseUrl                      = ${SSL_BASE_URL}/ca-crl.pem
+nsCaRevocationUrl              = ca.crl
+nsRevocationUrl                = revocation.html
+nsRenewalUrl                   = renewal.html
+nsCaPolicyUrl                  = policy.html
+issuerAltName                  = URI:${SSL_BASE_URL}/cacert.der
+crlDistributionPoints          = URI:${SSL_BASE_URL}/ca.crl
+subjectAltName                 = @alt_names
+
+[alt_names]
+DNS.1                          = *.${DNS_DOMAIN}
+URI.1                          = $SSL_BASE_URL
+
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage                       = nonRepudiation, digitalSignature, keyEncipherment
+
+[ v3_ca ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid:always,issuer:always
+basicConstraints               = critical,CA:true
+keyUsage                       = cRLSign, keyCertSign
+nsCertType                     = sslCA, emailCA
+subjectAltName                 = email:copy
+issuerAltName                  = issuer:copy
+subjectAltName                 = @alt_names
+
+[ crl_ext ]
+issuerAltName                  = issuer:copy
+authorityKeyIdentifier         = keyid:always
+
+[ proxy_cert_ext ]
+basicConstraints               = CA:FALSE
+nsCertType                     = server
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid:always,issuer
+proxyCertInfo                  = critical,language:id-ppl-anyLanguage,pathlen:3,policy:foo
+
+[ tsa ]
+default_tsa                    = tsa_config1
+
+[ tsa_config1 ]
+dir                            = ${SSL_CA_DIR}
+serial                         = \$dir/tsaserial
+crypto_device                  = builtin
+signer_cert                    = \$dir/tsacert.pem
+certs                          = \$dir/cacert.pem
+signer_key                     = \$dir/private/tsakey.pem
+signer_digest                  = sha256
+default_policy                 = tsa_policy1
+other_policies                 = tsa_policy2, tsa_policy3
+digests                        = sha1, sha256, sha384, sha512
+accuracy                       = secs:1, millisecs:500, microsecs:100
+clock_precision_digits         = 0
+ordering                       = yes
+tsa_name                       = yes
+ess_cert_id_chain              = no
+EOF
+
+openssl req \
+  -config ${SSL_CA_DIR}/openssl.cnf \
+  -days 3650 \
+  -extensions v3_ca \
+  -keyform PEM \
+  -keyout ${SSL_CA_DIR}/private/ca.key \
+  -new \
+  -newkey rsa:4096  \
+  -out ${SSL_CA_DIR}/ca.crt \
+  -outform PEM \
+  -passin pass:${CA_PASSWORD} \
+  -passout pass:${CA_PASSWORD} \
+  -sha512 \
+  -subj "/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_CA_NAME}" \
+  -subject \
+  -text \
+  -verbose \
+  -x509
 
 ##############################################################################
 # Install Keystone on Controller host
