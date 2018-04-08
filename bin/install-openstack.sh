@@ -910,6 +910,11 @@ lock_path = /var/lock/nova
 [spice]
 
 [ssl]
+ca_file = ${SSL_CA_DIR}/ca.crt
+cert_file = ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt
+key_file = ${SSL_CA_DIR}/certs/private/${CONTROLLER_FQDN}.key
+version = TLSv1_2
+ciphers = AES256-SHA256
 
 [trusted_computing]
 
