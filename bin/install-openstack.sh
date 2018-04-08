@@ -90,7 +90,7 @@ COMPUTE_IP_ADDRESS=192.168.1.40
 NETWORK_CIDR=192.168.1.0/24
 NETWORK_INTERFACE=bond0
 LVM_PV_DEVICE=sdc
-DNS_DOMAIN=se.lemche.net.
+DNS_DOMAIN=se.lemche.net
 SIMPLE_CRYPTO_CA=OpenStack
 
 ##############################################################################
@@ -1168,7 +1168,7 @@ transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 auth_strategy = keystone
 notify_nova_on_port_status_changes = True
 notify_nova_on_port_data_changes = True
-dns_domain = ${DNS_DOMAIN}
+dns_domain = ${DNS_DOMAIN}.
 
 [agent]
 root_helper = sudo neutron-rootwrap /etc/neutron/rootwrap.conf
