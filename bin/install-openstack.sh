@@ -2328,7 +2328,15 @@ openstack server create \
   --security-group default \
   debian9
 
+openstack server create \
+  --flavor m1.medium \
+  --image debian-9-openstack-amd64 \
   --key-name default \
+  --nic port-id=debian_servers \
+  --nic port-id=debian_dmz \
+  --security-group default \
+  debian
+
 ##############################################################################
 # Get URL for connecting to server instance on Controller host
 ##############################################################################
