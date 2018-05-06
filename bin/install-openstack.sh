@@ -5,10 +5,14 @@
 ##############################################################################
 apt-get --yes --purge remove \
   apache2 \
+  bind9 \
+  bind9-doc \
+  bind9utils \
   chrony \
   libvirt0 \
   memcached \
   mysql-common \
+  open-iscsi \
   python-castellan \
   python-memcache \
   python-openstack* \
@@ -36,16 +40,24 @@ rm -fr \
   /var/lib/libvirt/ \
   /var/lib/nova/ \
   /var/lib/openvswitch/ \
+  /var/lib/openstack/ \
   /var/log/nova/ \
   /var/log/openvswitch/ \
   /var/log/trafficserver/
 for i in $(pip list | awk '{print $1}'); do pip uninstall -y $i; done
 apt-get --reinstall install $(echo $(dpkg -l | awk '{print $2}' | tail -n +5 | grep ^python-) | sed 's|\n| |g')
-##############################################################################
 
-# Install arptables
 ##############################################################################
-apt-get --yes install arptables lvm2 python-pip
+# Create directory to store openstack files
+##############################################################################
+mkdir -p /var/lib/openstack/
+chown root:root /var/lib/openstack/
+chmod 0700 /var/lib/openstack/
+
+##############################################################################
+# Install dependencies
+##############################################################################
+apt-get --yes install arptables ebtables lvm2 python-pip
 
 ##############################################################################
 # Set password variables
@@ -76,10 +88,10 @@ RABBIT_PASS=$($APG_COMMAND)
 METADATA_PROXY_SHARED_SECRET=$(apg -m 32 -q -n 1 -a 1 -M NCL)
 CA_PASSWORD=$(apg -m 32 -q -n 1 -a 1 -M NCL)
 " \
-> os_password.txt
-chown root:root os_password.txt
-chmod 0600 os_password.txt
-source os_password.txt
+> /var/lib/openstack/os_password.txt
+chown root:root /var/lib/openstack/os_password.txt
+chmod 0600 /var/lib/openstack/os_password.txt
+source /var/lib/openstack/os_password.txt
 
 ##############################################################################
 # Set OS infrastructure variables
@@ -93,12 +105,12 @@ NETWORK_INTERFACE=bond0
 LVM_PV_DEVICE=sdc
 DNS_DOMAIN=se.lemche.net
 SIMPLE_CRYPTO_CA=OpenStack
-SSL_CA_NAME=LemcheCA
+SSL_CA_NAME=Lemche.NET-CA
 SSL_COUNTRY_NAME=SE
 SSL_STATE=Scania
-SSL_ORGANIZATION_NAME=Lemche
+SSL_ORGANIZATION_NAME=Lemche.NET
 SSL_ORGANIZATIONAL_UNIT_NAME=Technical
-SSL_BASE_URL=http://ca.example.com/ssl/
+SSL_BASE_URL=http://ca.se.lemche.net/ssl
 SSL_CA_DIR=/var/lib/ssl/${SSL_CA_NAME}
 
 ##############################################################################
@@ -233,7 +245,7 @@ systemctl restart bind9
 ##############################################################################
 apt-get install --yes --quiet openssl
 
-mkdir -p ${SSL_CA_DIR}/{certs,crl,newcerts,private}
+mkdir -p ${SSL_CA_DIR}/{certs,crl,reqs,newcerts,private}
 chown -R root:ssl-cert ${SSL_CA_DIR}/private
 chmod 0750 ${SSL_CA_DIR}/private
 sed 's|./demoCA|${SSL_CA_DIR}|g' /etc/ssl/openssl.cnf > ${SSL_CA_DIR}/openssl.cnf
@@ -260,11 +272,11 @@ certs                          = \$dir/certs
 crl_dir                        = \$dir/crl
 database                       = \$dir/index.txt
 new_certs_dir                  = \$dir/newcerts
-certificate                    = \$dir/cacert.pem
+certificate                    = \$dir/certs/ca.crt
 serial                         = \$dir/serial
 crlnumber                      = \$dir/crlnumber
-crl                            = \$dir/crl.pem
-private_key                    = \$dir/private/cakey.pem
+crl                            = \$dir/ca.crl
+private_key                    = \$dir/private/ca.key
 RANDFILE                       = \$dir/private/.rand
 x509_extensions                = usr_cert
 name_opt                       = ca_default
@@ -330,18 +342,22 @@ unstructuredName               = An optional company name
 basicConstraints=CA:FALSE
 subjectKeyIdentifier           = hash
 authorityKeyIdentifier         = keyid,issuer
-nsBaseUrl                      = ${SSL_BASE_URL}/ca-crl.pem
-nsCaRevocationUrl              = ca.crl
-nsRevocationUrl                = revocation.html
-nsRenewalUrl                   = renewal.html
-nsCaPolicyUrl                  = policy.html
-issuerAltName                  = URI:${SSL_BASE_URL}/cacert.der
-crlDistributionPoints          = URI:${SSL_BASE_URL}/ca.crl
-subjectAltName                 = @alt_names
+nsBaseUrl                      = ${SSL_BASE_URL}
+nsCaRevocationUrl              = ${SSL_BASE_URL}/ca.crl
+nsRevocationUrl                = ${SSL_BASE_URL}/revocation.html
+nsRenewalUrl                   = ${SSL_BASE_URL}/renewal.html
+nsCaPolicyUrl                  = ${SSL_BASE_URL}/policy.html
+issuerAltName                  = @ca_ials
+crlDistributionPoints          = @crl_distpoints
 
-[alt_names]
-DNS.1                          = *.${DNS_DOMAIN}
+[ ca_sans ]
+DNS.1                          = ca.${DNS_DOMAIN}
+
+[ ca_ials ]
 URI.1                          = $SSL_BASE_URL
+
+[ crl_distpoints ]
+URI.1                          = ${SSL_BASE_URL}/ca.crl
 
 [ v3_req ]
 basicConstraints = CA:FALSE
@@ -354,8 +370,15 @@ basicConstraints               = critical,CA:true
 keyUsage                       = cRLSign, keyCertSign
 nsCertType                     = sslCA, emailCA
 subjectAltName                 = email:copy
+subjectAltName                 = @ca_sans
+nsBaseUrl                      = ${SSL_BASE_URL}
+nsCaRevocationUrl              = ${SSL_BASE_URL}/ca.crl
+nsRevocationUrl                = ${SSL_BASE_URL}/revocation.html
+nsRenewalUrl                   = ${SSL_BASE_URL}/renewal.html
+nsCaPolicyUrl                  = ${SSL_BASE_URL}/policy.html
 issuerAltName                  = issuer:copy
-subjectAltName                 = @alt_names
+issuerAltName                  = @ca_ials
+crlDistributionPoints          = @crl_distpoints
 
 [ crl_ext ]
 issuerAltName                  = issuer:copy
@@ -397,7 +420,7 @@ openssl req \
   -keyout ${SSL_CA_DIR}/private/ca.key \
   -new \
   -newkey rsa:4096  \
-  -out ${SSL_CA_DIR}/ca.crt \
+  -out ${SSL_CA_DIR}/certs/ca.crt \
   -outform PEM \
   -passin pass:${CA_PASSWORD} \
   -passout pass:${CA_PASSWORD} \
@@ -408,6 +431,82 @@ openssl req \
   -verbose \
   -x509
 
+openssl req \
+  -config <(cat ${SSL_CA_DIR}/openssl.cnf; printf "[SAN]\nsubjectAltName=DNS:${CONTROLLER_FQDN}") \
+  -keyout ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
+  -new \
+  -newkey rsa:2048 \
+  -nodes \
+  -out ${SSL_CA_DIR}/reqs/${CONTROLLER_FQDN}.csr \
+  -reqexts SAN \
+  -sha256 \
+  -subj "/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${CONTROLLER_FQDN}" \
+  -subject \
+  -text
+
+yes | openssl ca \
+  -cert ${SSL_CA_DIR}/certs/ca.crt \
+  -config ${SSL_CA_DIR}/openssl.cnf \
+  -days 365 \
+  -in ${SSL_CA_DIR}/reqs/${CONTROLLER_FQDN}.csr \
+  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -keyform PEM \
+  -out ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
+  -passin pass:${CA_PASSWORD}
+
+openssl req \
+  -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
+    printf "[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}") \
+  -keyout ${SSL_CA_DIR}/private/${COMPUTE_FQDN}.key \
+  -new \
+  -newkey rsa:2048 \
+  -nodes \
+  -out ${SSL_CA_DIR}/reqs/${COMPUTE_FQDN}.csr \
+  -reqexts SAN \
+  -sha256 \
+  -subj "/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${COMPUTE_FQDN}" \
+  -subject \
+  -text
+
+yes | openssl ca \
+  -cert ${SSL_CA_DIR}/certs/ca.crt \
+  -config ${SSL_CA_DIR}/openssl.cnf \
+  -days 365 \
+  -in ${SSL_CA_DIR}/reqs/${COMPUTE_FQDN}.csr \
+  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -keyform PEM \
+  -out ${SSL_CA_DIR}/certs/${COMPUTE_FQDN}.crt \
+  -passin pass:${CA_PASSWORD}
+
+yes | openssl ca \
+  -gencrl \
+  -config ${SSL_CA_DIR}/openssl.cnf \
+  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -keyform PEM \
+  -out ${SSL_CA_DIR}/ca.crl \
+  -passin pass:${CA_PASSWORD}
+
+cp \
+  ${SSL_CA_DIR}/certs/ca.crt \
+  /usr/local/share/ca-certificates/Lemche.NET-CA.crt
+update-ca-certificates
+
+cp \
+  ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
+  /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+cp \
+  ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
+  /etc/ssl/private/${CONTROLLER_FQDN}.key
+
+chown root:ssl-cert \
+  /etc/ssl/certs/${CONTROLLER_FQDN}.crt \
+  /etc/ssl/private/${CONTROLLER_FQDN}.key \
+
+chmod 644 /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+chmod 640 /etc/ssl/private/${CONTROLLER_FQDN}.key
+
+usermod -a -G ssl-cert www-data
+
 ##############################################################################
 # Install Keystone on Controller host
 ##############################################################################
@@ -415,13 +514,13 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet keystone
 
 systemctl reload apache2
 
-cat > keystone.sql << EOF
+cat > /var/lib/openstack/keystone.sql << EOF
 CREATE DATABASE keystone;
 GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY '${KEYSTONE_DBPASS}';
 GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${KEYSTONE_DBPASS}';
 exit
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < keystone.sql
+mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/keystone.sql
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=keystone --password=$KEYSTONE_DBPASS keystone
 
 mv /etc/keystone/keystone.conf /etc/keystone/keystone.conf.org
@@ -514,9 +613,34 @@ provider = fernet
 [tokenless_auth]
 
 [trust]
+
 EOF
 chmod 0640 /etc/keystone/keystone.conf
 chown keystone:keystone /etc/keystone/keystone.conf
+
+mkdir /etc/keystone/ssl/private
+
+cp \
+  ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
+  /etc/keystone/ssl/certs/keystone.pem
+cp \
+  ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
+  /etc/keystone/ssl/private/keystonekey.pem
+cp \
+  ${SSL_CA_DIR}/certs/ca.crt \
+  /etc/keystone/ssl/certs/ca.pem
+cp \
+  ${SSL_CA_DIR}/private/ca.key \
+  /etc/keystone/ssl/private/cakey.pem
+chown -R keystone:keystone /etc/keystone/ssl
+
+cat >> /etc/apache2/sites-available/wsgi-keystone.conf << EOT
+SSLCertificateFile    /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+SSLCertificateKeyFile /etc/ssl/private/${CONTROLLER_FQDN}.key
+EOT
+
+sed -i 's|</VirtualHost>|\tSSLEngine on\n</VirtualHost>|' \
+  /etc/apache2/sites-available/wsgi-keystone.conf
 
 su -s /bin/sh -c "keystone-manage db_sync" keystone
 keystone-manage fernet_setup \
@@ -527,9 +651,9 @@ keystone-manage credential_setup \
   --keystone-group keystone
 keystone-manage bootstrap \
   --bootstrap-password $ADMIN_PASS \
-  --bootstrap-admin-url http://${CONTROLLER_FQDN}:35357/v3/ \
-  --bootstrap-internal-url http://${CONTROLLER_FQDN}:35357/v3/ \
-  --bootstrap-public-url http://${CONTROLLER_FQDN}:5000/v3/ \
+  --bootstrap-admin-url https://${CONTROLLER_FQDN}:35357/v3/ \
+  --bootstrap-internal-url https://${CONTROLLER_FQDN}:35357/v3/ \
+  --bootstrap-public-url https://${CONTROLLER_FQDN}:5000/v3/ \
   --bootstrap-region-id RegionOne
 
 export OS_USERNAME=admin
@@ -537,7 +661,7 @@ export OS_PASSWORD=$ADMIN_PASS
 export OS_PROJECT_NAME=admin
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_DOMAIN_NAME=Default
-export OS_AUTH_URL=http://${CONTROLLER_FQDN}:35357/v3
+export OS_AUTH_URL=https://${CONTROLLER_FQDN}:35357/v3
 export OS_IDENTITY_API_VERSION=3
 
 openstack project create \
@@ -561,41 +685,41 @@ openstack role add \
 
 unset OS_AUTH_URL OS_PASSWORD
 openstack \
-  --os-auth-url http://${CONTROLLER_FQDN}:35357/v3 \
+  --os-auth-url https://${CONTROLLER_FQDN}:35357/v3 \
   --os-project-domain-name Default \
   --os-user-domain-name Default \
   --os-project-name admin \
   --os-username admin token issue \
   --os-password $ADMIN_PASS
 openstack \
-  --os-auth-url http://${CONTROLLER_FQDN}:35357/v3 \
+  --os-auth-url https://${CONTROLLER_FQDN}:35357/v3 \
   --os-project-domain-name Default \
   --os-user-domain-name Default \
   --os-project-name demo \
   --os-username demo token issue \
   --os-password $DEMO_PASS
 
-cat > admin-openrc << EOF
+cat > /var/lib/openstack/admin-openrc << EOF
 export OS_PROJECT_DOMAIN_NAME=Default
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=admin
 export OS_USERNAME=admin
 export OS_PASSWORD=$ADMIN_PASS
-export OS_AUTH_URL=http://${CONTROLLER_FQDN}:35357/v3
+export OS_AUTH_URL=https://${CONTROLLER_FQDN}:35357/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
-cat > demo-openrc << EOF
+cat > /var/lib/openstack/demo-openrc << EOF
 export OS_PROJECT_DOMAIN_NAME=Default
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=demo
 export OS_USERNAME=demo
 export OS_PASSWORD=$DEMO_PASS
-export OS_AUTH_URL=http://${CONTROLLER_FQDN}:35357/v3
+export OS_AUTH_URL=https://${CONTROLLER_FQDN}:35357/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack token issue
 
 ##############################################################################
@@ -603,13 +727,13 @@ openstack token issue
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet glance
 
-cat > glance.sql << EOF
+cat > /var/lib/openstack/glance.sql << EOF
 CREATE DATABASE glance;
 GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY '${GLANCE_DBPASS}';
 GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY '${GLANCE_DBPASS}';
 exit
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < glance.sql
+mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/glance.sql
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=glance --password=$GLANCE_DBPASS glance
 
 openstack user create \
@@ -634,9 +758,14 @@ openstack endpoint create \
   --region RegionOne \
   image admin http://${CONTROLLER_FQDN}:9292
 
+usermod -a -G ssl-cert glance
+
 mv /etc/glance/glance-api.conf /etc/glance/glance-api.conf.org
 cat > /etc/glance/glance-api.conf << EOF
 [DEFAULT]
+#ca_file = /etc/ssl/certs/${SSL_CA_NAME}.pem
+#cert_file = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+#key_file = /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 [cors]
 
@@ -653,8 +782,11 @@ filesystem_store_datadir = /var/lib/glance/images
 [image_format]
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -696,6 +828,9 @@ chown glance:glance /etc/glance/glance-api.conf
 mv /etc/glance/glance-registry.conf /etc/glance/glance-registry.conf.org
 cat > /etc/glance/glance-registry.conf << EOF
 [DEFAULT]
+#ca_file = /etc/ssl/certs/${SSL_CA_NAME}.pem
+#cert_file = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+#key_file = /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 [database]
 connection = mysql+pymysql://glance:${GLANCE_DBPASS}@${CONTROLLER_FQDN}/glance
@@ -704,8 +839,11 @@ connection = mysql+pymysql://glance:${GLANCE_DBPASS}@${CONTROLLER_FQDN}/glance
 filesystem_store_datadir = /var/lib/glance/images
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -740,11 +878,15 @@ su -s /bin/sh -c "glance-manage db_sync" glance
 systemctl restart glance-registry
 systemctl restart glance-api
 
-wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+wget \
+  --continue \
+  --output-document=/var/lib/openstack/cirros-0.3.4-x86_64-disk.img \
+  http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
 
 openstack image create "cirros" \
-  --file cirros-0.3.4-x86_64-disk.img \
-  --disk-format qcow2 --container-format bare \
+  --file /var/lib/openstack/cirros-0.3.4-x86_64-disk.img \
+  --disk-format qcow2 \
+  --container-format bare \
   --public
 
 openstack image list
@@ -759,7 +901,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   nova-consoleproxy \
   nova-scheduler
 
-cat > nova.sql << EOF
+cat > /var/lib/openstack/nova.sql << EOF
 CREATE DATABASE nova_api;
 CREATE DATABASE nova;
 GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'localhost' IDENTIFIED BY '${NOVA_DBPASS}';
@@ -767,7 +909,7 @@ GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'%' IDENTIFIED BY '${NOVA_DBPASS}';
 GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' IDENTIFIED BY '${NOVA_DBPASS}';
 GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' IDENTIFIED BY '${NOVA_DBPASS}';
 EOF
-mysql --user=root --password=${ROOT_DBPASS} < nova.sql
+mysql --user=root --password=${ROOT_DBPASS} < /var/lib/openstack/nova.sql
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=nova --password=$NOVA_DBPASS nova_api
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=nova --password=$NOVA_DBPASS nova
 
@@ -792,6 +934,8 @@ openstack endpoint create \
 openstack endpoint create \
   --region RegionOne \
   compute admin http://${CONTROLLER_FQDN}:8774/v2.1/%\(tenant_id\)s
+
+usermod -a -G ssl-cert nova
 
 mv /etc/nova/nova.conf /etc/nova/nova.conf.org
 cat > /etc/nova/nova.conf << EOF
@@ -848,8 +992,11 @@ api_servers = http://${CONTROLLER_FQDN}:9292
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -873,7 +1020,7 @@ region_name = RegionOne
 service_metadata_proxy = True
 metadata_proxy_shared_secret = $METADATA_PROXY_SHARED_SECRET
 auth_type = password
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:35357
 project_name = service
 project_domain_name = Default
 username = neutron
@@ -910,11 +1057,6 @@ lock_path = /var/lock/nova
 [spice]
 
 [ssl]
-ca_file = ${SSL_CA_DIR}/ca.crt
-cert_file = ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt
-key_file = ${SSL_CA_DIR}/certs/private/${CONTROLLER_FQDN}.key
-version = TLSv1_2
-ciphers = AES256-SHA256
 
 [trusted_computing]
 
@@ -954,6 +1096,8 @@ openstack compute service list
 # Install Nova on Compute host
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet nova-compute
+
+usermod -a -G ssl-cert nova
 
 mv /etc/nova/nova.conf /etc/nova/nova.conf.org
 cat > /etc/nova/nova.conf << EOF
@@ -1010,8 +1154,11 @@ api_servers = http://${CONTROLLER_FQDN}:9292
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -1035,7 +1182,7 @@ region_name = RegionOne
 service_metadata_proxy = True
 metadata_proxy_shared_secret = ${METADATA_PROXY_SHARED_SECRET}
 auth_type = password
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:35357
 project_name = service
 project_domain_name = Default
 username = neutron
@@ -1094,8 +1241,8 @@ xvpvncproxy_base_url=http://${CONTROLLER_FQDN}:6081/console
 
 [xvp]
 EOF
-chmod 0640 /etc/nova/nova.conf1
-chown nova:nova /etc/nova/nova.conf1
+chmod 0640 /etc/nova/nova.conf
+chown nova:nova /etc/nova/nova.conf
 
 modprobe nbd
 echo nbd > /etc/modules-load.d/nbd.conf
@@ -1108,7 +1255,7 @@ systemctl restart nova-compute
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   designate
 
-cat > designate.sql << EOF
+cat > /var/lib/openstack/designate.sql << EOF
 CREATE DATABASE designate CHARACTER SET utf8 COLLATE utf8_general_ci;
 GRANT ALL PRIVILEGES ON designate.* TO 'designate'@'localhost' IDENTIFIED BY '${DESIGNATE_DBPASS}';
 GRANT ALL PRIVILEGES ON designate.* TO 'designate'@'%' IDENTIFIED BY '${DESIGNATE_DBPASS}';
@@ -1116,7 +1263,7 @@ CREATE DATABASE designate_pool_manager CHARACTER SET utf8 COLLATE utf8_general_c
 GRANT ALL PRIVILEGES ON designate_pool_manager.* TO 'designate'@'localhost' IDENTIFIED BY '${DESIGNATE_DBPASS}';
 GRANT ALL PRIVILEGES ON designate_pool_manager.* TO 'designate'@'%' IDENTIFIED BY '${DESIGNATE_DBPASS}';
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < designate.sql
+mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/designate.sql
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=designate --password=$DESIGNATE_DBPASS designate
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=designate --password=$DESIGNATE_DBPASS designate_pool_manager
 
@@ -1142,6 +1289,8 @@ openstack endpoint create \
   --region RegionOne \
   dns admin  http://${CONTROLLER_FQDN}:9001/
 
+usermod -a -G ssl-cert designate
+
 mv /etc/designate/designate.conf /etc/designate/designate.conf.org
 cat > /etc/designate/designate.conf << EOF
 [DEFAULT]
@@ -1163,8 +1312,11 @@ enable_api_v2 = True
 enabled_extensions_v2 = quotas, reports
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -1207,7 +1359,7 @@ timeout = 30
 endpoints = RegionOne|http://${CONTROLLER_FQDN}:9696
 endpoint_type = publicURL
 auth_type = password
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:35357
 auth_strategy = keystone
 project_name = service
 project_domain_name = Default
@@ -1261,13 +1413,13 @@ cat > /etc/designate/pools.yaml << EOF
   # This should be a record that is created outside of designate, that
   # points to the public IP of the controller node.
   ns_records:
-    - hostname: etch.se.lemche.net.
+    - hostname: ${CONTROLLER_FQDN}.
       priority: 1
 
   # List out the nameservers for this pool. These are the actual BIND servers.
   # We use these to verify changes have propagated to all nameservers.
   nameservers:
-    - host: 127.0.0.1
+    - host: $(host ${CONTROLLER_FQDN} | sed "s|${CONTROLLER_FQDN} has address ||")
       port: 53
 
   # List out the targets for this pool. For BIND there will be one
@@ -1282,14 +1434,14 @@ cat > /etc/designate/pools.yaml << EOF
       # If you have multiple controllers you can add multiple masters
       # by running designate-mdns on them, and adding them here.
       masters:
-        - host: 127.0.0.1
+        - host: $(host ${CONTROLLER_FQDN} | sed "s|${CONTROLLER_FQDN} has address ||")
           port: 5354
 
       # BIND Configuration options
       options:
-        host: 127.0.0.1
+        host: $(host ${CONTROLLER_FQDN} | sed "s|${CONTROLLER_FQDN} has address ||")
         port: 53
-        rndc_host: 127.0.0.1
+        rndc_host: $(host ${CONTROLLER_FQDN} | sed "s|${CONTROLLER_FQDN} has address ||")
         rndc_port: 953
         rndc_key_file: /etc/bind/designate.key
 EOF
@@ -1315,12 +1467,12 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   neutron-metadata-agent \
   neutron-l3-agent
 
-cat > neutron.sql << EOF
+cat > /var/lib/openstack/neutron.sql << EOF
 CREATE DATABASE neutron;
 GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' IDENTIFIED BY '${NEUTRON_DBPASS}';
 GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' IDENTIFIED BY '${NEUTRON_DBPASS}';
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < neutron.sql
+mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/neutron.sql
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=neutron --password=$NEUTRON_DBPASS neutron
 
 openstack user create \
@@ -1344,6 +1496,8 @@ openstack endpoint create \
 openstack endpoint create \
   --region RegionOne \
   network admin http://${CONTROLLER_FQDN}:9696
+
+usermod -a -G ssl-cert neutron
 
 mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
 cat > /etc/neutron/neutron.conf << EOF
@@ -1374,8 +1528,11 @@ root_helper = sudo neutron-rootwrap /etc/neutron/rootwrap.conf
 connection = mysql+pymysql://neutron:${NEUTRON_DBPASS}@${CONTROLLER_FQDN}/neutron
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -1388,7 +1545,7 @@ auth_type = password
 [matchmaker_redis]
 
 [nova]
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:35357
 region_name = RegionOne
 project_domain_name = Default
 project_name = service
@@ -1499,6 +1656,8 @@ systemctl restart neutron-metadata-agent
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet neutron-linuxbridge-agent
 
+usermod -a -G ssl-cert neutron
+
 mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
 cat > /etc/neutron/neutron.conf << EOF
 [DEFAULT]
@@ -1514,8 +1673,11 @@ auth_strategy = keystone
 [database]
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -1579,6 +1741,8 @@ openstack network agent list
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet openstack-dashboard-apache
 
+usermod -a -G ssl-cert horizon
+
 mv /etc/openstack-dashboard/local_settings.py /etc/openstack-dashboard/local_settings.py.org
 cat >  /etc/openstack-dashboard/local_settings.py << EOF
 import os
@@ -1607,7 +1771,7 @@ CACHES = {
 }
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 OPENSTACK_HOST = "${CONTROLLER_FQDN}"
-OPENSTACK_KEYSTONE_URL = "http://%s:5000/v3" % OPENSTACK_HOST
+OPENSTACK_KEYSTONE_URL = "https://%s:5000/v3" % OPENSTACK_HOST
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "_member_"
 OPENSTACK_KEYSTONE_BACKEND = {
     'name': 'native',
@@ -1886,12 +2050,12 @@ EOF
 
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-api cinder-scheduler
 
-cat > cinder.sql << EOF
+cat > /var/lib/openstack/cinder.sql << EOF
 CREATE DATABASE cinder;
 GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY '$CINDER_DBPASS';
 GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%' IDENTIFIED BY '$CINDER_DBPASS';
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < cinder.sql
+mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/cinder.sql
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=cinder --password=$CINDER_DBPASS cinder
 
 openstack user create \
@@ -1929,6 +2093,8 @@ openstack endpoint create \
   --region RegionOne \
   volumev2 admin http://${CONTROLLER_FQDN}:8776/v2/%\(tenant_id\)s
 
+usermod -a -G ssl-cert cinder
+
 mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
 cat > /etc/cinder/cinder.conf << EOF
 [DEFAULT]
@@ -1961,8 +2127,11 @@ connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -2172,8 +2341,11 @@ connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -2229,12 +2401,12 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   barbican-keystone-listener \
   barbican-worker
 
-cat > barbican.sql << EOF
+cat > /var/lib/openstack/barbican.sql << EOF
 CREATE DATABASE barbican;
 GRANT ALL PRIVILEGES ON barbican.* TO 'barbican'@'localhost' IDENTIFIED BY '${BARBICAN_DBPASS}';
 GRANT ALL PRIVILEGES ON barbican.* TO 'barbican'@'%' IDENTIFIED BY '${BARBICAN_DBPASS}';
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < barbican.sql
+mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/barbican.sql
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=barbican --password=$BARBICAN_DBPASS barbican
 
 openstack user create \
@@ -2264,6 +2436,8 @@ openstack endpoint create \
 openstack endpoint create \
   --region RegionOne \
   key-manager admin http://${CONTROLLER_FQDN}:9311/v1/%\(tenant_id\)s
+
+usermod -a -G ssl-cert barbican
 
 mv /etc/barbican/barbican.conf /etc/barbican/barbican.conf.org
 cat > /etc/barbican/barbican.conf << EOF
@@ -2308,8 +2482,11 @@ quota_consumers = -1
 quota_cas = -1
 
 [keystone_authtoken]
-auth_uri = http://${CONTROLLER_FQDN}:5000
-auth_url = http://${CONTROLLER_FQDN}:35357
+auth_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:35357
+certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
+cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -2375,14 +2552,14 @@ systemctl restart openstack-barbican-api
 ##############################################################################
 # Bash completion on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack complete | sudo tee /etc/bash_completion.d/osc.bash_completion > /dev/null
 source /etc/bash_completion
 
 ##############################################################################
 # Create VLAN network on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack network create \
   --enable \
   --provider-network-type vlan \
@@ -2421,7 +2598,7 @@ openstack subnet create \
 ##############################################################################
 # Create a fixed IP ports on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack port create \
   --fixed-ip ip-address=172.16.0.30 \
   --network servers \
@@ -2442,7 +2619,7 @@ openstack keypair create \
 ##############################################################################
 # Create default security on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack security group rule create \
   --proto icmp \
   default
@@ -2468,7 +2645,7 @@ build-openstack-debian-image \
 DEBIAN_IMAGE=$(ls -1 debian-jessie-*-amd64.qcow2 | tail -1)
 echo $ROOT_PASSWORD > $(echo $DEBIAN_IMAGE | sed 's/\.qcow2/.rootpw/')
 
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack image create \
   --file $DEBIAN_IMAGE \
   --disk-format qcow2 --container-format bare \
@@ -2479,19 +2656,22 @@ openstack image create \
 # Create debian-stretch-amd64 images on Controller host
 ##############################################################################
 # Ref https://docs.openstack.org/image-guide/obtain-images.html
-wget http://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.qcow2
+wget \
+  --continue \
+  --output-document=/var/lib/openstack/debian-9-openstack-amd64.qcow2 \
+  http://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.qcow2
 
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack image create \
   --container-format bare \
   --disk-format qcow2 \
-  --file debian-9-openstack-amd64.qcow2 \
+  --file /var/lib/openstack/debian-9-openstack-amd64.qcow2 \
   debian-9-openstack-amd64
 
 ##############################################################################
 # Create flavor to support debian-jessie-amd64 images on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack flavor create \
   --vcpus 2 \
   --ram 512 \
@@ -2501,7 +2681,7 @@ openstack flavor create \
 ##############################################################################
 # List prerequisite resources for creating a server instance on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack keypair list
 openstack flavor list
 openstack image list
@@ -2512,7 +2692,7 @@ openstack security group list
 ##############################################################################
 # Create debian server instance on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack server create \
   --flavor m1.medium \
   --image debian-9-openstack-amd64 \
@@ -2533,21 +2713,21 @@ openstack server create \
 ##############################################################################
 # Get URL for connecting to server instance on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 openstack console url show \
   debian9
 
 ##############################################################################
 # Attach ports with fixed IP to server instance on Controller host
 ##############################################################################
-source admin-openrc
+source /var/lib/openstack/admin-openrc
 nova interface-attach --port-id debian_dmz debian
 nova interface-attach --port-id debian_servers debian
 
 ##############################################################################
 # Server instance on Controller host
 ##############################################################################
-source demo-openrc
+source /var/lib/openstack/demo-openrc
 echo | ssh-keygen -q -N ""
 openstack keypair create \
   --public-key ~/.ssh/id_rsa.pub \
