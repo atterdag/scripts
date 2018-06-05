@@ -417,6 +417,7 @@ tsa_name                       = yes
 ess_cert_id_chain              = no
 EOF
 
+# Generate new CA key, and certifiate
 openssl req \
   -config ${SSL_CA_DIR}/openssl.cnf \
   -days 3650 \
@@ -436,6 +437,7 @@ openssl req \
   -verbose \
   -x509
 
+# Generate controller node key, and certifiate
 openssl req \
   -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
     printf "[SAN]\nsubjectAltName=DNS:${CONTROLLER_FQDN}") \
@@ -460,6 +462,7 @@ yes | openssl ca \
   -out ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   -passin pass:${CA_PASSWORD}
 
+  # Generate compute node key, and certifiate
 openssl req \
   -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
     printf "[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}") \
@@ -484,6 +487,7 @@ yes | openssl ca \
   -out ${SSL_CA_DIR}/certs/${COMPUTE_FQDN}.crt \
   -passin "pass:${CA_PASSWORD}"
 
+# Generate new CRL
 yes | openssl ca \
   -gencrl \
   -config ${SSL_CA_DIR}/openssl.cnf \
@@ -492,6 +496,7 @@ yes | openssl ca \
   -out ${SSL_CA_DIR}/ca.crl \
   -passin pass:${CA_PASSWORD}
 
+# Copy certificate, and key to OS keystore
 cp \
   ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   /etc/ssl/certs/${CONTROLLER_FQDN}.crt
@@ -500,13 +505,16 @@ cp \
   ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   /etc/ssl/private/${CONTROLLER_FQDN}.key
 
+# Ensure that the ssl-cert group owns the keypair
 chown root:ssl-cert \
   /etc/ssl/certs/${CONTROLLER_FQDN}.crt \
   /etc/ssl/private/${CONTROLLER_FQDN}.key
 
+# Restrict access to the keypair
 chmod 644 /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 chmod 640 /etc/ssl/private/${CONTROLLER_FQDN}.key
 
+# Make the apache runtime user a member of ssl-cert
 usermod -a -G ssl-cert www-data
 
 # Add CA certifiate to OS trust store
@@ -1113,6 +1121,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet nova-compute
 
 usermod -a -G ssl-cert nova
 
+# Overwrite existing /etc/nova/nova.conf if controller host is also compute host
 mv /etc/nova/nova.conf /etc/nova/nova.conf.org
 cat > /etc/nova/nova.conf << EOF
 [DEFAULT]
@@ -1674,6 +1683,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet neutron-linuxbridge
 
 usermod -a -G ssl-cert neutron
 
+# Don't overwrite if controller node is also compute node
 mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
 cat > /etc/neutron/neutron.conf << EOF
 [DEFAULT]
@@ -1729,6 +1739,7 @@ EOF
 chmod 0660 /etc/neutron/neutron.conf
 chown neutron:neutron /etc/neutron/neutron.conf
 
+# Don't overwrite if controller node is also compute node
 mv /etc/neutron/plugins/ml2/linuxbridge_agent.ini /etc/neutron/plugins/ml2/linuxbridge_agent.ini.org
 cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
 [DEFAULT]
@@ -2325,6 +2336,7 @@ EOF
 
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-volume tgt
 
+# Don't overwrite if controller host is also the compute host
 mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
 cat > /etc/cinder/cinder.conf << EOF
 [DEFAULT]
