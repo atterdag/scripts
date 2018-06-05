@@ -437,7 +437,8 @@ openssl req \
   -x509
 
 openssl req \
-  -config <(cat ${SSL_CA_DIR}/openssl.cnf; printf "[SAN]\nsubjectAltName=DNS:${CONTROLLER_FQDN}") \
+  -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
+    printf "[SAN]\nsubjectAltName=DNS:${CONTROLLER_FQDN}") \
   -keyout ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   -new \
   -newkey rsa:2048 \
@@ -481,7 +482,7 @@ yes | openssl ca \
   -keyfile ${SSL_CA_DIR}/private/ca.key \
   -keyform PEM \
   -out ${SSL_CA_DIR}/certs/${COMPUTE_FQDN}.crt \
-  -passin pass:${CA_PASSWORD}
+  -passin "pass:${CA_PASSWORD}"
 
 yes | openssl ca \
   -gencrl \
@@ -492,31 +493,38 @@ yes | openssl ca \
   -passin pass:${CA_PASSWORD}
 
 cp \
-  ${SSL_CA_DIR}/certs/ca.crt \
-  /usr/local/share/ca-certificates/Lemche.NET-CA.crt
-update-ca-certificates
-
-cp \
   ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+
 cp \
   ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 chown root:ssl-cert \
   /etc/ssl/certs/${CONTROLLER_FQDN}.crt \
-  /etc/ssl/private/${CONTROLLER_FQDN}.key \
+  /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 chmod 644 /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 chmod 640 /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 usermod -a -G ssl-cert www-data
 
+# Add CA certifiate to OS trust store
+cp -f \
+  ${SSL_CA_DIR}/certs/ca.crt \
+  /usr/local/share/ca-certificates/${SSL_CA_NAME}.crt
+
+# Update OS truststore
+update-ca-certificates \
+  --verbose \
+  --fresh
+
 ##############################################################################
 # Install Keystone on Controller host
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet keystone
 
+a2enmod ssl
 systemctl reload apache2
 
 cat > /var/lib/openstack/keystone.sql << EOF
@@ -880,8 +888,9 @@ chown glance:glance /etc/glance/glance-registry.conf
 
 su -s /bin/sh -c "glance-manage db_sync" glance
 
-systemctl restart glance-registry
-systemctl restart glance-api
+systemctl restart \
+  glance-registry \
+  glance-api
 
 wget \
   --continue \
@@ -1089,11 +1098,11 @@ su -s /bin/sh -c "nova-manage db sync" nova
 
 sed -i 's/^NOVA_CONSOLE_PROXY_TYPE=.*/NOVA_CONSOLE_PROXY_TYPE=novnc/' /etc/default/nova-consoleproxy
 
-systemctl restart nova-api
-systemctl restart nova-consoleauth
-systemctl restart nova-scheduler
-systemctl restart nova-conductor
-systemctl restart nova-novncproxy
+systemctl restart nova-api \
+  nova-consoleauth \
+  nova-scheduler \
+  nova-conductor \
+  nova-novncproxy
 
 openstack compute service list
 
@@ -1252,7 +1261,8 @@ chown nova:nova /etc/nova/nova.conf
 modprobe nbd
 echo nbd > /etc/modules-load.d/nbd.conf
 
-systemctl restart nova-compute
+systemctl restart \
+  nova-compute
 
 ##############################################################################
 # Install Designate on Controller host
@@ -1451,8 +1461,6 @@ cat > /etc/designate/pools.yaml << EOF
         rndc_key_file: /etc/bind/designate.key
 EOF
 
-su -s /bin/sh -c "designate-manage pool update" designate
-
 systemctl restart \
   designate-central \
   designate-api \
@@ -1461,6 +1469,8 @@ systemctl restart \
   designate-pool-manager \
   designate-sink \
   designate-zone-manager
+
+su -s /bin/sh -c "designate-manage pool update" designate
 
 ##############################################################################
 # Install Neutron on Controller host
@@ -1650,11 +1660,12 @@ chown neutron:neutron /etc/neutron/metadata_agent.ini
 
 su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
 
-systemctl restart nova-api
-systemctl restart neutron-server
-systemctl restart neutron-linuxbridge-agent
-systemctl restart neutron-dhcp-agent
-systemctl restart neutron-metadata-agent
+systemctl restart \
+  nova-api \
+  neutron-server \
+  neutron-linuxbridge-agent \
+  neutron-dhcp-agent \
+  neutron-metadata-agent
 
 ##############################################################################
 # Install Neutron on Compute host
@@ -1719,7 +1730,7 @@ chmod 0660 /etc/neutron/neutron.conf
 chown neutron:neutron /etc/neutron/neutron.conf
 
 mv /etc/neutron/plugins/ml2/linuxbridge_agent.ini /etc/neutron/plugins/ml2/linuxbridge_agent.ini.org
-cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini1 << EOF
+cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
 [DEFAULT]
 
 [agent]
@@ -1735,8 +1746,9 @@ firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 enable_vxlan = False
 EOF
 
-systemctl restart nova-compute
-systemctl restart neutron-linuxbridge-agent
+systemctl restart \
+  nova-compute
+  neutron-linuxbridge-agent
 
 neutron ext-list
 openstack network agent list
@@ -2175,6 +2187,8 @@ lock_path = /var/lock/cinder
 # iscsi_protocol = iscsi
 # iscsi_helper = tgtadm
 EOF
+chmod 0660 /etc/cinder/cinder.conf
+chown cinder:cinder /etc/cinder/cinder.conf
 
 su -s /bin/sh -c "cinder-manage db sync" cinder
 
@@ -2185,8 +2199,8 @@ systemctl restart cinder-scheduler
 # Install Cinder on Compute host
 ##############################################################################
 
-pvcreate /dev/${LVM_PV_DEVICE}
-vgcreate cinder-volumes /dev/${LVM_PV_DEVICE}
+pvcreate /dev/${LVM_PV_DEVICE}1
+vgcreate cinder-volumes /dev/${LVM_PV_DEVICE}1
 
 cat > /etc/lvm/lvmlocal.conf << EOF
 config {
@@ -2550,9 +2564,12 @@ EOF
 chmod 0640 /etc/barbican/barbican.conf
 chown barbican:barbican /etc/barbican/barbican.conf
 
-su -s /bin/sh -c "barbican-manage db_sync" barbican
+su -s /bin/sh -c "barbican-manage db current" barbican
 
-systemctl restart openstack-barbican-api
+systemctl restart \
+  barbican-api \
+  barbican-worker \
+  barbican-keystone-listener
 
 ##############################################################################
 # Bash completion on Controller host
