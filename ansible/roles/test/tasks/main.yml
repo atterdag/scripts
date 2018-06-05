@@ -1,40 +1,58 @@
 ---
-- name: "check that group_vars works"
-  debug:
-    msg: "{{ testvariable }}"
+# - name: "check that group_vars works"
+#   debug:
+#     msg: "{{ testvariable }}"
+#
+# - name: "check ansible_user"
+#   debug:
+#     msg: "{{ ansible_user }}"
+#
+# - name: "read content of root (/)"
+#   command: "ls -l /"
+#   register: _command
+#
+# - name: "print base64 value of root"
+#   debug:
+#     msg: "{{ base64 }}"
+#
+# - name: "create new file"
+#   file:
+#     path: /tmp/test.txt
+#     state: touch
+#
+# - name: "copy content to new file"
+#   copy:
+#     dest: /tmp/test.txt
+#     content: "{{ base64 }}\n"
+#
+# - name: Running tasks specific to Kubernetes worker nodes
+#   block:
+#
+#   - name: print master IP
+#     debug:
+#       msg: "{{ kubernetes_master_ip }}"
+#
+#   - name: print ansible_passwd
+#     tasks: passwd
+#     debug:
+#       msg: "{{ ansible_passwd }}"
+#
+#   when: k8s_type != "master"
 
-- name: "check ansible_user"
-  debug:
-    msg: "{{ ansible_user }}"
+- name: Test block and loops
+  command: ls -1 /
+  register: _ls
 
-- name: "read content of root (/)"
-  command: "ls -l /"
-  register: _command
+- block:
+  - name: Stat each file
+    stat:
+      path: "{{ _directory }}"
 
-- name: "print base64 value of root"
-  debug:
-    msg: "{{ base64 }}"
-
-- name: "create new file"
-  file:
-    path: /tmp/test.txt
-    state: touch
-
-- name: "copy content to new file"
-  copy:
-    dest: /tmp/test.txt
-    content: "{{ base64 }}\n"
-
-- name: Running tasks specific to Kubernetes worker nodes
-  block:
-
-  - name: print master IP
+  - name: print each file
     debug:
-      msg: "{{ kubernetes_master_ip }}"
+      msg: "{{ _directory }}"
 
-  - name: print ansible_passwd
-    tasks: passwd
-    debug:
-      msg: "{{ ansible_passwd }}"
-
-  when: k8s_type != "master"
+  with_items:
+  - "{{ _ls.stdout_lines }}"
+  loop_control:
+    loop_var: _directory
