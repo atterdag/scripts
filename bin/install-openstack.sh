@@ -8,6 +8,11 @@ apt-get --yes --purge remove \
   bind9 \
   bind9-doc \
   bind9utils \
+  openssl
+apt-get --yes --purge autoremove
+rm -fr \
+  /var/lib/ssl/
+apt-get --yes --purge remove \
   chrony \
   libvirt0 \
   memcached \
