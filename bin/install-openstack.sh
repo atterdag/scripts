@@ -1766,7 +1766,7 @@ enable_vxlan = False
 EOF
 
 systemctl restart \
-  nova-compute
+  nova-compute \
   neutron-linuxbridge-agent
 
 neutron ext-list
