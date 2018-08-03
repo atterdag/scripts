@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ##############################################################################
-# Remove previous packages on all
+# Remove previous packages on all base packages
 ##############################################################################
 apt-get --yes --purge remove \
   apache2 \
@@ -11,7 +11,16 @@ apt-get --yes --purge remove \
   openssl
 apt-get --yes --purge autoremove
 rm -fr \
+  /etc/apache2/ \
+  /etc/bind/ \
+  /etc/ssl/ \
+  /var/log/apache2/ \
+  /var/log/bind/ \
   /var/lib/ssl/
+
+##############################################################################
+# Remove OpenStack, and immediate dependencies
+##############################################################################
 apt-get --yes --purge remove \
   chrony \
   libvirt0 \
@@ -32,7 +41,6 @@ apt-get --yes --purge remove \
   tgt
 apt-get --yes --purge autoremove
 rm -fr \
-  /etc/apache2/ \
   /etc/cinder/ \
   /etc/libvirt/ \
   /etc/mysql/ \
