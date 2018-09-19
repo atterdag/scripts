@@ -27,9 +27,19 @@ echo "export KUBECONFIG=$HOME/.kube/config" >> .profile
 . .profile
 
 echo '***'
+echo '*** install Flannel Layer 3 networking solution for pod networks'
+echo '***'
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+echo '***'
 echo '*** install Romana Layer 3 networking solution for pod networks'
 echo '***'
 kubectl apply -f https://raw.githubusercontent.com/romana/romana/master/containerize/specs/romana-kubeadm.yml
+
+echo '***'
+echo '*** install Weave networking solution for pod networks'
+echo '***'
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 
 echo '***'
 echo '*** install heapster monitoring'
