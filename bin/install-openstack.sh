@@ -2784,6 +2784,26 @@ openstack flavor create \
   m1.medium
 
 ##############################################################################
+# Create volume type on Controller host
+##############################################################################
+source /var/lib/openstack/admin-openrc
+openstack volume type create \
+  --description 'High speed storage type' \
+  --public \
+  premium
+
+##############################################################################
+# Create volume template on Controller host
+##############################################################################
+source /var/lib/openstack/admin-openrc
+openstack volume create \
+  --description 'debian-9-openstack-amd64 template volume' \
+  --image debian-9-openstack-amd64 \
+  --size 5 \
+  --type premium \
+  debian-9-openstack-amd64
+
+##############################################################################
 # List prerequisite resources for creating a server instance on Controller host
 ##############################################################################
 source /var/lib/openstack/admin-openrc
