@@ -2,8 +2,13 @@
 
 echo '***'
 echo '*** initializing master (THIS IS GOING TO TAKE A WHILE)'
+echo '*** reset previous installation of kubernetes'
 echo '***'
 sudo -i kubeadm init --pod-network-cidr=10.244.0.0/16 2>&1 | sudo tee /etc/kubernetes/kubeadm_init_output
+sudo -i kubeadm reset -f
+for i in $(docker image ls | grep -v IMAGE | awk '{print $3}' | grep -v IMAGE); do docker image rm $i; done
+ip link delete flannel.1
+
 
 echo '***'
 echo '*** enabling user to run kubadm'
