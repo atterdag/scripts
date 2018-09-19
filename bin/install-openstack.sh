@@ -2611,37 +2611,74 @@ source /etc/bash_completion
 source /var/lib/openstack/admin-openrc
 openstack network create \
   --enable \
+  --enable-port-security \
+  --external \
   --provider-network-type vlan \
   --provider-physical-network provider \
-  --provider-segment 2048 \
+  --provider-segment 0010 \
+  --share \
+  inside
+openstack network create \
+  --enable \
+  --enable-port-security \
+  --internal \
+  --provider-network-type vlan \
+  --provider-physical-network provider \
+  --provider-segment 0020 \
+  --share \
   servers
 openstack network create \
   --enable \
+  --enable-port-security \
+  --internal \
   --provider-network-type vlan \
   --provider-physical-network provider \
-  --provider-segment 3072 \
+  --provider-segment 0030 \
+  --share \
   dmz
+openstack network create \
+  --enable \
+  --enable-port-security \
+  --external \
+  --provider-network-type vlan \
+  --provider-physical-network provider \
+  --provider-segment 0040 \
+  --share \
+  outside
+
+openstack network set \
+  --default \
+  inside
 
 ##############################################################################
 # Create subnets for VLANs on Controller host
 ##############################################################################
 openstack subnet create \
-  --allocation-pool start=172.16.0.20,end=172.16.0.40 \
+  --allocation-pool start=172.16.10.1,end=172.16.10.253 \
+  --dns-nameserver 192.168.1.40 \
+  --gateway 172.16.10.254 \
+  --ip-version 4 \
+  --network inside \
+  --no-dhcp \
+  --subnet-range 172.16.10.0/24 \
+  inside
+openstack subnet create \
+  --allocation-pool start=172.16.20.1,end=172.16.20.253 \
   --dhcp \
-  --dns-nameserver 172.16.0.67 \
-  --dns-nameserver 172.16.0.69 \
-  --gateway 172.16.0.254 \
+  --dns-nameserver 192.168.1.40 \
+  --gateway 172.16.20.254 \
+  --ip-version 4 \
   --network servers \
-  --subnet-range 172.16.0.0/24 \
+  --subnet-range 172.16.20.0/24 \
   servers
 openstack subnet create \
-  --allocation-pool start=10.0.0.10,end=10.0.0.128 \
-  --dns-nameserver 172.16.0.67 \
-  --dns-nameserver 172.16.0.69 \
-  --gateway 10.0.0.254 \
+  --allocation-pool start=172.16.30.1,end=172.16.30.253 \
+  --dns-nameserver 192.168.1.40 \
+  --gateway 172.16.30.254 \
+  --ip-version 4 \
   --network dmz \
   --no-dhcp \
-  --subnet-range 10.0.0.0/24 \
+  --subnet-range 172.16.30.30/24 \
   dmz
 
 ##############################################################################
@@ -2649,13 +2686,30 @@ openstack subnet create \
 ##############################################################################
 source /var/lib/openstack/admin-openrc
 openstack port create \
-  --fixed-ip ip-address=172.16.0.30 \
+  --fixed-ip ip-address=172.16.10.30 \
+  --network inside \
+  debian_inside
+openstack port create \
+  --fixed-ip ip-address=172.16.20.30 \
   --network servers \
   debian_servers
 openstack port create \
-  --fixed-ip ip-address=10.0.0.30 \
+  --fixed-ip ip-address=172.16.30.30 \
   --network dmz \
   debian_dmz
+
+openstack port create \
+  --fixed-ip ip-address=172.16.10.254 \
+  --network inside \
+  firewall_inside
+openstack port create \
+  --fixed-ip ip-address=172.16.20.254 \
+  --network servers \
+  firewall_servers
+openstack port create \
+  --fixed-ip ip-address=172.16.30.254 \
+  --network dmz \
+  firewall_dmz
 
 ##############################################################################
 # Create default SSH key on Controller host
@@ -2735,8 +2789,11 @@ openstack keypair list
 openstack flavor list
 openstack image list
 openstack network list
-openstack port list
+openstack subnet list
 openstack security group list
+openstack port list
+openstack volume type list
+openstack volume list
 
 ##############################################################################
 # Create debian server instance on Controller host
@@ -2754,6 +2811,7 @@ openstack server create \
   --flavor m1.medium \
   --image debian-9-openstack-amd64 \
   --key-name default \
+  --nic port-id=debian_inside \
   --nic port-id=debian_servers \
   --nic port-id=debian_dmz \
   --security-group default \
