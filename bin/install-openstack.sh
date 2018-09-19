@@ -2839,6 +2839,26 @@ openstack server create \
   --security-group default \
   debian
 
+openstack server create \
+  --flavor m1.medium \
+  --key-name default \
+  --nic port-id=firewall_inside \
+  --nic port-id=firewall_servers \
+  --nic port-id=firewall_dmz \
+  --nic net-id=outside \
+  --security-group default \
+  --volume debian-9-openstack-amd64 \
+  firewall
+
+openstack server create \
+  --flavor m1.medium \
+  --key-name default \
+  --nic net-id=inside \
+  --security-group default \
+  --image debian-9-openstack-amd64\
+  test
+
+openstack server show test
 ##############################################################################
 # Get URL for connecting to server instance on Controller host
 ##############################################################################
