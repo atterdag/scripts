@@ -2826,6 +2826,15 @@ source /var/lib/openstack/admin-openrc
 openstack console url show \
   debian9
 
+openstack console url show \
+  debian
+
+openstack console url show \
+  firewall
+
+openstack console url show \
+  test
+
 ##############################################################################
 # Attach ports with fixed IP to server instance on Controller host
 ##############################################################################
