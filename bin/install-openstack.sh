@@ -478,7 +478,7 @@ yes | openssl ca \
   -out ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   -passin pass:${CA_PASSWORD}
 
-  # Generate compute node key, and certifiate
+# Generate compute node key, and certifiate
 openssl req \
   -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
     printf "[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}") \
@@ -513,11 +513,11 @@ yes | openssl ca \
   -passin pass:${CA_PASSWORD}
 
 # Copy certificate, and key to OS keystore
-cp \
+cp -f \
   ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 
-cp \
+cp -f \
   ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   /etc/ssl/private/${CONTROLLER_FQDN}.key
 
@@ -2769,6 +2769,7 @@ openstack image create \
   --container-format bare \
   --disk-format qcow2 \
   --file /var/lib/openstack/debian-9-openstack-amd64.qcow2 \
+  --public \
   debian-9-openstack-amd64
 
 ##############################################################################
@@ -2776,9 +2777,10 @@ openstack image create \
 ##############################################################################
 source /var/lib/openstack/admin-openrc
 openstack flavor create \
-  --vcpus 2 \
-  --ram 512 \
   --disk 5 \
+  --public \
+  --ram 512 \
+  --vcpus 2 \
   m1.medium
 
 ##############################################################################
