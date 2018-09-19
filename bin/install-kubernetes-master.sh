@@ -51,5 +51,40 @@ kubectl create -f https://raw.githubusercontent.com/kubernetes/heapster/master/d
 echo '***'
 echo '*** install kubernetes dashboard'
 echo '***'
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+
+echo '***'
+echo '*** grant full admin privileges to Dashboards Service Account'
+echo '***'
+cat > dashboard-admin.yaml << EOF
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: kubernetes-dashboard
+  labels:
+    k8s-app: kubernetes-dashboard
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: kubernetes-dashboard
+  namespace: kube-system
+EOF
+kubectl create -f dashboard-admin.yaml
+
+echo '***'
+echo '*** get the dashboard token'
+echo '***'
+kubectl -n kube-system describe secrets kubernetes-dashboard-token
+
+echo '***'
+echo '*** start proxy on your workstation'
+echo '***'
 kubectl proxy
+
+echo '***'
+echo '*** open http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login'
+echo '*** and login with the token from above'
+echo '***'
