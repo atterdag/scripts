@@ -217,8 +217,16 @@ systemctl restart memcached
 ##############################################################################
 apt-get --yes install apache2
 
+sed -i 's|^ServerTokens|#ServerTokens|' /etc/apache2/conf-available/security.conf
+sed -i 's|^#ServerTokens Minimal|ServerTokens Minimal|' /etc/apache2/conf-available/security.conf
+sed -i 's|^ServerSignature|#ServerSignature|' /etc/apache2/conf-available/security.conf
+sed -i 's|^#ServerSignature Off|ServerSignature Off|' /etc/apache2/conf-available/security.conf
+a2enconf security
+
 echo "ServerName ${CONTROLLER_FQDN}" > /etc/apache2/conf-available/servername.conf
 a2enconf servername
+
+a2enmod ssl
 systemctl reload apache2
 
 ##############################################################################
@@ -540,8 +548,7 @@ update-ca-certificates \
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet keystone
 
-a2enmod ssl
-systemctl reload apache2
+systemctl restart apache2
 
 cat > /var/lib/openstack/keystone.sql << EOF
 CREATE DATABASE keystone;
