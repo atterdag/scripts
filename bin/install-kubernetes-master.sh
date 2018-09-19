@@ -44,9 +44,9 @@ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl versio
 echo '***'
 echo '*** install heapster monitoring'
 echo '***'
-kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/influxdb.yaml
-kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/heapster.yaml
-kubectl create -f https://github.com/kubernetes/heapster/blob/master/deploy/kube-config/influxdb/grafana.yaml
+kubectl create -f https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/influxdb.yaml
+kubectl create -f https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/grafana.yaml
+kubectl create -f https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/heapster.yaml
 
 echo '***'
 echo '*** install kubernetes dashboard'
