@@ -18,16 +18,19 @@
 
 ## Learn more about:
 
-- [OpenStack]
+- ~~[OpenStack]~~
 - [OpenVSwitch]
-- [Kibana]
-- [Elk]
+- [ELK]
+- [Influxdb]
+- [Grafana]
+- [Graphite]
 - [Cillium]
 - [Fluentd]
 - [Prometheus]
 - [Terraform]
 - [BOSH]
 - [Nexus Repository OSS]
+- [Istio]
 
 ## Evaluate if ...
 
@@ -40,9 +43,15 @@
 [bosh]: https://bosh.io/
 [cillium]: https://github.com/cilium/cilium
 [confd]: https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
+[elk]: https://www.elastic.co
 [fluentd]: https://fluentd.io
 [gogs]: https://github.com/gogits/gogs
+[grafana]: https://grafana.com/
+[graphite]: https://graphiteapp.org/
 [hashicorp vault]: https://www.vaultproject.io/
+[helm]: https://helm.sh/
+[influxdb]: https://www.influxdata.com/
+[istio]: https://istio.io
 [kubernetes]: https://kubernetes.io/docs/setup/independent/install-kubeadm/
 [molecule]: https://molecule.readthedocs.io/en/latest/installation.html
 [nexus repository oss]: https://www.sonatype.com/nexus-repository-oss
