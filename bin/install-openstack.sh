@@ -917,11 +917,11 @@ systemctl restart \
 
 wget \
   --continue \
-  --output-document=/var/lib/openstack/cirros-0.3.4-x86_64-disk.img \
-  http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+  --output-document=/var/lib/openstack/cirros-0.4.0-x86_64-disk.img \
+  http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
 
-openstack image create "cirros" \
-  --file /var/lib/openstack/cirros-0.3.4-x86_64-disk.img \
+openstack image create "cirros-0.4.0" \
+  --file /var/lib/openstack/cirros-0.4.0-x86_64-disk.img \
   --disk-format qcow2 \
   --container-format bare \
   --public
@@ -2857,13 +2857,13 @@ openstack security group list
 openstack port create \
   --fixed-ip ip-address=172.16.0.20 \
   --network servers \
-  cirros
+  servers
 openstack server create \
   --flavor m1.nano \
-  --image cirros \
-  --nic port-id=cirros \
+  --image cirros-0.4.0 \
+  --nic port-id=cirros-0.4.0 \
   --security-group default \
   --key-name mykey \
-  cirros
+  cirros-0.4.0
 openstack server list
-openstack console url show cirros
+openstack console url show cirros-0.4.0
