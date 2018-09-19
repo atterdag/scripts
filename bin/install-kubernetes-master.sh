@@ -1,14 +1,21 @@
 #!/bin/sh
 
 echo '***'
-echo '*** initializing master (THIS IS GOING TO TAKE A WHILE)'
 echo '*** reset previous installation of kubernetes'
 echo '***'
-sudo -i kubeadm init --pod-network-cidr=10.244.0.0/16 2>&1 | sudo tee /etc/kubernetes/kubeadm_init_output
 sudo -i kubeadm reset -f
 for i in $(docker image ls | grep -v IMAGE | awk '{print $3}' | grep -v IMAGE); do docker image rm $i; done
 ip link delete flannel.1
 
+echo '***'
+echo '*** download kubernetes docker images (THIS IS GOING TO TAKE A WHILE)'
+echo '***'
+sudo -i kubeadm config images pull
+
+echo '***'
+echo '*** initializing master (THIS IS ALSO GOING TO TAKE A WHILE)'
+echo '***'
+sudo -i kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.1.40 2>&1 | sudo tee /etc/kubernetes/kubeadm_init_output
 
 echo '***'
 echo '*** enabling user to run kubadm'
