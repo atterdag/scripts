@@ -117,7 +117,7 @@ cat << EOF | sudo tee /etc/docker/daemon.json
     "insecure-registries": ["registry.example.com:5000"],
     "tls": true,
     "tlsverify": true,
-    "tlscacert": "/etc/ssl/cacert.pem",
+    "tlscacert": "/etc/ssl/certs/ca-certificates.crt",
     "tlscert": "/etc/ssl/${HOSTNAME}.example.com-cert.pem",
     "tlskey": "/etc/ssl/private/${HOSTNAME}.example.com-key.pem",
     "debug": false
