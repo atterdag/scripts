@@ -104,6 +104,8 @@ echo '***'
 kubectl delete service hello-world
 kubectl delete replicasets hello-world
 
+#kubectl autoscale deployment --max=15 --min=3 --cpu-percent=50 hello-world
+
 echo '***'
 echo '*** create hello-world deployment'
 echo '***'
@@ -165,5 +167,18 @@ spec:
         backend:
           serviceName: hello-world
           servicePort: 30001
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hello-world
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: hello-world
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75
 EOF
 kubectl create -f hello-world-deploy.yml

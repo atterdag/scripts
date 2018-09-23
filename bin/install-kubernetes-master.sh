@@ -42,6 +42,12 @@ echo '***'
 kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 
 echo '***'
+echo '*** Install metrics server'
+echo '***'
+git clone https://github.com/kubernetes-incubator/metrics-server.git
+kubectl create -f metrics-server/deploy/1.8+/
+
+echo '***'
 echo '*** install heapster monitoring'
 echo '***'
 kubectl create -f https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/influxdb.yaml
