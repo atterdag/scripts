@@ -13,9 +13,16 @@ echo '***'
 sudo -i kubeadm config images pull
 
 echo '***'
+echo '*** allow OS swap to be enable'
+echo '***'
+cat << EOF | sudo tee /etc/default/kubelet
+KUBELET_EXTRA_ARGS=--fail-swap-on=false
+EOF
+
+echo '***'
 echo '*** initializing master (THIS IS ALSO GOING TO TAKE A WHILE)'
 echo '***'
-sudo -i kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.1.40 2>&1 | sudo tee /etc/kubernetes/kubeadm_init_output
+sudo -i kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.1.41 --ignore-preflight-errors=swap 2>&1 | sudo tee /etc/kubernetes/kubeadm_init_output
 
 echo '***'
 echo '*** enabling user to run kubadm'
