@@ -149,5 +149,21 @@ spec:
     protocol: TCP
   selector:
     app: hello-world
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hello-world
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: hello.example.com
+    http:
+      paths:
+      - path: /world
+        backend:
+          serviceName: hello-world
+          servicePort: 30001
 EOF
 kubectl create -f hello-world-deploy.yml
