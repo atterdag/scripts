@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ "$1" = "" ]; then
+if [[ $1 == "" ]]; then
     echo '***'
     echo '*** no hostname set as argument, so defaulting to "registry"'
     echo '***'
