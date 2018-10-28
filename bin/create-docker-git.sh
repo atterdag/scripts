@@ -26,7 +26,6 @@ echo '***'
 
 echo '***'
 echo -n '*** creating regitry container name' $HOSTNAME 'with ID '
-console.log(' CREATING REGITRY CONTAINER',  creating regitry container)
 docker container run \
  --detach \
  --dns-search=example.com \
