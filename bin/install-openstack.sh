@@ -548,8 +548,6 @@ update-ca-certificates \
 ##############################################################################
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet keystone
 
-systemctl restart apache2
-
 cat > /var/lib/openstack/keystone.sql << EOF
 CREATE DATABASE keystone;
 GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY '${KEYSTONE_DBPASS}';
@@ -677,6 +675,8 @@ EOT
 
 sed -i 's|</VirtualHost>|\tSSLEngine on\n</VirtualHost>|' \
   /etc/apache2/sites-available/wsgi-keystone.conf
+
+systemctl restart apache2
 
 su -s /bin/sh -c "keystone-manage db_sync" keystone
 keystone-manage fernet_setup \
