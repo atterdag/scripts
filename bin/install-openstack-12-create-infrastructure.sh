@@ -60,7 +60,7 @@ openstack subnet create \
   --subnet-range 192.168.1.0/24 \
   inside
 openstack subnet create \
-  --allocation-pool start=172.16.0.1,end=172.16.0.253 \
+  --allocation-pool start=172.16.0.2,end=172.16.0.253 \
   --dhcp \
   --dns-nameserver 192.168.1.40 \
   --gateway 172.16.0.254 \
