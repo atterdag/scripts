@@ -9,7 +9,7 @@ openstack network create \
   --enable-port-security \
   --external \
   --provider-network-type vlan \
-  --provider-physical-network provider \
+  --provider-physical-network bond0 \
   --provider-segment 1 \
   --share \
   inside
@@ -18,7 +18,7 @@ openstack network create \
   --enable-port-security \
   --internal \
   --provider-network-type vlan \
-  --provider-physical-network provider \
+  --provider-physical-network bond0 \
   --provider-segment 2 \
   --share \
   servers
@@ -27,7 +27,7 @@ openstack network create \
   --enable-port-security \
   --internal \
   --provider-network-type vlan \
-  --provider-physical-network provider \
+  --provider-physical-network bond0 \
   --provider-segment 3 \
   --share \
   dmz
@@ -36,7 +36,7 @@ openstack network create \
   --enable-port-security \
   --external \
   --provider-network-type vlan \
-  --provider-physical-network provider \
+  --provider-physical-network bond0 \
   --provider-segment 4 \
   --share \
   outside

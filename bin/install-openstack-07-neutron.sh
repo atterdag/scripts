@@ -130,15 +130,14 @@ mechanism_drivers = linuxbridge
 extension_drivers = port_security,dns
 
 [ml2_type_flat]
-flat_networks = provider
+flat_networks = bond0
 
 [ml2_type_geneve]
 
 [ml2_type_gre]
 
 [ml2_type_vlan]
-#network_vlan_ranges = provider:1:4094
-network_vlan_ranges = provider
+network_vlan_ranges = bond0:1:4094
 
 [ml2_type_vxlan]
 
@@ -154,8 +153,8 @@ cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
 [agent]
 
 [linux_bridge]
-physical_interface_mappings = provider:${NETWORK_INTERFACE}
-bridge_mappings = provider:${NETWORK_INTERFACE}
+physical_interface_mappings = bond0:${NETWORK_INTERFACE}
+bridge_mappings = bond0:${NETWORK_INTERFACE}
 
 [securitygroup]
 enable_security_group = True
@@ -267,7 +266,8 @@ cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
 [agent]
 
 [linux_bridge]
-physical_interface_mappings = provider:${NETWORK_INTERFACE}
+physical_interface_mappings = bond0:${NETWORK_INTERFACE}
+bridge_mappings = bond0:${NETWORK_INTERFACE}
 
 [securitygroup]
 enable_security_group = True
