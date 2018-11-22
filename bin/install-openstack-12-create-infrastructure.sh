@@ -85,28 +85,28 @@ openstack subnet list
 ##############################################################################
 source /var/lib/openstack/admin-openrc
 openstack port create \
-  --fixed-ip ip-address=172.16.10.30 \
+  --fixed-ip ip-address=192.168.1.30 \
   --network inside \
   debian_inside
 openstack port create \
-  --fixed-ip ip-address=172.16.20.30 \
+  --fixed-ip ip-address=172.16.0.30 \
   --network servers \
   debian_servers
 openstack port create \
-  --fixed-ip ip-address=172.16.30.30 \
+  --fixed-ip ip-address=10.0.0.30 \
   --network dmz \
   debian_dmz
 
 openstack port create \
-  --fixed-ip ip-address=172.16.10.254 \
+  --fixed-ip ip-address=192.168.1.129 \
   --network inside \
   firewall_inside
 openstack port create \
-  --fixed-ip ip-address=172.16.20.254 \
+  --fixed-ip ip-address=172.16.0.129 \
   --network servers \
   firewall_servers
 openstack port create \
-  --fixed-ip ip-address=172.16.30.254 \
+  --fixed-ip ip-address=10.0.0.129 \
   --network dmz \
   firewall_dmz
 
