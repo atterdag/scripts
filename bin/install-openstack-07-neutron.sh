@@ -124,19 +124,31 @@ cat > /etc/neutron/plugins/ml2/ml2_conf.ini << EOF
 [DEFAULT]
 
 [ml2]
-type_drivers = flat,vlan
-tenant_network_types = flat,vlan
+# If you don't want to let openstack manage which VLANs the neutron networks
+# can connect to then uncomment below to change to flat networks, and map all
+# openstack networks to specific vlan interfaces in the linuxbridge
+# configuration file.
+; type_drivers = flat
+; tenant_network_types = flat
+; mechanism_drivers = linuxbridge
+; extension_drivers = port_security,dns
+; external_network_type = flat
+type_drivers = vlan
+tenant_network_types = vlan
 mechanism_drivers = linuxbridge
 extension_drivers = port_security,dns
+external_network_type = vlan
 
 [ml2_type_flat]
-flat_networks = ${NETWORK_INTERFACE}
+# Remember to uncomment if using flat networks
+; flat_networks = *
 
 [ml2_type_geneve]
 
 [ml2_type_gre]
 
 [ml2_type_vlan]
+# Remember to comment if using flat networks
 network_vlan_ranges = ${NETWORK_INTERFACE}:1:4094
 
 [ml2_type_vxlan]
@@ -153,8 +165,11 @@ cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
 [agent]
 
 [linux_bridge]
+# Remember to uncomment if using flat networks
+; physical_interface_mappings = inside:${NETWORK_INTERFACE}.1,servers:${NETWORK_INTERFACE}.2,dmz:${NETWORK_INTERFACE}.3,outside:${NETWORK_INTERFACE}.4
 physical_interface_mappings = ${NETWORK_INTERFACE}:${NETWORK_INTERFACE}
-bridge_mappings = ${NETWORK_INTERFACE}:${NETWORK_INTERFACE}
+# Remember to uncomment if using flat networks
+; bridge_mappings = outside:${NETWORK_INTERFACE}
 
 [securitygroup]
 enable_security_group = True
@@ -266,8 +281,11 @@ cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
 [agent]
 
 [linux_bridge]
+# Remember to uncomment if using flat networks
+; physical_interface_mappings = inside:${NETWORK_INTERFACE}.1,servers:${NETWORK_INTERFACE}.2,dmz:${NETWORK_INTERFACE}.3,outside:${NETWORK_INTERFACE}.4
 physical_interface_mappings = ${NETWORK_INTERFACE}:${NETWORK_INTERFACE}
-bridge_mappings = ${NETWORK_INTERFACE}:${NETWORK_INTERFACE}
+# Remember to uncomment if using flat networks
+; bridge_mappings = outside:${NETWORK_INTERFACE}
 
 [securitygroup]
 enable_security_group = True
