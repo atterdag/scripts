@@ -87,31 +87,18 @@ source /var/lib/openstack/admin-openrc
 openstack port create \
   --fixed-ip ip-address=192.168.1.30 \
   --network inside \
-  debian_inside
+  test2_inside
 openstack port create \
   --fixed-ip ip-address=172.16.0.30 \
   --network servers \
-  debian_servers
+  test2_servers
 openstack port create \
   --fixed-ip ip-address=10.0.0.30 \
   --network dmz \
-  debian_dmz
-
-openstack port create \
-  --fixed-ip ip-address=192.168.1.129 \
-  --network inside \
-  firewall_inside
-openstack port create \
-  --fixed-ip ip-address=172.16.0.129 \
-  --network servers \
-  firewall_servers
-openstack port create \
-  --fixed-ip ip-address=10.0.0.129 \
-  --network dmz \
-  firewall_dmz
+  test2_dmz
 
 ##############################################################################
-# Create default SSH key on Controller host
+# Create default SSH key on Controller host if you don't want to forward one
 ##############################################################################
 echo | ssh-keygen -q -N ""
 openstack keypair create \
@@ -178,35 +165,59 @@ openstack image create \
   debian-9-openstack-amd64
 
 ##############################################################################
-# Create flavor to support debian-jessie-amd64 images on Controller host
+# Create flavor on Controller host
 ##############################################################################
 source /var/lib/openstack/admin-openrc
 openstack flavor create \
+  --disk 1 \
+  --public \
+  --ram 56 \
+  --vcpus 1 \
+  m1.tiny
+openstack flavor create \
+  --disk 1 \
+  --public \
+  --ram 128 \
+  --vcpus 1 \
+  m1.small
+openstack flavor create \
   --disk 5 \
   --public \
-  --ram 512 \
-  --vcpus 2 \
+  --ram 256 \
+  --vcpus 1 \
   m1.medium
+openstack flavor create \
+  --disk 10 \
+  --public \
+  --ram 512 \
+  --vcpus 1 \
+  m1.large
+openstack flavor create \
+  --disk 10 \
+  --public \
+  --ram 1024 \
+  --vcpus 2 \
+  m1.huge
 
 ##############################################################################
 # Create volume type on Controller host
 ##############################################################################
 source /var/lib/openstack/admin-openrc
 openstack volume type create \
-  --description 'High speed storage type' \
+  --description 'default storage type' \
   --public \
-  premium
+  default
 
 ##############################################################################
 # Create volume template on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
-openstack volume create \
-  --description 'debian-9-openstack-amd64 template volume' \
-  --image debian-9-openstack-amd64 \
-  --size 5 \
-  --type premium \
-  debian-9-openstack-amd64
+# source /var/lib/openstack/admin-openrc
+# openstack volume create \
+#   --description 'debian-9-openstack-amd64 template volume' \
+#   --image debian-9-openstack-amd64 \
+#   --size 5 \
+#   --type default \
+#   debian-9-openstack-amd64
 
 ##############################################################################
 # List prerequisite resources for creating a server instance on Controller host
@@ -227,41 +238,21 @@ openstack volume list
 ##############################################################################
 source /var/lib/openstack/admin-openrc
 openstack server create \
-  --flavor m1.medium \
-  --image debian-9-openstack-amd64 \
+  --flavor m1.small \
+  --image cirros-0.4.0 \
   --key-name default \
   --nic net-id=servers \
   --security-group default \
-  debian9
+  test1
 
 openstack server create \
   --flavor m1.medium \
   --image debian-9-openstack-amd64 \
   --key-name default \
-  --nic port-id=debian_inside \
-  --nic port-id=debian_servers \
-  --nic port-id=debian_dmz \
+  --nic port-id=test2_inside \
+  --nic port-id=test2_servers \
   --security-group default \
-  debian
-
-openstack server create \
-  --flavor m1.medium \
-  --key-name default \
-  --nic port-id=firewall_inside \
-  --nic port-id=firewall_servers \
-  --nic port-id=firewall_dmz \
-  --nic net-id=outside \
-  --security-group default \
-  --volume debian-9-openstack-amd64 \
-  firewall
-
-openstack server create \
-  --flavor m1.medium \
-  --key-name default \
-  --nic net-id=inside \
-  --security-group default \
-  --image debian-9-openstack-amd64\
-  test
+  test2
 
 openstack server show test
 ##############################################################################
@@ -269,67 +260,29 @@ openstack server show test
 ##############################################################################
 source /var/lib/openstack/admin-openrc
 openstack console url show \
-  debian9
+  test1
 
 openstack console url show \
-  debian
-
-openstack console url show \
-  firewall
-
-openstack console url show \
-  test
+  test2
 
 ##############################################################################
-# Attach ports with fixed IP to server instance on Controller host
+# Attach ports with fixed IP to existing server instance on Controller host
 ##############################################################################
 source /var/lib/openstack/admin-openrc
-nova interface-attach --port-id debian_dmz debian
-nova interface-attach --port-id debian_servers debian
+export $(openstack port show test2_dmz -f shell -c id | sed 's|"||g')
+nova interface-attach \
+  --port-id $id \
+  test2
 
 ##############################################################################
-# Server instance on Controller host
+# Create volume template on Controller host
 ##############################################################################
-source /var/lib/openstack/demo-openrc
-echo | ssh-keygen -q -N ""
-openstack keypair create \
-  --public-key ~/.ssh/id_rsa.pub \
-  mykey
-openstack security group rule create \
-  --proto icmp \
-  default
-openstack security group rule create \
-  --proto tcp \
-  --dst-port 22 \
-  default
-openstack keypair list
-openstack flavor list
-openstack image list
-openstack network list
-openstack port list
-openstack security group list
-openstack port create \
-  --fixed-ip ip-address=172.16.0.20 \
-  --network servers \
-  servers
-openstack server create \
-  --flavor m1.nano \
-  --image cirros-0.4.0 \
-  --nic port-id=cirros-0.4.0 \
-  --security-group default \
-  --key-name mykey \
-  cirros-0.4.0
-openstack server list
-openstack console url show cirros-0.4.0
-
-openstack server create \
-  --flavor m1.medium \
-  --image debian-8-openstack-amd64 \
-  --key-name default \
-  --nic net-id=servers \
-  --security-group default \
-  debian8
-openstack server show \
-  debian8
-openstack console url show \
-  debian8
+source /var/lib/openstack/admin-openrc
+openstack volume create \
+  --description 'test2 data volume' \
+  --size 10 \
+  --type default \
+  test2_data
+openstack server add volume \
+  test2 \
+  test2_data
