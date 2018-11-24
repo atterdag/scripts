@@ -193,7 +193,8 @@ su -s /bin/sh -c "nova-manage db sync" nova
 
 sed -i 's/^NOVA_CONSOLE_PROXY_TYPE=.*/NOVA_CONSOLE_PROXY_TYPE=novnc/' /etc/default/nova-consoleproxy
 
-systemctl restart nova-api \
+systemctl restart \
+  nova-api \
   nova-consoleauth \
   nova-scheduler \
   nova-conductor \

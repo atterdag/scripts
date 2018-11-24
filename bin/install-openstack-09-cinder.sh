@@ -131,8 +131,9 @@ chown cinder:cinder /etc/cinder/cinder.conf
 
 su -s /bin/sh -c "cinder-manage db sync" cinder
 
-systemctl restart nova-api
-systemctl restart cinder-scheduler
+systemctl restart \
+  nova-api
+  cinder-scheduler
 
 ##############################################################################
 # Install Cinder on Compute host
@@ -346,7 +347,8 @@ EOF
 chmod 0640 /etc/cinder/cinder.conf
 chown cinder:cinder /etc/cinder/cinder.conf
 
-systemctl restart tgt
-systemctl restart cinder-volume
+systemctl restart \
+  tgt \
+  cinder-volume
 
 openstack volume service list
