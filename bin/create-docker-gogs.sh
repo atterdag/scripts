@@ -7,11 +7,11 @@ if [[ $1 == "" ]]; then
     HOSTNAME='gogs'
 fi
 
-if [ ! -d mkdir -p /var/gogs ]; then
+if [ ! -d /var/lib/${HOSTNAME} ]; then
     echo '***'
     echo '*** creating directory on host to store' ${HOSTNAME} 'data'
     echo '***'
-    sudo mkdir -p /var/gogs
+    sudo mkdir -p /var/lib/${HOSTNAME}
 fi
 
 echo '***'
@@ -26,22 +26,22 @@ echo '***'
 
 echo '***'
 echo -n '*** creating regitry container name' $HOSTNAME 'with ID '
-docker container run \
- --detach \
- --dns-search=example.com \
- --env="POSTGRES_PASSWORD=passw0rd"
- --hostname=${HOSTNAME}.example.com \
- --init \
- --interactive \
- --name=$HOSTNAME \
- --network=bridge \
- --publish 10022:22 \
- --publish 10080:3000 \
- --restart=always \
- --tmpfs /tmp \
- --tty \
- --volume=/var/gogs:/data \
- gogs/gogs
+cat << EOF | sudo tee /var/lib/${HOSTNAME}/docker-compose.yml
+$HOSTNAME:
+  container_name: $HOSTNAME
+  dns_search: se.lemche.net
+  hostname: $HOSTNAME
+  environment:
+    POSTGRES_PASSWORD: passw0rd
+  image: gogs/gogs
+  ports:
+    - 192.168.1.51:22:22
+    - 192.168.1.51:3000:3000
+  restart: unless-stopped
+  volumes:
+    - /var/lib/${HOSTNAME}:/data
+EOF
+(cd /var/lib/${HOSTNAME}/; docker-compose up -d)
 echo '***'
 
 sleep 1
@@ -60,11 +60,3 @@ docker container logs \
  --details \
  --timestamps \
  $HOSTNAME
-
-echo '***'
-echo '*** checking that you can login'
-echo '***'
-docker login \
- --username docker \
- --password passw0rd \
- ${HOSTNAME}.example.com:5000
