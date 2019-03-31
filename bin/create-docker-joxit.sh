@@ -7,6 +7,13 @@ if [ "$1" = "" ]; then
     HOSTNAME='joxit'
 fi
 
+if [ ! -d /var/lib/${HOSTNAME} ]; then
+    echo '***'
+    echo '*** creating directory on host to store' ${HOSTNAME} 'data'
+    echo '***'
+    sudo mkdir -p /var/lib/${HOSTNAME}
+fi
+
 echo '***'
 echo -n '*** stopping previous container named '
 docker container stop $HOSTNAME
@@ -19,19 +26,20 @@ echo '***'
 
 echo '***'
 echo -n '*** creating regitry container name' $HOSTNAME 'with ID '
-docker run \
- --detach \
- --env="URL=http://docker.example.com:5000" \
- --env="DELETE_IMAGES=true" \
- --hostname="$HOSTNAME" \
- --init \
- --interactive \
- --name="$HOSTNAME" \
- --publish=80:80 \
- --restart=always \
- --tmpfs /tmp \
- --tty \
- joxit/docker-registry-ui:static
+cat << EOF | sudo tee /var/lib/${HOSTNAME}/docker-compose.yml
+$HOSTNAME:
+  container_name: $HOSTNAME
+  dns_search: se.lemche.net
+  hostname: $HOSTNAME
+  environment:
+    DELETE_IMAGES: "true"
+    URL: https://registry.se.lemche.net:5001
+  image: joxit/docker-registry-ui:static
+  ports:
+    - 192.168.1.52:80:80
+  restart: unless-stopped
+EOF
+(cd /var/lib/${HOSTNAME}/; docker-compose up -d)
 echo '***'
 
 sleep 1
