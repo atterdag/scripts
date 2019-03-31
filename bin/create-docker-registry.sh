@@ -7,19 +7,31 @@ if [[ $1 == "" ]]; then
     HOSTNAME='registry'
 fi
 
-if [ ! -d /var/lib/docker/registry/auth ]; then
+if [ ! -d /var/lib/${HOSTNAME}/auth ]; then
     echo '***'
     echo '*** creating directory on host to store' ${HOSTNAME} 'auth data'
     echo '***'
-    sudo mkdir -p /var/lib/docker/registry/auth
+    sudo mkdir -p /var/lib/${HOSTNAME}/auth
 fi
 
-if [ ! -d /var/lib/docker/registry/certs ]; then
+if [ ! -d /var/lib/${HOSTNAME}/certs ]; then
     echo '***'
     echo '*** creating directory on host to store' ${HOSTNAME} 'certificates'
     echo '***'
-    sudo mkdir -p /var/lib/docker/registry/certs
+    sudo mkdir -p /var/lib/${HOSTNAME}/certs
 fi
+
+if [ ! -d /var/lib/${HOSTNAME}/data ]; then
+    echo '***'
+    echo '*** creating directory on host to store' ${HOSTNAME} 'regitry data'
+    echo '***'
+    sudo mkdir -p /var/lib/${HOSTNAME}/data
+fi
+
+echo '***'
+echo -n '*** generate password for postgres user '
+PASSWORD=$(apg -m16 -x16 -n1 -MCNL)
+echo '***'
 
 echo '***'
 echo -n '*** stopping previous container named '
@@ -37,8 +49,8 @@ docker container run \
  --name htpasswd \
  --entrypoint htpasswd \
  registry:2 \
- -Bbn docker passw0rd \
- | sudo tee /var/lib/docker/registry/auth/htpasswd
+ -Bbn docker $PASSWORD \
+ | sudo tee /var/lib/${HOSTNAME}/auth/htpasswd
 echo '***'
 
 echo '***'
@@ -49,44 +61,40 @@ echo '***'
 echo '***'
 echo '*** copying SSL certificates to' ${HOSTNAME}
 echo '***'
-sudo cp /net/main/srv/common-setup/ssl/cacert.pem /var/lib/docker/registry/certs/example-ca.crt
-sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-cert.pem /var/lib/docker/registry/certs/${HOSTNAME}.example.com.crt
-sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-key.pem /var/lib/docker/registry/certs/${HOSTNAME}.example.com.key
+# sudo cp /net/main/srv/common-setup/ssl/cacert.pem /var/lib/docker/registry/certs/example-ca.crt
+# sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-cert.pem /var/lib/docker/registry/certs/${HOSTNAME}.example.com.crt
+# sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-key.pem /var/lib/docker/registry/certs/${HOSTNAME}.example.com.key
+cat /etc/ssl/certs/${HOSTNAME}.se.lemche.net.crt /usr/local/share/ca-certificates/Lemche.NET-CA.crt | sudo tee /var/lib/${HOSTNAME}/certs/domain.crt
+sudo cp /etc/ssl/private/${HOSTNAME}.se.lemche.net.key /var/lib/${HOSTNAME}/certs/domain.key
 
-echo '***'
-echo -n '*** creating regitry container name' $HOSTNAME 'with ID '
-docker container run \
- --detach \
- --dns-search=example.com \
- --env="REGISTRY_HTTP_HEADERS_ACCESS-CONTROL-ALLOW-ORIGIN=['*']" \
- --env="REGISTRY_HTTP_HEADERS_ACCESS-CONTROL-ALLOW-METHODS=['HEAD', 'GET', 'OPTIONS', 'DELETE']" \
- --env="REGISTRY_HTTP_HEADERS_ACCESS-CONTROL-EXPOSE-HEADERS=['Docker-Content-Digest']" \
- --env="REGISTRY_LOG_LEVEL=debug" \
- --env="REGISTRY_STORAGE_DELETE_ENABLED=true" \
- --hostname=${HOSTNAME}.example.com \
- --init \
- --interactive \
- --name=$HOSTNAME \
- --network=bridge \
- --publish 5000:5000 \
- --restart=always \
- --tmpfs /tmp \
- --tty \
- --volume=/var/lib/docker/registry:/var/lib/registry \
- --volume=/var/lib/docker/registry/certs:/var/data/certs:ro \
- --volume=/var/lib/docker/registry/auth:/var/data/auth/:ro \
- registry:2
-echo '***'
-# I can't create certificates that gnutls accepts, so I have to leave the registry traffic unencrypted
- # --env="REGISTRY_AUTH=htpasswd" \
- # --env="REGISTRY_AUTH_HTPASSWD_PATH=/var/data/auth/htpasswd" \
- # --env="REGISTRY_AUTH_HTPASSWD_REALM=Example Docker Images Realm" \
- # --env="REGISTRY_HTTP_HEADERS_ACCESS-CONTROL-ALLOW-CREDENTIALS=[true]" \
- # --env "REGISTRY_HTTP_TLS_CERTIFICATE=/var/data/certs/${HOSTNAME}.example.com.crt" \
- # --env "REGISTRY_HTTP_TLS_KEY=/var/data/certs/${HOSTNAME}.example.com.key" \
- # --env "REGISTRY_HTTP_TLS_CLIENTCAS= - /var/data/certs/example-ca.crt" \
- # --env="REGISTRY_HTTP_HEADERS_ACCESS-CONTROL-ALLOW-HEADERS=['Authorization']" \
- # --env="REGISTRY_HTTP_SECRET=passw0rd" \
+cat << EOF | sudo tee /var/lib/${HOSTNAME}/docker-compose.yml
+$HOSTNAME:
+  container_name: $HOSTNAME
+  dns_search: se.lemche.net
+  hostname: $HOSTNAME
+  environment:
+    REGISTRY_AUTH: htpasswd
+    REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+    REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+    REGISTRY_HTTP_ADDR: 0.0.0.0:5001
+    REGISTRY_HTTP_HEADERS_ACCESS-CONTROL-ALLOW-ORIGIN: "['*']"
+    REGISTRY_HTTP_HEADERS_ACCESS-CONTROL-ALLOW-METHODS: "['HEAD', 'GET', 'OPTIONS', 'DELETE']"
+    REGISTRY_HTTP_HEADERS_ACCESS-CONTROL-EXPOSE-HEADERS: "['Docker-Content-Digest']"
+    REGISTRY_HTTP_TLS_CERTIFICATE: /certs/domain.crt
+    REGISTRY_HTTP_TLS_KEY: /certs/domain.key
+    REGISTRY_LOG_LEVEL: info
+    REGISTRY_STORAGE_DELETE_ENABLED: "true"
+  image: registry:2
+  ports:
+    - 192.168.1.50:5001:5001
+  restart: unless-stopped
+  volumes:
+    - /var/lib/${HOSTNAME}/data:/var/lib/registry
+    - /var/lib/${HOSTNAME}/certs:/certs:ro
+    - /var/lib/${HOSTNAME}/auth:/auth:ro
+EOF
+(cd /var/lib/${HOSTNAME}/; docker-compose up -d)
+(cd /var/lib/${HOSTNAME}/; docker-compose down)
 
 sleep 1
 
@@ -111,24 +119,11 @@ echo '***'
 docker login \
  --username docker \
  --password passw0rd \
- ${HOSTNAME}.example.com:5000
-
-# docker service create \
-  # --name registry \
-  # --secret domain.crt \
-  # --secret domain.key \
-  # --label registry=true \
-  # -v /mnt/registry:/var/lib/registry \
-  # -e REGISTRY_HTTP_ADDR=0.0.0.0:80 \
-  # -e REGISTRY_HTTP_TLS_CERTIFICATE=/run/secrets/domain.crt \
-  # -e REGISTRY_HTTP_TLS_KEY=/run/secrets/domain.key \
-  # -p 80:80 \
-  # --replicas 1 \
-  # registry:2
+ ${HOSTNAME}.se.lemche.net:5001
 
 echo '***'
-echo '*** create alias for performing a registry garbage collect on docker registry'
+echo '*** create alias for performing a registry garbage collect on docker' ${HOSTNAME}
 echo '***'
 cat << EOF | sudo tee /etc/profile.d/docker-register.sh
-alias registry-garbage-collect='docker container exec -it registry registry garbage-collect /etc/docker/registry/config.yml'
+alias registry-garbage-collect='docker container exec -it '$HOSTNAME' registry garbage-collect /etc/docker/registry/config.yml'
 EOF
