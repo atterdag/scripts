@@ -3,8 +3,10 @@
 ##############################################################################
 # Remove OpenStack, and immediate dependencies
 ##############################################################################
-apt-get --yes --purge remove \
+sudo apt-get --yes --purge remove \
   chrony \
+  etcd \
+  libapache2-mod-wsgi \
   libvirt0 \
   memcached \
   mysql-common \
@@ -21,8 +23,8 @@ apt-get --yes --purge remove \
   rabbitmq-server \
   sphinx-common \
   tgt
-apt-get --yes --purge autoremove
-rm -fr \
+sudo apt-get --yes --purge autoremove
+sudo rm -fr \
   /etc/cinder/ \
   /etc/libvirt/ \
   /etc/mysql/ \
@@ -43,14 +45,14 @@ rm -fr \
 ##############################################################################
 # Remove packages on all base packages
 ##############################################################################
-apt-get --yes --purge remove \
+sudo apt-get --yes --purge remove \
   apache2 \
   bind9 \
   bind9-doc \
   bind9utils \
   openssl
-apt-get --yes --purge autoremove
-rm -fr \
+sudo apt-get --yes --purge autoremove
+sudo rm -fr \
   /etc/apache2/ \
   /etc/bind/ \
   /etc/ssl/ \
@@ -62,5 +64,5 @@ rm -fr \
 # Remove all Python modules installed by pip, and reset to package versions
 ##############################################################################
 
-for i in $(pip list | awk '{print $1}'); do pip uninstall -y $i; done
-apt-get --reinstall install $(echo $(dpkg -l | awk '{print $2}' | tail -n +5 | grep ^python-) | sed 's|\n| |g')
+for i in $(pip list | awk '{print $1}'); do sudo pip uninstall -y $i; done
+sudo apt-get --reinstall install $(echo $(dpkg -l | awk '{print $2}' | tail -n +5 | grep ^python-) | sed 's|\n| |g')

@@ -1,40 +1,48 @@
 #!/bin/sh
 
 ##############################################################################
+# Enable the OpenStack repository
+##############################################################################
+sudo apt-get --yes install software-properties-common
+sudo add-apt-repository cloud-archive:rocky
+sudo apt-get update
+sudo apt-get --yes dist-upgrade
+
+##############################################################################
 # Install dependencies
 ##############################################################################
-apt-get --yes install arptables ebtables lvm2 python-pip
+sudo apt-get --yes install arptables ebtables lvm2 python-pip
 
 ##############################################################################
 # Install NTP on Controller host
 ##############################################################################
-apt-get --yes install chrony
+sudo apt-get --yes install chrony
 
-mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
-cat >> /etc/chrony/chrony.conf << EOT
+sudo mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
+cat << EOT | sudo tee /etc/chrony/chrony.conf
 allow ${NETWORK_CIDR}
 EOT
-systemctl restart chrony
-chmod 0644 /etc/chrony/chrony.conf
-chown root:root /etc/chrony/chrony.conf
+sudo chmod 0644 /etc/chrony/chrony.conf
+sudo chown root:root /etc/chrony/chrony.conf
+sudo systemctl restart chrony
 
 ##############################################################################
 # Install NTP on Compute host
 ##############################################################################
-apt-get --yes install chrony
+sudo apt-get --yes install chrony
 
-mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
-cat > /etc/chrony/chrony.conf << EOT
+sudo mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
+cat << EOT | sudo tee /etc/chrony/chrony.conf
 server ${CONTROLLER_IP_ADDRESS}
 EOT
-systemctl restart chrony
-chmod 0644 /etc/chrony/chrony.conf
-chown root:root /etc/chrony/chrony.conf
+sudo chmod 0644 /etc/chrony/chrony.conf
+sudo chown root:root /etc/chrony/chrony.conf
+sudo systemctl restart chrony
 
 ##############################################################################
 # Install OpenStack command line tool on Controller host
 ##############################################################################
-apt-get --yes install python-openstackclient
+sudo apt-get --yes install python-openstackclient
 
 # pip install python-openstackclient
 # pip install python-barbicanclient
@@ -61,71 +69,94 @@ apt-get --yes install python-openstackclient
 ##############################################################################
 # Install Database on Controller host
 ##############################################################################
-apt-get --yes install mysql-server python-pymysql
+sudo apt-get --yes install mariadb-server python-pymysql
 
-cat > /etc/mysql/mariadb.conf.d/99-openstack.cnf << EOF
+cat << EOF | sudo tee /etc/mysql/mariadb.conf.d/99-openstack.cnf
 [mysqld]
-bind-address = ${CONTROLLER_IP_ADDRESS}
+# bind-address = ${CONTROLLER_IP_ADDRESS}
+bind-address = 0.0.0.0
 
 default-storage-engine = innodb
-innodb_file_per_table
+innodb_file_per_table = on
 max_connections = 4096
 collation-server = utf8_general_ci
 character-set-server = utf8
 EOF
-systemctl restart mysql
+sudo systemctl restart mysql
+sudo mysql_secure_installation
 
 ##############################################################################
 # Install Queue Manager on Controller host
 ##############################################################################
-apt-get --yes install rabbitmq-server
+sudo apt-get --yes install rabbitmq-server
 
-rabbitmqctl add_user openstack $RABBIT_PASS
-rabbitmqctl set_permissions openstack ".*" ".*" ".*"
+sudo rabbitmqctl add_user openstack $RABBIT_PASS
+sudo rabbitmqctl set_permissions openstack ".*" ".*" ".*"
 
 ##############################################################################
 # Install Memcached on Controller
 ##############################################################################
-apt-get --yes install memcached python-memcache
+sudo apt-get --yes install memcached python-memcache
 
-sed -i "s/^-l\s.*$/-l ${CONTROLLER_IP_ADDRESS}/" /etc/memcached.conf
-systemctl restart memcached
+sudo sed -i "s/^-l\s.*$/-l ${CONTROLLER_IP_ADDRESS}/" /etc/memcached.conf
+sudo systemctl restart memcached
 
 ##############################################################################
 # Install Apache on Controller host
 ##############################################################################
-apt-get --yes install apache2
+sudo apt-get --yes install apache2
 
-sed -i 's|^ServerTokens|#ServerTokens|' /etc/apache2/conf-available/security.conf
-sed -i 's|^#ServerTokens Minimal|ServerTokens Minimal|' /etc/apache2/conf-available/security.conf
-sed -i 's|^ServerSignature|#ServerSignature|' /etc/apache2/conf-available/security.conf
-sed -i 's|^#ServerSignature Off|ServerSignature Off|' /etc/apache2/conf-available/security.conf
-a2enconf security
+sudo sed -i 's|^ServerTokens|#ServerTokens|' /etc/apache2/conf-available/security.conf
+sudo sed -i 's|^#ServerTokens Minimal|ServerTokens Minimal|' /etc/apache2/conf-available/security.conf
+sudo sed -i 's|^ServerSignature|#ServerSignature|' /etc/apache2/conf-available/security.conf
+sudo sed -i 's|^#ServerSignature Off|ServerSignature Off|' /etc/apache2/conf-available/security.conf
+sudo a2enconf security
 
-echo "ServerName ${CONTROLLER_FQDN}" > /etc/apache2/conf-available/servername.conf
-a2enconf servername
+echo "ServerName ${CONTROLLER_FQDN}" | sudo tee /etc/apache2/conf-available/servername.conf
+sudo a2enconf servername
 
-a2enmod ssl
-systemctl reload apache2
+sudo a2enmod ssl
+sudo systemctl reload apache2
+
+##############################################################################
+# Install Etcd on Controller host
+##############################################################################
+sudo apt-get install --yes etcd
+sudo mv /etc/default/etcd /etc/default/etcd.orig
+cat << EOF | sudo tee /etc/default/etcd
+ETCD_NAME="${CONTROLLER_FQDN}"
+ETCD_DATA_DIR="/var/lib/etcd"
+ETCD_INITIAL_CLUSTER_STATE="new"
+ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
+ETCD_INITIAL_CLUSTER="controller=http://${CONTROLLER_IP_ADDRESS}:2380"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://${CONTROLLER_IP_ADDRESS}:2380"
+ETCD_ADVERTISE_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
+ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380"
+ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"
+EOF
+sudo systemctl enable etcd
+sudo systemctl start etcd
 
 ##############################################################################
 # Install Bind on Controller host
 ##############################################################################
-apt-get install --yes --quiet bind9 bind9utils bind9-doc
+sudo apt-get install --yes --quiet bind9 bind9utils bind9-doc
 
-rndc-confgen -a -k designate -c /etc/bind/designate.key
-chmod 0640 /etc/bind/designate.key
-chown bind:bind /etc/bind/designate.key
+sudo rndc-confgen -a -k designate -c /etc/bind/designate.key
+sudo chmod 0640 /etc/bind/designate.key
+sudo chown bind:bind /etc/bind/designate.key
 
+sudo \
 sed -i 's|^};|\
 \tallow-new-zones yes;\
 \trequest-ixfr no;\
 \tlisten-on port 53 { any; };\
 \trecursion no;\
 \tallow-query { any; };\
-};|' /etc/bind/named.conf.options
+};|' \
+/etc/bind/named.conf.options
 
-cat > /etc/bind/designate.conf << EOF
+cat << EOF | sudo tee /etc/bind/designate.conf
 include "/etc/bind/designate.key";
 
 controls {
@@ -134,26 +165,26 @@ controls {
 };
 EOF
 
-cat >> /etc/bind/named.conf.local << EOF
+cat << EOF | sudo tee /etc/bind/named.conf.local
 include "/etc/bind/designate.conf";
 EOF
 
-systemctl restart bind9
+sudo systemctl restart bind9
 
 ##############################################################################
 # Install OpenSSL on Controller host
 ##############################################################################
-apt-get install --yes --quiet openssl
+sudo apt-get install --yes --quiet openssl
 
-mkdir -p ${SSL_CA_DIR}/{certs,crl,reqs,newcerts,private}
-chown -R root:ssl-cert ${SSL_CA_DIR}/private
-chmod 0750 ${SSL_CA_DIR}/private
-sed 's|./demoCA|${SSL_CA_DIR}|g' /etc/ssl/openssl.cnf > ${SSL_CA_DIR}/openssl.cnf
-echo "01" > ${SSL_CA_DIR}/serial
-echo "01" > ${SSL_CA_DIR}/crlnumber
-touch ${SSL_CA_DIR}/index.txt
+sudo mkdir -p ${SSL_CA_DIR}/{certs,crl,reqs,newcerts,private}
+sudo chown -R root:ssl-cert ${SSL_CA_DIR}/private
+sudo chmod 0750 ${SSL_CA_DIR}/private
+sed 's|./demoCA|${SSL_CA_DIR}|g' /etc/ssl/openssl.cnf | sudo tee ${SSL_CA_DIR}/openssl.cnf
+echo "01" | sudo tee ${SSL_CA_DIR}/serial
+echo "01" | sudo tee ${SSL_CA_DIR}/crlnumber
+sudo touch ${SSL_CA_DIR}/index.txt
 
-cat > ${SSL_CA_DIR}/openssl.cnf << EOF
+cat << EOF | sudo tee ${SSL_CA_DIR}/openssl.cnf
 HOME                           = ${SSL_CA_DIR}
 RANDFILE                       = ${OPENSSL_CA_DIR}/.rnd
 oid_section                    = new_oids
@@ -313,7 +344,7 @@ ess_cert_id_chain              = no
 EOF
 
 # Generate new CA key, and certifiate
-openssl req \
+sudo openssl req \
   -config ${SSL_CA_DIR}/openssl.cnf \
   -days 3650 \
   -extensions v3_ca \
@@ -333,9 +364,9 @@ openssl req \
   -x509
 
 # Generate controller node key, and certifiate
-openssl req \
+sudo su -c "openssl req \
   -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
-    printf "[SAN]\nsubjectAltName=DNS:${CONTROLLER_FQDN}") \
+    printf \"[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}\") \
   -keyout ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   -new \
   -newkey rsa:2048 \
@@ -343,11 +374,11 @@ openssl req \
   -out ${SSL_CA_DIR}/reqs/${CONTROLLER_FQDN}.csr \
   -reqexts SAN \
   -sha256 \
-  -subj "/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${CONTROLLER_FQDN}" \
+  -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${CONTROLLER_FQDN}\" \
   -subject \
-  -text
+  -text"
 
-yes | openssl ca \
+yes | sudo openssl ca \
   -cert ${SSL_CA_DIR}/certs/ca.crt \
   -config ${SSL_CA_DIR}/openssl.cnf \
   -days 365 \
@@ -358,9 +389,9 @@ yes | openssl ca \
   -passin pass:${CA_PASSWORD}
 
 # Generate compute node key, and certifiate
-openssl req \
+sudo su -c "openssl req \
   -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
-    printf "[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}") \
+    printf \"[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}\") \
   -keyout ${SSL_CA_DIR}/private/${COMPUTE_FQDN}.key \
   -new \
   -newkey rsa:2048 \
@@ -368,11 +399,11 @@ openssl req \
   -out ${SSL_CA_DIR}/reqs/${COMPUTE_FQDN}.csr \
   -reqexts SAN \
   -sha256 \
-  -subj "/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${COMPUTE_FQDN}" \
+  -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${COMPUTE_FQDN}\" \
   -subject \
-  -text
+  -text"
 
-yes | openssl ca \
+yes | sudo openssl ca \
   -cert ${SSL_CA_DIR}/certs/ca.crt \
   -config ${SSL_CA_DIR}/openssl.cnf \
   -days 365 \
@@ -382,8 +413,38 @@ yes | openssl ca \
   -out ${SSL_CA_DIR}/certs/${COMPUTE_FQDN}.crt \
   -passin "pass:${CA_PASSWORD}"
 
+# Generate alm proxy key, and certifiate
+sudo openssl ca \
+  -config ${SSL_CA_DIR}/openssl.cnf \
+  -revoke ${SSL_CA_DIR}/certs/alm.se.lemche.net.crt \
+  -passin "pass:${CA_PASSWORD}"
+
+sudo openssl req \
+  -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
+    printf "[SAN]\nsubjectAltName=DNS:alm.se.lemche.net,DNS:joxit.se.lemche.net,DNS:registry.se.lemche.net,DNS:gogs.se.lemche.net,DNS:awx.se.lemche.net") \
+  -keyout ${SSL_CA_DIR}/private/alm.se.lemche.net.key \
+  -new \
+  -newkey rsa:2048 \
+  -nodes \
+  -out ${SSL_CA_DIR}/reqs/alm.se.lemche.net.csr \
+  -reqexts SAN \
+  -sha256 \
+  -subj "/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=alm.se.lemche.net" \
+  -subject \
+  -text
+
+yes | sudo openssl ca \
+  -cert ${SSL_CA_DIR}/certs/ca.crt \
+  -config ${SSL_CA_DIR}/openssl.cnf \
+  -days 365 \
+  -in ${SSL_CA_DIR}/reqs/alm.se.lemche.net.csr \
+  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -keyform PEM \
+  -out ${SSL_CA_DIR}/certs/alm.se.lemche.net.crt \
+  -passin "pass:${CA_PASSWORD}"
+
 # Generate new CRL
-yes | openssl ca \
+yes | sudo openssl ca \
   -gencrl \
   -config ${SSL_CA_DIR}/openssl.cnf \
   -keyfile ${SSL_CA_DIR}/private/ca.key \
@@ -392,32 +453,40 @@ yes | openssl ca \
   -passin pass:${CA_PASSWORD}
 
 # Copy certificate, and key to OS keystore
-cp -f \
+sudo cp -f \
   ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 
-cp -f \
+sudo cp -f \
   ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   /etc/ssl/private/${CONTROLLER_FQDN}.key
 
+sudo cp -f \
+  ${SSL_CA_DIR}/certs/alm.se.lemche.net.crt \
+  /etc/ssl/certs/alm.se.lemche.net.crt
+
+sudo cp -f \
+  ${SSL_CA_DIR}/private/alm.se.lemche.net.key \
+  /etc/ssl/private/alm.se.lemche.net.key
+
 # Ensure that the ssl-cert group owns the keypair
-chown root:ssl-cert \
-  /etc/ssl/certs/${CONTROLLER_FQDN}.crt \
-  /etc/ssl/private/${CONTROLLER_FQDN}.key
+sudo su -c "chown root:ssl-cert \
+  /etc/ssl/certs/*.crt \
+  /etc/ssl/private/*.key"
 
 # Restrict access to the keypair
-chmod 644 /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-chmod 640 /etc/ssl/private/${CONTROLLER_FQDN}.key
+sudo chmod 644 /etc/ssl/certs/*.crt
+sudo su -c "chmod 640 /etc/ssl/private/*.key"
 
 # Make the apache runtime user a member of ssl-cert
-usermod -a -G ssl-cert www-data
+sudo usermod -a -G ssl-cert www-data
 
 # Add CA certifiate to OS trust store
-cp -f \
+sudo cp -f \
   ${SSL_CA_DIR}/certs/ca.crt \
   /usr/local/share/ca-certificates/${SSL_CA_NAME}.crt
 
 # Update OS truststore
-update-ca-certificates \
+sudo update-ca-certificates \
   --verbose \
   --fresh

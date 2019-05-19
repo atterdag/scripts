@@ -3,19 +3,20 @@
 ##############################################################################
 # Install Keystone on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet keystone
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet keystone libapache2-mod-wsgi
 
-cat > /var/lib/openstack/keystone.sql << EOF
+cat << EOF | sudo tee /var/lib/openstack/keystone.sql
 CREATE DATABASE keystone;
 GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY '${KEYSTONE_DBPASS}';
 GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${KEYSTONE_DBPASS}';
-exit
+EXIT
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/keystone.sql
-mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=keystone --password=$KEYSTONE_DBPASS keystone
+sudo chmod 0600 /var/lib/openstack/keystone.sql
+sudo cat /var/lib/openstack/keystone.sql | sudo mysql --user=root --password="${ROOT_DBPASS}"
+sudo mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=keystone --password=$KEYSTONE_DBPASS keystone
 
-mv /etc/keystone/keystone.conf /etc/keystone/keystone.conf.org
-cat > /etc/keystone/keystone.conf << EOF
+sudo mv /etc/keystone/keystone.conf /etc/keystone/keystone.conf.org
+cat << EOF | sudo tee /etc/keystone/keystone.conf
 [DEFAULT]
 log_file = keystone.log
 log_dir = /var/log/keystone
@@ -45,6 +46,9 @@ connection = mysql+pymysql://keystone:${KEYSTONE_DBPASS}@${CONTROLLER_FQDN}/keys
 [endpoint_policy]
 
 [eventlet_server]
+
+[extra_headers]
+Distribution = Ubuntu
 
 [federation]
 
@@ -106,46 +110,47 @@ provider = fernet
 [trust]
 
 EOF
-chmod 0640 /etc/keystone/keystone.conf
-chown keystone:keystone /etc/keystone/keystone.conf
+sudo chmod 0640 /etc/keystone/keystone.conf
+sudo chown keystone:keystone /etc/keystone/keystone.conf
 
-mkdir /etc/keystone/ssl/private
+for i in private certs; do sudo mkdir -p /etc/keystone/ssl/$i; done
 
-cp \
+sudo cp \
   ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   /etc/keystone/ssl/certs/keystone.pem
-cp \
+sudo cp \
   ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   /etc/keystone/ssl/private/keystonekey.pem
-cp \
+sudo cp \
   ${SSL_CA_DIR}/certs/ca.crt \
   /etc/keystone/ssl/certs/ca.pem
-cp \
+sudo cp \
   ${SSL_CA_DIR}/private/ca.key \
   /etc/keystone/ssl/private/cakey.pem
-chown -R keystone:keystone /etc/keystone/ssl
+sudo chown -R keystone:keystone /etc/keystone/ssl
 
-cat >> /etc/apache2/sites-available/wsgi-keystone.conf << EOT
+cat << EOF | sudo tee -a /etc/apache2/sites-available/keystone.conf
 SSLCertificateFile    /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 SSLCertificateKeyFile /etc/ssl/private/${CONTROLLER_FQDN}.key
-EOT
+EOF
 
-sed -i 's|</VirtualHost>|\tSSLEngine on\n</VirtualHost>|' \
-  /etc/apache2/sites-available/wsgi-keystone.conf
+sudo \
+  sed -i 's|</VirtualHost>|\tSSLEngine on\n</VirtualHost>|' \
+  /etc/apache2/sites-available/keystone.conf
 
-systemctl restart apache2
+sudo systemctl restart apache2
 
-su -s /bin/sh -c "keystone-manage db_sync" keystone
-keystone-manage fernet_setup \
+sudo su -s /bin/sh -c "keystone-manage db_sync" keystone
+sudo keystone-manage fernet_setup \
   --keystone-user keystone \
   --keystone-group keystone
-keystone-manage credential_setup \
+sudo keystone-manage credential_setup \
   --keystone-user keystone \
   --keystone-group keystone
-keystone-manage bootstrap \
+sudo keystone-manage bootstrap \
   --bootstrap-password $ADMIN_PASS \
-  --bootstrap-admin-url https://${CONTROLLER_FQDN}:35357/v3/ \
-  --bootstrap-internal-url https://${CONTROLLER_FQDN}:35357/v3/ \
+  --bootstrap-admin-url https://${CONTROLLER_FQDN}:5000/v3/ \
+  --bootstrap-internal-url https://${CONTROLLER_FQDN}:5000/v3/ \
   --bootstrap-public-url https://${CONTROLLER_FQDN}:5000/v3/ \
   --bootstrap-region-id RegionOne
 
@@ -154,7 +159,7 @@ export OS_PASSWORD=$ADMIN_PASS
 export OS_PROJECT_NAME=admin
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_DOMAIN_NAME=Default
-export OS_AUTH_URL=https://${CONTROLLER_FQDN}:35357/v3
+export OS_AUTH_URL=https://${CONTROLLER_FQDN}:5000/v3
 export OS_IDENTITY_API_VERSION=3
 
 openstack project create \
@@ -178,7 +183,7 @@ openstack role add \
 
 unset OS_AUTH_URL OS_PASSWORD
 openstack \
-  --os-auth-url https://${CONTROLLER_FQDN}:35357/v3 \
+  --os-auth-url https://${CONTROLLER_FQDN}:5000/v3 \
   --os-project-domain-name Default \
   --os-user-domain-name Default \
   --os-project-name admin \
@@ -187,7 +192,7 @@ openstack \
   token \
     issue
 openstack \
-  --os-auth-url https://${CONTROLLER_FQDN}:35357/v3 \
+  --os-auth-url https://${CONTROLLER_FQDN}:5000/v3 \
   --os-project-domain-name Default \
   --os-user-domain-name Default \
   --os-project-name demo \
@@ -202,7 +207,7 @@ export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=admin
 export OS_USERNAME=admin
 export OS_PASSWORD=$ADMIN_PASS
-export OS_AUTH_URL=https://${CONTROLLER_FQDN}:35357/v3
+export OS_AUTH_URL=https://${CONTROLLER_FQDN}:5000/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
@@ -212,7 +217,7 @@ export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=demo
 export OS_USERNAME=demo
 export OS_PASSWORD=$DEMO_PASS
-export OS_AUTH_URL=https://${CONTROLLER_FQDN}:35357/v3
+export OS_AUTH_URL=https://${CONTROLLER_FQDN}:5000/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF

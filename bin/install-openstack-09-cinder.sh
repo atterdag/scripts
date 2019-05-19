@@ -4,9 +4,9 @@
 # Install Cinder on Controller host
 ##############################################################################
 
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-api cinder-scheduler
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-api cinder-scheduler
 
-cat > /var/lib/openstack/cinder.sql << EOF
+cat << EOF | sudo tee /var/lib/openstack/cinder.sql
 CREATE DATABASE cinder;
 GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY '$CINDER_DBPASS';
 GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%' IDENTIFIED BY '$CINDER_DBPASS';
@@ -84,7 +84,7 @@ connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
 
 [keystone_authtoken]
 auth_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
 cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
@@ -138,6 +138,8 @@ systemctl restart \
 ##############################################################################
 # Install Cinder on Compute host
 ##############################################################################
+
+sudo parted /dev/${LVM_PV_DEVICE} mkpart primary $(sudo parted /dev/${LVM_PV_DEVICE} unit s p free | grep "Free Space" | awk '{print $1}' | tail -n 1) 100%
 
 pvcreate /dev/${LVM_PV_DEVICE}1
 vgcreate cinder-volumes /dev/${LVM_PV_DEVICE}1
@@ -302,7 +304,7 @@ connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
 
 [keystone_authtoken]
 auth_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
 cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem

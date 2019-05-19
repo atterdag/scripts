@@ -46,7 +46,7 @@ mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
 cat > /etc/neutron/neutron.conf << EOF
 [DEFAULT]
 nova_metadata_ip = ${CONTROLLER_FQDN}
-metadata_proxy_shared_secret = ${METADATA_PROXY_SHARED_SECRET}
+METADATA_SECRET = ${METADATA_SECRET}
 auth_strategy = keystone
 core_plugin = ml2
 service_plugins =
@@ -72,7 +72,7 @@ connection = mysql+pymysql://neutron:${NEUTRON_DBPASS}@${CONTROLLER_FQDN}/neutro
 
 [keystone_authtoken]
 auth_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
 cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
@@ -88,7 +88,7 @@ auth_type = password
 [matchmaker_redis]
 
 [nova]
-auth_url = https://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:5000
 region_name = RegionOne
 project_domain_name = Default
 project_name = service
@@ -193,7 +193,7 @@ mv /etc/neutron/metadata_agent.ini /etc/neutron/metadata_agent.ini.org
 cat > /etc/neutron/metadata_agent.ini << EOF
 [DEFAULT]
 ova_metadata_ip = $CONTROLLER_FQDN
-metadata_proxy_shared_secret = $METADATA_PROXY_SHARED_SECRET
+METADATA_SECRET = $METADATA_SECRET
 [AGENT]
 
 [cache]
@@ -234,7 +234,7 @@ auth_strategy = keystone
 
 [keystone_authtoken]
 auth_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
 cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem

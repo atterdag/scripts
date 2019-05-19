@@ -91,7 +91,7 @@ quota_cas = -1
 
 [keystone_authtoken]
 auth_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
 cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem

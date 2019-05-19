@@ -28,7 +28,7 @@ openstack role add \
   admin
 openstack service create \
   --name designate \
-  --description 'DNS' \
+  --description 'OpenStack DNS' \
   dns
 openstack endpoint create \
   --region RegionOne \
@@ -64,7 +64,7 @@ enabled_extensions_v2 = quotas, reports
 
 [keystone_authtoken]
 auth_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
 cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
@@ -99,6 +99,8 @@ auth_type = password
 pool_id = 794ccc2c-d751-44fe-b57f-8894c9f5c842
 
 [service:worker]
+enabled = True
+notify = True
 
 [pool_manager_cache:sqlalchemy]
 connection = mysql+pymysql://designate:${DESIGNATE_DBPASS}@${CONTROLLER_FQDN}/designate_pool_manager
@@ -110,7 +112,7 @@ timeout = 30
 endpoints = RegionOne|http://${CONTROLLER_FQDN}:9696
 endpoint_type = publicURL
 auth_type = password
-auth_url = https://${CONTROLLER_FQDN}:35357
+auth_url = https://${CONTROLLER_FQDN}:5000
 auth_strategy = keystone
 project_name = service
 project_domain_name = Default
@@ -119,7 +121,6 @@ user_domain_name = Default
 password = ${DESIGNATE_PASS}
 #insecure = False
 #ca_certificates_file =
-
 
 [storage:sqlalchemy]
 connection = mysql+pymysql://designate:${DESIGNATE_DBPASS}@${CONTROLLER_FQDN}/designate

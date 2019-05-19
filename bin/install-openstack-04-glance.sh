@@ -58,10 +58,11 @@ default_store = file
 filesystem_store_datadir = /var/lib/glance/images
 
 [image_format]
+disk_formats = ami,ari,aki,vhd,vhdx,vmdk,raw,qcow2,vdi,iso,ploop.root-tar
 
 [keystone_authtoken]
-auth_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:35357
+www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
 cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
@@ -117,8 +118,8 @@ connection = mysql+pymysql://glance:${GLANCE_DBPASS}@${CONTROLLER_FQDN}/glance
 filesystem_store_datadir = /var/lib/glance/images
 
 [keystone_authtoken]
-auth_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:35357
+www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
+auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
 cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
@@ -153,7 +154,7 @@ chown glance:glance /etc/glance/glance-registry.conf
 
 su -s /bin/sh -c "glance-manage db_sync" glance
 
-systemctl restart \
+sudo systemctl restart \
   glance-registry \
   glance-api
 
