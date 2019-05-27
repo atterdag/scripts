@@ -12,8 +12,8 @@ GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${KEYSTONE_D
 EXIT
 EOF
 sudo chmod 0600 /var/lib/openstack/keystone.sql
-sudo cat /var/lib/openstack/keystone.sql | sudo mysql --user=root --password="${ROOT_DBPASS}"
-sudo mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=keystone --password=$KEYSTONE_DBPASS keystone
+sudo cat /var/lib/openstack/keystone.sql | sudo mysql --host=localhost --user=root
+mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=keystone --password=$KEYSTONE_DBPASS keystone
 
 sudo mv /etc/keystone/keystone.conf /etc/keystone/keystone.conf.org
 cat << EOF | sudo tee /etc/keystone/keystone.conf
@@ -201,7 +201,7 @@ openstack \
   token \
     issue
 
-cat > /var/lib/openstack/admin-openrc << EOF
+cat << EOF | sudo tee /var/lib/openstack/admin-openrc
 export OS_PROJECT_DOMAIN_NAME=Default
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=admin
@@ -211,7 +211,7 @@ export OS_AUTH_URL=https://${CONTROLLER_FQDN}:5000/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
-cat > /var/lib/openstack/demo-openrc << EOF
+cat << EOF | sudo tee /var/lib/openstack/demo-openrc
 export OS_PROJECT_DOMAIN_NAME=Default
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=demo
@@ -221,5 +221,5 @@ export OS_AUTH_URL=https://${CONTROLLER_FQDN}:5000/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
-source /var/lib/openstack/admin-openrc
+source <(sudo cat /var/lib/openstack/admin-openrc)
 openstack token issue

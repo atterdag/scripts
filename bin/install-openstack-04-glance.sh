@@ -3,15 +3,16 @@
 ##############################################################################
 # Install Glance on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet glance
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet glance
 
-cat > /var/lib/openstack/glance.sql << EOF
+cat << EOF | sudo tee /var/lib/openstack/glance.sql
 CREATE DATABASE glance;
 GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY '${GLANCE_DBPASS}';
 GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY '${GLANCE_DBPASS}';
-exit
+EXIT
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/glance.sql
+sudo chmod 0600 /var/lib/openstack/glance.sql
+sudo cat /var/lib/openstack/glance.sql | sudo mysql --host=localhost --user=root
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=glance --password=$GLANCE_DBPASS glance
 
 openstack user create \
@@ -36,10 +37,10 @@ openstack endpoint create \
   --region RegionOne \
   image admin http://${CONTROLLER_FQDN}:9292
 
-usermod -a -G ssl-cert glance
+sudo usermod -a -G ssl-cert glance
 
-mv /etc/glance/glance-api.conf /etc/glance/glance-api.conf.org
-cat > /etc/glance/glance-api.conf << EOF
+sudo mv /etc/glance/glance-api.conf /etc/glance/glance-api.conf.org
+cat << EOF | sudo tee /etc/glance/glance-api.conf
 [DEFAULT]
 #ca_file = /etc/ssl/certs/${SSL_CA_NAME}.pem
 #cert_file = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
@@ -101,11 +102,11 @@ flavor = keystone
 
 [taskflow_executor]
 EOF
-chmod 0640 /etc/glance/glance-api.conf
-chown glance:glance /etc/glance/glance-api.conf
+sudo chmod 0640 /etc/glance/glance-api.conf
+sudo chown glance:glance /etc/glance/glance-api.conf
 
-mv /etc/glance/glance-registry.conf /etc/glance/glance-registry.conf.org
-cat > /etc/glance/glance-registry.conf << EOF
+sudo mv /etc/glance/glance-registry.conf /etc/glance/glance-registry.conf.org
+cat << EOF | sudo tee /etc/glance/glance-registry.conf
 [DEFAULT]
 #ca_file = /etc/ssl/certs/${SSL_CA_NAME}.pem
 #cert_file = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
@@ -149,21 +150,21 @@ flavor = keystone
 
 [profiler]
 EOF
-chmod 0640 /etc/glance/glance-registry.conf
-chown glance:glance /etc/glance/glance-registry.conf
+sudo chmod 0640 /etc/glance/glance-registry.conf
+sudo chown glance:glance /etc/glance/glance-registry.conf
 
-su -s /bin/sh -c "glance-manage db_sync" glance
+sudo su -s /bin/sh -c "glance-manage db_sync" glance
 
 sudo systemctl restart \
   glance-registry \
   glance-api
 
-wget \
+sudo wget \
   --continue \
   --output-document=/var/lib/openstack/cirros-0.4.0-x86_64-disk.img \
   http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
 
-openstack image create "cirros-0.4.0" \
+sudo -E openstack image create "cirros-0.4.0" \
   --file /var/lib/openstack/cirros-0.4.0-x86_64-disk.img \
   --disk-format qcow2 \
   --container-format bare \

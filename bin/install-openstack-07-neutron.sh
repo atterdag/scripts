@@ -3,19 +3,20 @@
 ##############################################################################
 # Install Neutron on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   neutron-server \
   neutron-linuxbridge-agent \
   neutron-dhcp-agent \
   neutron-metadata-agent \
   neutron-l3-agent
 
-cat > /var/lib/openstack/neutron.sql << EOF
+cat << EOF | sudo tee /var/lib/openstack/neutron.sql
 CREATE DATABASE neutron;
 GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' IDENTIFIED BY '${NEUTRON_DBPASS}';
 GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' IDENTIFIED BY '${NEUTRON_DBPASS}';
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/neutron.sql
+sudo chmod 0600 /var/lib/openstack/neutron.sql
+sudo cat /var/lib/openstack/neutron.sql | sudo mysql --host=localhost --user=root
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=neutron --password=$NEUTRON_DBPASS neutron
 
 openstack user create \
@@ -40,10 +41,10 @@ openstack endpoint create \
   --region RegionOne \
   network admin http://${CONTROLLER_FQDN}:9696
 
-usermod -a -G ssl-cert neutron
+sudo usermod -a -G ssl-cert neutron
 
-mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
-cat > /etc/neutron/neutron.conf << EOF
+sudo mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
+cat << EOF | sudo tee /etc/neutron/neutron.conf
 [DEFAULT]
 nova_metadata_ip = ${CONTROLLER_FQDN}
 METADATA_SECRET = ${METADATA_SECRET}
@@ -71,7 +72,7 @@ root_helper = sudo neutron-rootwrap /etc/neutron/rootwrap.conf
 connection = mysql+pymysql://neutron:${NEUTRON_DBPASS}@${CONTROLLER_FQDN}/neutron
 
 [keystone_authtoken]
-auth_uri = https://${CONTROLLER_FQDN}:5000
+www_authenticate_uri  = https://${CONTROLLER_FQDN}:5000
 auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
@@ -98,7 +99,7 @@ password = $NOVA_PASS
 auth_type = password
 
 [oslo_concurrency]
-lock_path = /var/lock/neutron
+lock_path = /var/lib/neutron/tmp
 
 [oslo_messaging_amqp]
 
@@ -116,11 +117,11 @@ lock_path = /var/lock/neutron
 
 [ssl]
 EOF
-chmod 0660 /etc/neutron/neutron.conf
-chown neutron:neutron /etc/neutron/neutron.conf
+sudo chmod 0660 /etc/neutron/neutron.conf
+sudo chown neutron:neutron /etc/neutron/neutron.conf
 
-mv /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugins/ml2/ml2_conf.ini.org
-cat > /etc/neutron/plugins/ml2/ml2_conf.ini << EOF
+sudo mv /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugins/ml2/ml2_conf.ini.org
+cat << EOF | sudo tee /etc/neutron/plugins/ml2/ml2_conf.ini
 [DEFAULT]
 
 [ml2]
@@ -158,8 +159,8 @@ enable_security_group = True
 enable_ipset = True
 EOF
 
-mv /etc/neutron/plugins/ml2/linuxbridge_agent.ini /etc/neutron/plugins/ml2/linuxbridge_agent.ini.org
-cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
+sudo mv /etc/neutron/plugins/ml2/linuxbridge_agent.ini /etc/neutron/plugins/ml2/linuxbridge_agent.ini.org
+cat << EOF | sudo tee /etc/neutron/plugins/ml2/linuxbridge_agent.ini
 [DEFAULT]
 
 [agent]
@@ -179,8 +180,8 @@ firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 enable_vxlan = False
 EOF
 
-mv /etc/neutron/dhcp_agent.ini /etc/neutron/dhcp_agent.ini.org
-cat > /etc/neutron/dhcp_agent.ini << EOF
+sudo mv /etc/neutron/dhcp_agent.ini /etc/neutron/dhcp_agent.ini.org
+cat << EOF | sudo tee /etc/neutron/dhcp_agent.ini
 [DEFAULT]
 interface_driver = neutron.agent.linux.interface.BridgeInterfaceDriver
 dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
@@ -189,8 +190,8 @@ enable_isolated_metadata = True
 [AGENT]
 EOF
 
-mv /etc/neutron/metadata_agent.ini /etc/neutron/metadata_agent.ini.org
-cat > /etc/neutron/metadata_agent.ini << EOF
+sudo mv /etc/neutron/metadata_agent.ini /etc/neutron/metadata_agent.ini.org
+cat << EOF | sudo tee /etc/neutron/metadata_agent.ini
 [DEFAULT]
 ova_metadata_ip = $CONTROLLER_FQDN
 METADATA_SECRET = $METADATA_SECRET
@@ -198,12 +199,12 @@ METADATA_SECRET = $METADATA_SECRET
 
 [cache]
 EOF
-chmod 0640 /etc/neutron/metadata_agent.ini
-chown neutron:neutron /etc/neutron/metadata_agent.ini
+sudo chmod 0640 /etc/neutron/metadata_agent.ini
+sudo chown neutron:neutron /etc/neutron/metadata_agent.ini
 
-su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+sudo su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
 
-systemctl restart \
+sudo systemctl restart \
   nova-api \
   neutron-server \
   neutron-linuxbridge-agent \
@@ -213,13 +214,13 @@ systemctl restart \
 ##############################################################################
 # Install Neutron on Compute host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet neutron-linuxbridge-agent
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet neutron-linuxbridge-agent
 
-usermod -a -G ssl-cert neutron
+sudo usermod -a -G ssl-cert neutron
 
 # Don't overwrite if controller node is also compute node
-mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
-cat > /etc/neutron/neutron.conf << EOF
+sudo mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
+cat << EOF | sudo tee /etc/neutron/neutron.conf
 [DEFAULT]
 transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 auth_strategy = keystone
@@ -233,7 +234,7 @@ auth_strategy = keystone
 [database]
 
 [keystone_authtoken]
-auth_uri = https://${CONTROLLER_FQDN}:5000
+www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
 auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
@@ -252,7 +253,7 @@ auth_type = password
 [nova]
 
 [oslo_concurrency]
-lock_path = /var/lock/neutron
+lock_path = /var/lib/neutron/tmp
 
 [oslo_messaging_amqp]
 
@@ -270,12 +271,12 @@ lock_path = /var/lock/neutron
 
 [ssl]
 EOF
-chmod 0660 /etc/neutron/neutron.conf
-chown neutron:neutron /etc/neutron/neutron.conf
+sudo chmod 0660 /etc/neutron/neutron.conf
+sudo chown neutron:neutron /etc/neutron/neutron.conf
 
 # Don't overwrite if controller node is also compute node
-mv /etc/neutron/plugins/ml2/linuxbridge_agent.ini /etc/neutron/plugins/ml2/linuxbridge_agent.ini.org
-cat > /etc/neutron/plugins/ml2/linuxbridge_agent.ini << EOF
+sudo mv /etc/neutron/plugins/ml2/linuxbridge_agent.ini /etc/neutron/plugins/ml2/linuxbridge_agent.ini.org
+cat << EOF | sudo tee /etc/neutron/plugins/ml2/linuxbridge_agent.ini
 [DEFAULT]
 
 [agent]
@@ -295,9 +296,9 @@ firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
 enable_vxlan = False
 EOF
 
-systemctl restart \
+sudo systemctl restart \
   nova-compute \
   neutron-linuxbridge-agent
 
-neutron ext-list
+sudo -E neutron ext-list
 openstack network agent list

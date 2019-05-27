@@ -4,14 +4,19 @@
 # Enable the OpenStack repository
 ##############################################################################
 sudo apt-get --yes install software-properties-common
-sudo add-apt-repository cloud-archive:rocky
+sudo add-apt-repository --yes cloud-archive:rocky
 sudo apt-get update
 sudo apt-get --yes dist-upgrade
 
 ##############################################################################
 # Install dependencies
 ##############################################################################
-sudo apt-get --yes install arptables ebtables lvm2 python-pip
+sudo apt-get --yes install \
+  arptables \
+  ebtables \
+  lvm2 \
+  python-pip \
+  thin-provisioning-tools
 
 ##############################################################################
 # Install NTP on Controller host
@@ -42,29 +47,14 @@ sudo systemctl restart chrony
 ##############################################################################
 # Install OpenStack command line tool on Controller host
 ##############################################################################
-sudo apt-get --yes install python-openstackclient
+sudo apt-get --yes install python-openstackclient python-oslo.log
 
-# pip install python-openstackclient
-# pip install python-barbicanclient
-# pip install python-ceilometerclient
-# pip install python-cinderclient
-# pip install python-cloudkittyclient
-# pip install python-designateclient
-# pip install python-fuelclient
-# pip install python-glanceclient
-# pip install python-gnocchiclient
-# pip install python-heatclient
-# pip install python-magnumclient
-# pip install python-manilaclient
-# pip install python-mistralclient
-# pip install python-monascaclient
-# pip install python-muranoclient
-# pip install python-neutronclient
-# pip install python-novaclient
-# pip install python-saharaclient
-# pip install python-senlinclient
-# pip install python-swiftclient
-# pip install python-troveclient
+##############################################################################
+# Bash completion on Controller host
+##############################################################################
+source /var/lib/openstack/admin-openrc
+openstack complete | sudo tee /etc/bash_completion.d/osc.bash_completion > /dev/null
+source /etc/bash_completion
 
 ##############################################################################
 # Install Database on Controller host
@@ -83,7 +73,20 @@ collation-server = utf8_general_ci
 character-set-server = utf8
 EOF
 sudo systemctl restart mysql
-sudo mysql_secure_installation
+
+sudo mysqladmin password "${ROOT_DBPASS}"
+cat << EOF | sudo tee /var/lib/openstack/mysql_secure_installation.sql
+# SQL script performing actions in mysql_secure_installation
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+# Default mariadb doesn't create test database
+#DROP DATABASE test;
+#DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
+FLUSH PRIVILEGES;
+EOF
+sudo chmod 0600 /var/lib/openstack/mysql_secure_installation.sql
+sudo cat /var/lib/openstack/mysql_secure_installation.sql | sudo mysql --host=localhost --user=root
+echo "SELECT Host,User,Password FROM mysql.user WHERE User='root';" | sudo mysql --host=localhost --port=3306 --user=root --password="${ROOT_DBPASS}"
 
 ##############################################################################
 # Install Queue Manager on Controller host
@@ -115,24 +118,24 @@ sudo a2enconf security
 echo "ServerName ${CONTROLLER_FQDN}" | sudo tee /etc/apache2/conf-available/servername.conf
 sudo a2enconf servername
 
-sudo a2enmod ssl
 sudo systemctl reload apache2
 
 ##############################################################################
 # Install Etcd on Controller host
 ##############################################################################
 sudo apt-get install --yes etcd
+
 sudo mv /etc/default/etcd /etc/default/etcd.orig
 cat << EOF | sudo tee /etc/default/etcd
 ETCD_NAME="${CONTROLLER_FQDN}"
 ETCD_DATA_DIR="/var/lib/etcd"
 ETCD_INITIAL_CLUSTER_STATE="new"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
-ETCD_INITIAL_CLUSTER="controller=http://${CONTROLLER_IP_ADDRESS}:2380"
+ETCD_INITIAL_CLUSTER="${CONTROLLER_FQDN}=http://${CONTROLLER_IP_ADDRESS}:2380"
 ETCD_INITIAL_ADVERTISE_PEER_URLS="http://${CONTROLLER_IP_ADDRESS}:2380"
 ETCD_ADVERTISE_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
 ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380"
-ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"
+ETCD_LISTEN_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
 EOF
 sudo systemctl enable etcd
 sudo systemctl start etcd
@@ -456,7 +459,6 @@ yes | sudo openssl ca \
 sudo cp -f \
   ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-
 sudo cp -f \
   ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   /etc/ssl/private/${CONTROLLER_FQDN}.key
@@ -464,7 +466,6 @@ sudo cp -f \
 sudo cp -f \
   ${SSL_CA_DIR}/certs/alm.se.lemche.net.crt \
   /etc/ssl/certs/alm.se.lemche.net.crt
-
 sudo cp -f \
   ${SSL_CA_DIR}/private/alm.se.lemche.net.key \
   /etc/ssl/private/alm.se.lemche.net.key
@@ -490,3 +491,16 @@ sudo cp -f \
 sudo update-ca-certificates \
   --verbose \
   --fresh
+
+##############################################################################
+# Restart apache2 to let it use SSL
+##############################################################################
+sudo a2enmod ssl
+sudo sed -i "s|SSLCertificateFile\s*/etc/ssl/certs/ssl-cert-snakeoil.pem|SSLCertificateFile /etc/ssl/certs/${CONTROLLER_FQDN}.crt|g" /etc/apache2/sites-available/default-ssl.conf
+sudo sed -i "s|SSLCertificateKeyFile\s*/etc/ssl/private/ssl-cert-snakeoil.key|SSLCertificateKeyFile /etc/ssl/private/${CONTROLLER_FQDN}.key|g" /etc/apache2/sites-available/default-ssl.conf
+sudo a2ensite default-ssl.conf
+sudo apachectl configtest
+sudo systemctl restart apache2
+
+# Check that apache is using the correct certificate
+echo Q | openssl s_client -connect jack.se.lemche.net:443 | openssl x509 -text

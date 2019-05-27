@@ -5,15 +5,20 @@
 ##############################################################################
 sudo apt-get --yes --purge remove \
   chrony \
+  cinder* \
   etcd \
-  libapache2-mod-wsgi \
+  glance* \
+  keystone* \
+  libapache2-mod-wsgi* \
   libvirt0 \
   memcached \
   mysql-common \
-  open-iscsi \
+  neutron* \
+  nova* \
   python-castellan \
   python-memcache \
   python-openstack* \
+  python-oslo* \
   python-pymysql \
   qemu-kvm \
   qemu-slof \
@@ -21,11 +26,13 @@ sudo apt-get --yes --purge remove \
   qemu-system-x86 \
   qemu-utils \
   rabbitmq-server \
+  radvd \
   sphinx-common \
   tgt
 sudo apt-get --yes --purge autoremove
 sudo rm -fr \
   /etc/cinder/ \
+  /etc/keystone/ \
   /etc/libvirt/ \
   /etc/mysql/ \
   /etc/neutron/ \
@@ -35,12 +42,17 @@ sudo rm -fr \
   /etc/trafficserver/\
   /var/cache/trafficserver/ \
   /var/lib/libvirt/ \
+  /var/lib/glance/ \
   /var/lib/nova/ \
   /var/lib/openvswitch/ \
   /var/lib/openstack/ \
   /var/log/nova/ \
   /var/log/openvswitch/ \
   /var/log/trafficserver/
+
+for user in cinder glance keystone neutron nova radvd rabbitmq; do
+  sudo userdel -r $user
+done
 
 ##############################################################################
 # Remove packages on all base packages
@@ -49,8 +61,7 @@ sudo apt-get --yes --purge remove \
   apache2 \
   bind9 \
   bind9-doc \
-  bind9utils \
-  openssl
+  bind9utils
 sudo apt-get --yes --purge autoremove
 sudo rm -fr \
   /etc/apache2/ \
@@ -63,6 +74,6 @@ sudo rm -fr \
 ##############################################################################
 # Remove all Python modules installed by pip, and reset to package versions
 ##############################################################################
-
-for i in $(pip list | awk '{print $1}'); do sudo pip uninstall -y $i; done
-sudo apt-get --reinstall install $(echo $(dpkg -l | awk '{print $2}' | tail -n +5 | grep ^python-) | sed 's|\n| |g')
+sudo apt-get install --yes python-pip
+for i in $(pip list | awk '{print $1}'); do sudo -i pip uninstall -y $i; done
+sudo apt-get --reinstall --yes install $(echo $(dpkg -l | awk '{print $2}' | tail -n +5 | grep ^python-) | sed 's|\n| |g')

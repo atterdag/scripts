@@ -3,13 +3,14 @@
 ##############################################################################
 # Create VLAN network on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
+source <(sudo cat /var/lib/openstack/os_password.env)
+source <(sudo cat /var/lib/openstack/os_environment.env)
 openstack network create \
   --enable \
   --enable-port-security \
   --external \
   --provider-network-type vlan \
-  --provider-physical-network bond0 \
+  --provider-physical-network ${NETWORK_INTERFACE} \
   --provider-segment 1 \
   --share \
   inside
@@ -18,7 +19,7 @@ openstack network create \
   --enable-port-security \
   --internal \
   --provider-network-type vlan \
-  --provider-physical-network bond0 \
+  --provider-physical-network ${NETWORK_INTERFACE} \
   --provider-segment 2 \
   --share \
   servers
@@ -27,7 +28,7 @@ openstack network create \
   --enable-port-security \
   --internal \
   --provider-network-type vlan \
-  --provider-physical-network bond0 \
+  --provider-physical-network ${NETWORK_INTERFACE} \
   --provider-segment 3 \
   --share \
   dmz
@@ -36,7 +37,7 @@ openstack network create \
   --enable-port-security \
   --external \
   --provider-network-type vlan \
-  --provider-physical-network bond0 \
+  --provider-physical-network ${NETWORK_INTERFACE} \
   --provider-segment 4 \
   --share \
   outside
@@ -83,17 +84,16 @@ openstack subnet list
 ##############################################################################
 # Create a fixed IP ports on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 openstack port create \
-  --fixed-ip ip-address=192.168.1.30 \
+  --fixed-ip ip-address=192.168.1.130 \
   --network inside \
   test2_inside
 openstack port create \
-  --fixed-ip ip-address=172.16.0.30 \
+  --fixed-ip ip-address=172.16.0.130 \
   --network servers \
   test2_servers
 openstack port create \
-  --fixed-ip ip-address=10.0.0.30 \
+  --fixed-ip ip-address=10.0.0.130 \
   --network dmz \
   test2_dmz
 
@@ -108,7 +108,6 @@ openstack keypair create \
 ##############################################################################
 # Create default security on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 openstack security group rule create \
   --proto icmp \
   default
@@ -151,13 +150,12 @@ openstack image create \
 # Create debian-stretch-amd64 images on Controller host
 ##############################################################################
 # Ref https://docs.openstack.org/image-guide/obtain-images.html
-wget \
+sudo wget \
   --continue \
   --output-document=/var/lib/openstack/debian-9-openstack-amd64.qcow2 \
   http://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.qcow2
 
-source /var/lib/openstack/admin-openrc
-openstack image create \
+sudo -E openstack image create \
   --container-format bare \
   --disk-format qcow2 \
   --file /var/lib/openstack/debian-9-openstack-amd64.qcow2 \
@@ -167,7 +165,6 @@ openstack image create \
 ##############################################################################
 # Create flavor on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 openstack flavor create \
   --disk 1 \
   --public \
@@ -202,7 +199,6 @@ openstack flavor create \
 ##############################################################################
 # Create volume type on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 openstack volume type create \
   --description 'default storage type' \
   --public \
@@ -222,7 +218,6 @@ openstack volume type create \
 ##############################################################################
 # List prerequisite resources for creating a server instance on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 openstack keypair list
 openstack flavor list
 openstack image list
@@ -236,7 +231,6 @@ openstack volume list
 ##############################################################################
 # Create debian server instance on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 openstack server create \
   --flavor m1.small \
   --image cirros-0.4.0 \
@@ -254,21 +248,21 @@ openstack server create \
   --security-group default \
   test2
 
-openstack server show test
+openstack server show \
+  test1
+openstack server show \
+  test2
 ##############################################################################
 # Get URL for connecting to server instance on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 openstack console url show \
   test1
-
 openstack console url show \
   test2
 
 ##############################################################################
 # Attach ports with fixed IP to existing server instance on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 export $(openstack port show test2_dmz -f shell -c id | sed 's|"||g')
 nova interface-attach \
   --port-id $id \
@@ -277,7 +271,6 @@ nova interface-attach \
 ##############################################################################
 # Create volume template on Controller host
 ##############################################################################
-source /var/lib/openstack/admin-openrc
 openstack volume create \
   --description 'test2 data volume' \
   --size 10 \

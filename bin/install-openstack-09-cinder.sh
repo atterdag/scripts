@@ -11,8 +11,10 @@ CREATE DATABASE cinder;
 GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY '$CINDER_DBPASS';
 GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%' IDENTIFIED BY '$CINDER_DBPASS';
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/cinder.sql
+sudo chmod 0600 /var/lib/openstack/cinder.sql
+sudo cat /var/lib/openstack/cinder.sql | sudo mysql --host=localhost --user=root
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=cinder --password=$CINDER_DBPASS cinder
+
 
 openstack user create \
   --domain default \
@@ -22,39 +24,45 @@ openstack role add \
   --project service \
   --user cinder \
   admin
+
 openstack service create \
   --name cinder \
   --description 'OpenStack Block Storage' \
-  volume
+  volumev2
 openstack service create \
   --name cinderv2 \
   --description 'OpenStack Block Storage' \
-  volumev2
-openstack endpoint create \
-  --region RegionOne \
-  volume public http://${CONTROLLER_FQDN}:8776/v1/%\(tenant_id\)s
-openstack endpoint create \
-  --region RegionOne \
-  volume internal http://${CONTROLLER_FQDN}:8776/v1/%\(tenant_id\)s
-openstack endpoint create \
-  --region RegionOne \
-  volume admin http://${CONTROLLER_FQDN}:8776/v1/%\(tenant_id\)s
-openstack endpoint create \
-  --region RegionOne \
-  volumev2 public http://${CONTROLLER_FQDN}:8776/v2/%\(tenant_id\)s
-openstack endpoint create \
-  --region RegionOne \
-  volumev2 internal http://${CONTROLLER_FQDN}:8776/v2/%\(tenant_id\)s
-openstack endpoint create \
-  --region RegionOne \
-  volumev2 admin http://${CONTROLLER_FQDN}:8776/v2/%\(tenant_id\)s
+  volumev3
 
-usermod -a -G ssl-cert cinder
+openstack endpoint create \
+  --region RegionOne \
+  volumev2 public http://${CONTROLLER_FQDN}:8776/v2/%\(project_id\)s
 
-mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
-cat > /etc/cinder/cinder.conf << EOF
+openstack endpoint create \
+  --region RegionOne \
+  volumev2 internal http://${CONTROLLER_FQDN}:8776/v2/%\(project_id\)s
+
+openstack endpoint create \
+  --region RegionOne \
+  volumev2 admin http://${CONTROLLER_FQDN}:8776/v2/%\(project_id\)s
+
+openstack endpoint create \
+  --region RegionOne \
+  volumev3 public http://${CONTROLLER_FQDN}:8776/v3/%\(project_id\)s
+
+openstack endpoint create \
+  --region RegionOne \
+  volumev3 internal http://${CONTROLLER_FQDN}:8776/v3/%\(project_id\)s
+
+openstack endpoint create \
+  --region RegionOne \
+  volumev3 admin http://${CONTROLLER_FQDN}:8776/v3/%\(project_id\)s
+
+sudo usermod -a -G ssl-cert cinder
+
+sudo mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
+cat << EOF | sudo tee /etc/cinder/cinder.conf
 [DEFAULT]
-# enabled_backends = lvm
 auth_strategy = keystone
 transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 my_ip = ${CONTROLLER_IP_ADDRESS}
@@ -83,7 +91,7 @@ connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = https://${CONTROLLER_FQDN}:5000
+www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
 auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
@@ -100,7 +108,7 @@ auth_type = password
 [matchmaker_redis]
 
 [oslo_concurrency]
-lock_path = /var/lock/cinder
+lock_path = /var/lib/cinder/tmp
 
 [oslo_messaging_amqp]
 
@@ -121,28 +129,33 @@ lock_path = /var/lock/cinder
 [ssl]
 
 [lvm]
-# volume_driver = cinder.volume.drivers.lvm.LVMVolumeDriver
-# volume_group = pkgosvg0
-# iscsi_protocol = iscsi
-# iscsi_helper = tgtadm
+
 EOF
-chmod 0660 /etc/cinder/cinder.conf
-chown cinder:cinder /etc/cinder/cinder.conf
+sudo chmod 0660 /etc/cinder/cinder.conf
+sudo chown cinder:cinder /etc/cinder/cinder.conf
 
-su -s /bin/sh -c "cinder-manage db sync" cinder
+sudo su -s /bin/sh -c "cinder-manage db sync" cinder
 
-systemctl restart \
-  nova-api
+sudo systemctl restart \
+  nova-api \
   cinder-scheduler
 
 ##############################################################################
 # Install Cinder on Compute host
 ##############################################################################
 
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet lvm2 thin-provisioning-tools
+
+# If you are reusing an existing disk
 sudo parted /dev/${LVM_PV_DEVICE} mkpart primary $(sudo parted /dev/${LVM_PV_DEVICE} unit s p free | grep "Free Space" | awk '{print $1}' | tail -n 1) 100%
 
-pvcreate /dev/${LVM_PV_DEVICE}1
-vgcreate cinder-volumes /dev/${LVM_PV_DEVICE}1
+# If you have a dedicated disk
+sudo parted /dev/${LVM_PV_DEVICE} mklabel gpt
+sudo parted /dev/${LVM_PV_DEVICE} mkpart primary 0GB 100%
+sudo parted -s /dev/${LVM_PV_DEVICE} set 1 lvm on
+
+sudo pvcreate /dev/${LVM_PV_DEVICE}1
+sudo vgcreate cinder-volumes /dev/${LVM_PV_DEVICE}1
 
 cat > /etc/lvm/lvmlocal.conf << EOF
 config {
@@ -265,15 +278,13 @@ thin_library = "libdevmapper-event-lvm2thin.so"
 }
 EOF
 
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-volume tgt
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-volume tgt
 
-# Don't overwrite if controller host is also the compute host
-mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
-cat > /etc/cinder/cinder.conf << EOF
+# Overwrite existing /etc/cinder/cinder.conf if controller host is also compute host
+sudo mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
+cat << EOF | sudo tee /etc/cinder/cinder.conf
 [DEFAULT]
 enabled_backends = lvm
-volume_group = cinder-volumes
-
 auth_strategy = keystone
 transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 my_ip = ${CONTROLLER_IP_ADDRESS}
@@ -303,7 +314,7 @@ connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
 [key_manager]
 
 [keystone_authtoken]
-auth_uri = https://${CONTROLLER_FQDN}:5000
+www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
 auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
@@ -320,7 +331,7 @@ auth_type = password
 [matchmaker_redis]
 
 [oslo_concurrency]
-lock_path = /var/lock/cinder
+lock_path = /var/lib/cinder/tmp
 
 [oslo_messaging_amqp]
 
@@ -342,14 +353,14 @@ lock_path = /var/lock/cinder
 
 [lvm]
 # volume_driver = cinder.volume.drivers.lvm.LVMVolumeDriver
-# volume_group = pkgosvg0
+# volume_group = cinder-volumes
 # iscsi_protocol = iscsi
 # iscsi_helper = tgtadm
 EOF
-chmod 0640 /etc/cinder/cinder.conf
-chown cinder:cinder /etc/cinder/cinder.conf
+sudo chmod 0640 /etc/cinder/cinder.conf
+sudo chown cinder:cinder /etc/cinder/cinder.conf
 
-systemctl restart \
+sudo systemctl restart \
   tgt \
   cinder-volume
 

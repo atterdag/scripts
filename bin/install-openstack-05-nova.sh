@@ -3,16 +3,17 @@
 ##############################################################################
 # Install Nova on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   nova-api \
   nova-conductor \
   nova-console \
   nova-consoleauth \
   nova-novncproxy \
+  nova-xvpvncproxy \
   nova-scheduler \
   nova-placement-api
 
-cat > /var/lib/openstack/nova.sql << EOF
+cat << EOF | sudo tee /var/lib/openstack/nova.sql
 CREATE DATABASE nova_api;
 CREATE DATABASE nova;
 CREATE DATABASE nova_cell0;
@@ -26,7 +27,8 @@ GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'%' IDENTIFIED BY '${NOVA_DBPASS}
 GRANT ALL PRIVILEGES ON placement.* TO 'placement'@'localhost' IDENTIFIED BY '${PLACEMENT_DBPASS}';
 GRANT ALL PRIVILEGES ON placement.* TO 'placement'@'%' IDENTIFIED BY '${PLACEMENT_DBPASS}';
 EOF
-mysql --user=root --password=${ROOT_DBPASS} < /var/lib/openstack/nova.sql
+sudo chmod 0600 /var/lib/openstack/nova.sql
+sudo cat /var/lib/openstack/nova.sql | sudo mysql --host=localhost --user=root
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=nova --password=$NOVA_DBPASS nova_api
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=nova --password=$NOVA_DBPASS nova
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=nova --password=$NOVA_DBPASS nova_cell0
@@ -76,10 +78,10 @@ openstack endpoint create \
   --region RegionOne \
   placement admin http://${CONTROLLER_FQDN}:8778
 
-usermod -a -G ssl-cert nova
+sudo usermod -a -G ssl-cert nova
 
-mv /etc/nova/nova.conf /etc/nova/nova.conf.org
-cat > /etc/nova/nova.conf << EOF
+sudo mv /etc/nova/nova.conf /etc/nova/nova.conf.org
+cat << EOF | sudo tee /etc/nova/nova.conf
 [DEFAULT]
 default_floating_pool = ext-nat
 my_ip = ${CONTROLLER_IP_ADDRESS}
@@ -264,18 +266,18 @@ vncserver_proxyclient_address = \$my_ip
 [zvm]
 
 EOF
-chmod 0640 /etc/nova/nova.conf
-chown nova:nova /etc/nova/nova.conf
+sudo chmod 0640 /etc/nova/nova.conf
+sudo chown nova:nova /etc/nova/nova.conf
 
-su -s /bin/sh -c "nova-manage api_db sync" nova
-su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
-su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
-su -s /bin/sh -c "nova-manage db sync" nova
-su -s /bin/sh -c "nova-manage cell_v2 list_cells" nova
+sudo su -s /bin/sh -c "nova-manage api_db sync" nova
+sudo su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
+sudo su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
+sudo su -s /bin/sh -c "nova-manage db sync" nova
+sudo su -s /bin/sh -c "nova-manage cell_v2 list_cells" nova
 
-sed -i 's/^NOVA_CONSOLE_PROXY_TYPE=.*/NOVA_CONSOLE_PROXY_TYPE=novnc/' /etc/default/nova-consoleproxy
+sudo sed -i 's/^NOVA_CONSOLE_PROXY_TYPE=.*/NOVA_CONSOLE_PROXY_TYPE=novnc/' /etc/default/nova-consoleproxy
 
-systemctl restart \
+sudo systemctl restart \
   nova-api \
   nova-consoleauth \
   nova-scheduler \
@@ -287,13 +289,13 @@ openstack compute service list
 ##############################################################################
 # Install Nova on Compute host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet nova-compute
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet nova-compute
 
-usermod -a -G ssl-cert nova
+sudo usermod -a -G ssl-cert nova
 
 # Overwrite existing /etc/nova/nova.conf if controller host is also compute host
-mv /etc/nova/nova.conf /etc/nova/nova.conf.org
-cat > /etc/nova/nova.conf << EOF
+sudo mv /etc/nova/nova.conf /etc/nova/nova.conf.org
+cat << EOF | sudo tee /etc/nova/nova.conf
 [DEFAULT]
 default_floating_pool = ext-nat
 my_ip = ${COMPUTE_IP_ADDRESS}
@@ -481,19 +483,21 @@ xvpvncproxy_base_url=http://${CONTROLLER_FQDN}:6081/console
 [zvm]
 
 EOF
-chmod 0640 /etc/nova/nova.conf
-chown nova:nova /etc/nova/nova.conf
+sudo chmod 0640 /etc/nova/nova.conf
+sudo chown nova:nova /etc/nova/nova.conf
 
-modprobe nbd
-echo nbd > /etc/modules-load.d/nbd.conf
-
-systemctl restart \
+sudo modprobe nbd
+cat << EOF | sudo tee /etc/modules-load.d/nbd.conf
+nbd
+EOF
+sudo systemctl restart \
   nova-compute
 
 openstack compute service list \
   --service nova-compute
 
-su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
+sudo su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
 
 openstack compute service list
 openstack catalog list
+sudo -E nova-status upgrade check

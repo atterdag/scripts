@@ -3,29 +3,20 @@
 ##############################################################################
 # Install Horizon on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet openstack-dashboard-apache
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet openstack-dashboard
 
-usermod -a -G ssl-cert horizon
+sudo usermod -a -G ssl-cert horizon
 
-mv /etc/openstack-dashboard/local_settings.py /etc/openstack-dashboard/local_settings.py.org
-cat >  /etc/openstack-dashboard/local_settings.py << EOF
+sudo mv /etc/openstack-dashboard/local_settings.py /etc/openstack-dashboard/local_settings.py.org
+cat << EOF | sudo tee /etc/openstack-dashboard/local_settings.py
 import os
 from django.utils.translation import ugettext_lazy as _
 from horizon.utils import secret_key
-from openstack_dashboard import exceptions
 from openstack_dashboard.settings import HORIZON_CONFIG
-DEBUG = True
-WEBROOT = '/horizon'
-ALLOWED_HOSTS = ['*', ]
-OPENSTACK_API_VERSIONS = {
-    "identity": 3,
-    "image": 2,
-    "volume": 2,
-}
-OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
+DEBUG = False
+WEBROOT = '/'
 LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
-SECRET_KEY = secret_key.generate_or_read_from_file(
-    os.path.join("/","var","lib","openstack-dashboard","secret-key", '.secret_key_store'))
+SECRET_KEY = secret_key.generate_or_read_from_file('/var/lib/openstack-dashboard/secret_key')
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 CACHES = {
     'default': {
@@ -64,8 +55,8 @@ OPENSTACK_NEUTRON_NETWORK = {
     'enable_firewall': False,
     'enable_vpn': False,
     'enable_fip_topology_check': False,
-    'profile_support': None,
     'supported_vnic_types': ['*'],
+    'physical_networks': [],
 }
 OPENSTACK_HEAT_STACK = {
     'enable_user_pass': True,
@@ -89,8 +80,11 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
+        'console': {
+            'format': '%(levelname)s %(name)s %(message)s'
+        },
         'operation': {
-            'format': '%(asctime)s %(message)s'
+            'format': '%(message)s'
         },
     },
     'handlers': {
@@ -101,6 +95,7 @@ LOGGING = {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
+            'formatter': 'console',
         },
         'operation': {
             'level': 'INFO',
@@ -109,14 +104,6 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django.db.backends': {
-            'handlers': ['null'],
-            'propagate': False,
-        },
-        'requests': {
-            'handlers': ['null'],
-            'propagate': False,
-        },
         'horizon': {
             'handlers': ['console'],
             'level': 'DEBUG',
@@ -142,6 +129,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'keystoneauth': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
         'keystoneclient': {
             'handlers': ['console'],
             'level': 'DEBUG',
@@ -157,17 +149,12 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'heatclient': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-        'ceilometerclient': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
         'swiftclient': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'oslo_policy': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
@@ -177,14 +164,25 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'nose.plugins.manager': {
+        'django': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+        'django.db.backends': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'requests': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'urllib3': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'chardet.charsetprober': {
+            'handlers': ['null'],
             'propagate': False,
         },
         'iso8601': {
@@ -303,7 +301,14 @@ SECURITY_GROUP_RULES = {
 }
 REST_API_REQUIRED_SETTINGS = ['OPENSTACK_HYPERVISOR_FEATURES',
                               'LAUNCH_INSTANCE_DEFAULTS',
-                              'OPENSTACK_IMAGE_FORMATS']
+                              'OPENSTACK_IMAGE_FORMATS',
+                              'OPENSTACK_KEYSTONE_BACKEND',
+                              'OPENSTACK_KEYSTONE_DEFAULT_DOMAIN',
+                              'CREATE_IMAGE_DEFAULTS',
+                              'ENFORCE_PASSWORD_CHECK']
+DEFAULT_THEME = 'ubuntu'
+WEBROOT='/horizon/'
+ALLOWED_HOSTS = '*'
+COMPRESS_OFFLINE = True
 ALLOWED_PRIVATE_SUBNET_CIDR = {'ipv4': [], 'ipv6': []}
-COMPRESS_OFFLINE=True
 EOF

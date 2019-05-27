@@ -3,7 +3,7 @@
 ##############################################################################
 # Install Designate on Controller host
 ##############################################################################
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   designate
 
 cat > /var/lib/openstack/designate.sql << EOF
