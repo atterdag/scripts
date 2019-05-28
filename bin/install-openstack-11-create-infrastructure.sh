@@ -3,8 +3,10 @@
 ##############################################################################
 # Create VLAN network on Controller host
 ##############################################################################
+source <(sudo cat /var/lib/openstack/admin-openrc)
 source <(sudo cat /var/lib/openstack/os_password.env)
 source <(sudo cat /var/lib/openstack/os_environment.env)
+
 openstack network create \
   --enable \
   --enable-port-security \
