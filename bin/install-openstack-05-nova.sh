@@ -275,8 +275,6 @@ sudo su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" n
 sudo su -s /bin/sh -c "nova-manage db sync" nova
 sudo su -s /bin/sh -c "nova-manage cell_v2 list_cells" nova
 
-sudo sed -i 's/^NOVA_CONSOLE_PROXY_TYPE=.*/NOVA_CONSOLE_PROXY_TYPE=novnc/' /etc/default/nova-consoleproxy
-
 sudo systemctl restart \
   nova-api \
   nova-consoleauth \
