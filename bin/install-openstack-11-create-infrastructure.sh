@@ -22,7 +22,7 @@ openstack network create \
   --internal \
   --provider-network-type vlan \
   --provider-physical-network ${NETWORK_INTERFACE} \
-  --provider-segment 2 \
+  --provider-segment 5 \
   --share \
   servers
 openstack network create \
@@ -31,7 +31,7 @@ openstack network create \
   --internal \
   --provider-network-type vlan \
   --provider-physical-network ${NETWORK_INTERFACE} \
-  --provider-segment 3 \
+  --provider-segment 6 \
   --share \
   dmz
 openstack network create \
