@@ -140,7 +140,6 @@ qemu-img convert -f raw -O qcow2 ${DEBIAN_IMAGE}.raw ${DEBIAN_IMAGE}.qcow2
 echo $ROOT_PASSWORD > ${DEBIAN_IMAGE}.rootpw
 popd
 
-source /var/lib/openstack/admin-openrc
 openstack image create \
   --file /var/lib/openstack/${DEBIAN_IMAGE}.qcow2 \
   --disk-format qcow2 \
