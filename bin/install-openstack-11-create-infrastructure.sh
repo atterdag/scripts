@@ -208,13 +208,12 @@ openstack volume type create \
 ##############################################################################
 # Create volume template on Controller host
 ##############################################################################
-# source /var/lib/openstack/admin-openrc
-# openstack volume create \
-#   --description 'debian-9-openstack-amd64 template volume' \
-#   --image debian-9-openstack-amd64 \
-#   --size 5 \
-#   --type default \
-#   debian-9-openstack-amd64
+openstack volume create \
+  --description 'debian-9-openstack-amd64 template volume' \
+  --image debian-9-openstack-amd64 \
+  --size 5 \
+  --type default \
+  debian-9-openstack-amd64
 
 ##############################################################################
 # List prerequisite resources for creating a server instance on Controller host
