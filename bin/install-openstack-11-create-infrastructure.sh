@@ -15,7 +15,7 @@ openstack network create \
   --provider-physical-network ${NETWORK_INTERFACE} \
   --provider-segment 1 \
   --share \
-  inside
+  default
 openstack network create \
   --enable \
   --enable-port-security \
@@ -58,10 +58,10 @@ openstack subnet create \
   --dns-nameserver 192.168.1.40 \
   --gateway 192.168.1.254 \
   --ip-version 4 \
-  --network inside \
+  --network default \
   --no-dhcp \
   --subnet-range 192.168.1.0/24 \
-  inside
+  default
 openstack subnet create \
   --allocation-pool start=172.16.0.2,end=172.16.0.253 \
   --dhcp \
@@ -88,7 +88,7 @@ openstack subnet list
 ##############################################################################
 openstack port create \
   --fixed-ip ip-address=192.168.1.130 \
-  --network inside \
+  --network default \
   test2_inside
 openstack port create \
   --fixed-ip ip-address=172.16.0.130 \
