@@ -1,24 +1,29 @@
 #!/bin/sh
 
-systemctl start \
+sudo systemctl start \
+  chrony \
+  mysql \
+  rabbitmq-server \
+  memcached \
   apache2 \
-  glance-api \
+  etcd \
+  bind9 \
   glance-registry \
+  glance-api \
   nova-api \
-  nova-compute \
-  nova-conductor \
   nova-consoleauth \
-  nova-novncproxy \
   nova-scheduler \
-  neutron-dhcp-agent \
-  neutron-l3-agent \
-  neutron-linuxbridge-agent \
-  neutron-metadata-agent \
+  nova-conductor \
+  nova-novncproxy \
+  nova-compute \
   neutron-server \
-  cinder-api \
+  neutron-linuxbridge-agent \
+  neutron-dhcp-agent \
+  neutron-metadata-agent \
+  neutron-linuxbridge-agent \
   cinder-scheduler \
-  cinder-volume \
   tgt \
+  cinder-volume \
   designate-central \
   designate-api \
   designate-agent \
@@ -27,39 +32,34 @@ systemctl start \
   designate-sink \
   designate-zone-manager
 
-systemctl stop \
-  apache2 \
-  cinder-api \
-  cinder-scheduler \
+sudo systemctl stop \
+  designate-zone-manager \
+  designate-sink \
+  designate-pool-manager \
+  designate-mdns \
+  designate-agent \
+  designate-api \
+  designate-central \
   cinder-volume \
+  tgt \
+  cinder-scheduler \
+  neutron-linuxbridge-agent \
+  neutron-metadata-agent \
+  neutron-dhcp-agent \
+  neutron-linuxbridge-agent \
+  neutron-server \
+  nova-compute \
+  nova-novncproxy \
+  nova-conductor \
+  nova-scheduler \
+  nova-consoleauth \
+  nova-api \
   glance-api \
   glance-registry \
-  neutron-dhcp-agent \
-  neutron-l3-agent \
-  neutron-linuxbridge-agent \
-  neutron-metadata-agent \
-  neutron-server \
-  nova-api \
-  nova-compute \
-  nova-conductor \
-  nova-consoleauth \
-  nova-novncproxy \
-  nova-scheduler \
-  nova-spicehtml5proxy \
-  nova-xenvncproxy \
-  tgt \
-  designate-central \
-  designate-api \
-  designate-agent \
-  designate-mdns \
-  designate-pool-manager \
-  designate-sink \
-  designate-zone-manager
-
-systemctl restart \
-  neutron-dhcp-agent \
-  neutron-l3-agent \
-  neutron-linuxbridge-agent \
-  neutron-metadata-agent \
-  neutron-server \
-  nova-compute
+  bind9 \
+  etcd \
+  apache2 \
+  memcached \
+  rabbitmq-server \
+  mysql \
+  chrony
