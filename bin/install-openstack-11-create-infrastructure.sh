@@ -198,14 +198,6 @@ openstack flavor create \
   m1.huge
 
 ##############################################################################
-# Create volume type on Controller host
-##############################################################################
-openstack volume type create \
-  --description 'default storage type' \
-  --public \
-  default
-
-##############################################################################
 # Create volume template on Controller host
 ##############################################################################
 openstack volume create \
@@ -269,13 +261,22 @@ nova interface-attach \
   test2
 
 ##############################################################################
-# Create volume template on Controller host
+# Create volumes on Controller host
 ##############################################################################
 openstack volume create \
-  --description 'test2 data volume' \
+  --description 'test2 database volume' \
   --size 10 \
-  --type default \
-  test2_data
+  --type premium \
+  test2_database
 openstack server add volume \
   test2 \
-  test2_data
+  test2_database
+
+openstack volume create \
+--description 'test2 files volume' \
+--size 10 \
+--type standard \
+test2_files
+openstack server add volume \
+  test2 \
+  test2_files

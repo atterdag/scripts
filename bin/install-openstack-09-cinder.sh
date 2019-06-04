@@ -152,26 +152,13 @@ sudo systemctl restart \
 # Install Cinder on Compute host
 ##############################################################################
 
-sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet lvm2 thin-provisioning-tools
-
-# If you are reusing an existing disk
-sudo parted /dev/${LVM_PV_DEVICE} mkpart primary $(sudo parted /dev/${LVM_PV_DEVICE} unit s p free | grep "Free Space" | awk '{print $1}' | tail -n 1) 100%
-
-# If you have a dedicated disk
-sudo parted /dev/${LVM_PV_DEVICE} mklabel gpt
-sudo parted /dev/${LVM_PV_DEVICE} mkpart primary 0GB 100%
-sudo parted -s /dev/${LVM_PV_DEVICE} set 1 lvm on
-
-sudo pvcreate /dev/${LVM_PV_DEVICE}1
-sudo vgcreate cinder-volumes /dev/${LVM_PV_DEVICE}1
-
-sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-volume tgt
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet cinder-volume tgt lvm2 thin-provisioning-tools
 
 # Overwrite existing /etc/cinder/cinder.conf if controller host is also compute host
 sudo mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
 cat << EOF | sudo tee /etc/cinder/cinder.conf
 [DEFAULT]
-enabled_backends = lvm
+enabled_backends = premium,standard
 auth_strategy = keystone
 transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 my_ip = ${CONTROLLER_IP_ADDRESS}
@@ -238,17 +225,67 @@ lock_path = /var/lib/cinder/tmp
 
 [ssl]
 
-[lvm]
-volume_driver = cinder.volume.drivers.lvm.LVMVolumeDriver
-volume_group = cinder-volumes
+[premium]
 iscsi_protocol = iscsi
 iscsi_helper = tgtadm
+lvm_type = auto
+volume_driver = cinder.volume.drivers.lvm.LVMVolumeDriver
+volume_group = cinder-premium-vg
+volume_backend_name=premium
+
+[standard]
+iscsi_protocol = iscsi
+iscsi_helper = tgtadm
+lvm_type = auto
+volume_driver = cinder.volume.drivers.lvm.LVMVolumeDriver
+volume_group = cinder-standard-vg
+volume_backend_name=standard
 EOF
 sudo chmod 0640 /etc/cinder/cinder.conf
 sudo chown cinder:cinder /etc/cinder/cinder.conf
+
+##############################################################################
+# Create premium (SDD) storage on Compute host
+##############################################################################
+
+# Example if you are reusing an existing disk
+sudo parted /dev/${LVM_PREMIUM_PV_DEVICE} mkpart primary $(sudo parted /dev/${LVM_PREMIUM_PV_DEVICE} unit s p free | grep "Free Space" | awk '{print $1}' | tail -n 1) 100%
+sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} set 2 lvm on
+sudo pvcreate --yes /dev/${LVM_PREMIUM_PV_DEVICE}2
+sudo vgcreate cinder-volumes /dev/${LVM_PREMIUM_PV_DEVICE}2
+sudo vgcreate cinder-premium-vg /dev/${LVM_PREMIUM_PV_DEVICE}2
+
+# Example if you have a dedicated disk
+sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} mklabel gpt
+sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} mkpart primary 0GB 100%
+sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} set 1 lvm on
+sudo pvcreate --yes /dev/${LVM_PREMIUM_PV_DEVICE}1
+sudo vgcreate cinder-premium-vg /dev/${LVM_PREMIUM_PV_DEVICE}1
+
+##############################################################################
+# Create standard (HDD) storage on Compute host
+##############################################################################
+
+sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} mklabel gpt
+sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} mkpart primary 0GB 100%
+sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} set 1 lvm on
+sudo pvcreate --yes /dev/${LVM_STANDARD_PV_DEVICE}1
+sudo vgcreate cinder-standard-vg /dev/${LVM_STANDARD_PV_DEVICE}1
+
+##############################################################################
+# Configure, and restart cinder on Compute host
+##############################################################################
 
 sudo systemctl restart \
   tgt \
   cinder-volume
 
 openstack volume service list
+
+openstack volume type create \
+  --property volume_backend_name='premium' \
+  premium
+
+openstack volume type create \
+  --property volume_backend_name='standard' \
+  standard
