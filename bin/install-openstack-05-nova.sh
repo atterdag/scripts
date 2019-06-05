@@ -499,3 +499,9 @@ sudo su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
 openstack compute service list
 openstack catalog list
 sudo -E nova-status upgrade check
+
+##############################################################################
+# Include nova commands in bash completion on Controller host
+##############################################################################
+openstack complete | sudo tee /etc/bash_completion.d/osc.bash_completion > /dev/null
+source /etc/bash_completion

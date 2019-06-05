@@ -222,4 +222,11 @@ export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
 source <(sudo cat /var/lib/openstack/admin-openrc)
+
 openstack token issue
+
+##############################################################################
+# Include keystone commands in bash completion on Controller host
+##############################################################################
+openstack complete | sudo tee /etc/bash_completion.d/osc.bash_completion > /dev/null
+source /etc/bash_completion
