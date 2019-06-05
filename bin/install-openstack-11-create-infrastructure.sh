@@ -200,7 +200,7 @@ openstack volume create \
   --description 'debian-9-openstack-amd64 template volume' \
   --image debian-9-openstack-amd64 \
   --size 5 \
-  --type default \
+  --type standard \
   debian-9-openstack-amd64
 
 ##############################################################################
