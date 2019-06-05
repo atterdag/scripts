@@ -194,7 +194,7 @@ openstack image create \
   debian-8-openstack-amd64
 
 ##############################################################################
-# Create debian-stretch-amd64 images on Controller host
+# Create debian-stretch-amd64 image on Controller host
 ##############################################################################
 # Ref https://docs.openstack.org/image-guide/obtain-images.html
 sudo wget \
@@ -210,7 +210,39 @@ sudo -E openstack image create \
   debian-9-openstack-amd64
 
 ##############################################################################
-# Create flavor on Controller host
+# Create CentOS-7-x86_64-GenericCloud image on Controller host
+##############################################################################
+# Ref https://docs.openstack.org/image-guide/obtain-images.html
+sudo wget \
+  --continue \
+  --output-document=/var/lib/openstack/CentOS-7-x86_64-GenericCloud.qcow2 \
+  https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
+
+sudo -E openstack image create \
+  --container-format bare \
+  --disk-format qcow2 \
+  --file /var/lib/openstack/CentOS-7-x86_64-GenericCloud.qcow2 \
+  --public \
+  CentOS-7-x86_64-GenericCloud
+
+##############################################################################
+# Create ubuntu-18.04-server-cloudimg-amd64 images on Controller host
+##############################################################################
+# Ref https://docs.openstack.org/image-guide/obtain-images.html
+sudo wget \
+  --continue \
+  --output-document=/var/lib/openstack/ubuntu-18.04-server-cloudimg-amd64.img \
+  https://cloud-images.ubuntu.com/releases/server/bionic/release/ubuntu-18.04-server-cloudimg-amd64.img
+
+sudo -E openstack image create \
+  --container-format bare \
+  --disk-format qcow2 \
+  --file /var/lib/openstack/ubuntu-18.04-server-cloudimg-amd64.img \
+  --public \
+  ubuntu-18.04-server-cloudimg-amd64
+
+##############################################################################
+# Create flavors on Controller host
 ##############################################################################
 openstack flavor create \
   --disk 1 \
