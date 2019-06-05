@@ -6,17 +6,14 @@
 sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   designate
 
-cat > /var/lib/openstack/designate.sql << EOF
+cat << EOF | sudo tee /var/lib/openstack/designate.sql
 CREATE DATABASE designate CHARACTER SET utf8 COLLATE utf8_general_ci;
 GRANT ALL PRIVILEGES ON designate.* TO 'designate'@'localhost' IDENTIFIED BY '${DESIGNATE_DBPASS}';
 GRANT ALL PRIVILEGES ON designate.* TO 'designate'@'%' IDENTIFIED BY '${DESIGNATE_DBPASS}';
-CREATE DATABASE designate_pool_manager CHARACTER SET utf8 COLLATE utf8_general_ci;
-GRANT ALL PRIVILEGES ON designate_pool_manager.* TO 'designate'@'localhost' IDENTIFIED BY '${DESIGNATE_DBPASS}';
-GRANT ALL PRIVILEGES ON designate_pool_manager.* TO 'designate'@'%' IDENTIFIED BY '${DESIGNATE_DBPASS}';
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/designate.sql
+sudo chmod 0600 /var/lib/openstack/designate.sql
+sudo cat /var/lib/openstack/designate.sql | sudo mysql --host=localhost --user=root
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=designate --password=$DESIGNATE_DBPASS designate
-mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=designate --password=$DESIGNATE_DBPASS designate_pool_manager
 
 openstack user create \
   --domain default \
@@ -30,40 +27,22 @@ openstack service create \
   --name designate \
   --description 'OpenStack DNS' \
   dns
+
 openstack endpoint create \
   --region RegionOne \
   dns public http://${CONTROLLER_FQDN}:9001/
-openstack endpoint create \
-  --region RegionOne \
-  dns internal  http://${CONTROLLER_FQDN}:9001/
-openstack endpoint create \
-  --region RegionOne \
-  dns admin  http://${CONTROLLER_FQDN}:9001/
 
-usermod -a -G ssl-cert designate
+sudo usermod -a -G ssl-cert designate
 
-mv /etc/designate/designate.conf /etc/designate/designate.conf.org
-cat > /etc/designate/designate.conf << EOF
+sudo mv /etc/designate/designate.conf /etc/designate/designate.conf.org
+cat << EOF | sudo tee /etc/designate/designate.conf
 [DEFAULT]
 verbose = True
 debug = False
 transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 
-[oslo_messaging_rabbit]
-
-[service:central]
-
-[service:api]
-listen = 0.0.0.0:9001
-auth_strategy = keystone
-api_base_uri = http://${CONTROLLER_FQDN}:9001/
-enable_api_v1 = True
-enabled_extensions_v1 = diagnostics, quotas, reports, sync, touch
-enable_api_v2 = True
-enabled_extensions_v2 = quotas, reports
-
 [keystone_authtoken]
-auth_uri = https://${CONTROLLER_FQDN}:5000
+www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
 auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
@@ -77,82 +56,83 @@ username = designate
 password = $DESIGNATE_PASS
 auth_type = password
 
-[cors]
+[matchmaker_redis]
 
-[cors.subdomain]
+[monasca:statsd]
 
-[service:sink]
+[network_api:neutron]
 
-[service:mdns]
+[oslo_concurrency]
 
-[service:agent]
+[oslo_messaging_amqp]
 
-[service:producer]
+[oslo_messaging_kafka]
 
-[producer_task:domain_purge]
+[oslo_messaging_notifications]
+
+[oslo_messaging_rabbit]
+
+[oslo_messaging_zmq]
+
+[oslo_middleware]
+
+[oslo_policy]
+
+[pool_manager_cache:memcache]
+
+[pool_manager_cache:sqlalchemy]
 
 [producer_task:delayed_notify]
 
+[producer_task:periodic_exists]
+
+[producer_task:periodic_secondary_refresh]
+
 [producer_task:worker_periodic_recovery]
 
+[producer_task:zone_purge]
+
+[proxy]
+
+[service:agent]
+
+[service:api]
+listen = 0.0.0.0:9001
+auth_strategy = keystone
+api_base_uri = http://${CONTROLLER_FQDN}:9001/
+enable_api_v2 = True
+enabled_extensions_v2 = quotas, reports
+
+[service:central]
+[service:mdns]
+
 [service:pool_manager]
-pool_id = 794ccc2c-d751-44fe-b57f-8894c9f5c842
+
+[service:producer]
+
+[service:sink]
 
 [service:worker]
 enabled = True
 notify = True
 
-[pool_manager_cache:sqlalchemy]
-connection = mysql+pymysql://designate:${DESIGNATE_DBPASS}@${CONTROLLER_FQDN}/designate_pool_manager
+[service:zone_manager]
 
-[pool_manager_cache:memcache]
-
-[network_api:neutron]
-timeout = 30
-endpoints = RegionOne|http://${CONTROLLER_FQDN}:9696
-endpoint_type = publicURL
-auth_type = password
-auth_url = https://${CONTROLLER_FQDN}:5000
-auth_strategy = keystone
-project_name = service
-project_domain_name = Default
-username = neutron
-user_domain_name = Default
-password = ${DESIGNATE_PASS}
-#insecure = False
-#ca_certificates_file =
+[ssl]
 
 [storage:sqlalchemy]
 connection = mysql+pymysql://designate:${DESIGNATE_DBPASS}@${CONTROLLER_FQDN}/designate
-
-[handler:nova_fixed]
-
-[handler:neutron_floatingip]
-
-[backend:agent:bind9]
-
-[backend:agent:knot2]
-
-[backend:agent:djbdns]
-
-[backend:agent:denominator]
-
-[backend:agent:gdnsd]
-
-[backend:agent:msdns]
-
-[oslo_concurrency]
-
-[coordination]
-
 EOF
-chmod 0660 /etc/designate/designate.conf
-chown designate:designate /etc/designate/designate.conf
+sudo chmod 0660 /etc/designate/designate.conf
+sudo chown designate:designate /etc/designate/designate.conf
 
-su -s /bin/sh -c "designate-manage database sync" designate
-su -s /bin/sh -c "designate-manage pool-manager-cache sync" designate
+sudo su -s /bin/sh -c "designate-manage database sync" designate
 
-cat > /etc/designate/pools.yaml << EOF
+sudo systemctl restart \
+  designate-central \
+  designate-api
+
+cat << EOF | sudo tee /etc/designate/pools.yaml
 - name: default
   # The name is immutable. There will be no option to change the name after
   # creation and the only way will to change it will be to delete it
@@ -197,14 +177,25 @@ cat > /etc/designate/pools.yaml << EOF
         rndc_port: 953
         rndc_key_file: /etc/bind/designate.key
 EOF
+sudo chmod 0660 /etc/designate/designate.conf
+sudo chown designate:designate /etc/designate/designate.conf
 
-systemctl restart \
-  designate-central \
-  designate-api \
-  designate-agent \
-  designate-mdns \
-  designate-pool-manager \
-  designate-sink \
-  designate-zone-manager
+sudo su -s /bin/sh -c "designate-manage pool update" designate
 
-su -s /bin/sh -c "designate-manage pool update" designate
+sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+  designate-worker \
+  designate-producer \
+  designate-mdns
+
+sudo systemctl restart \
+  designate-worker \
+  designate-producer \
+  designate-mdns
+
+openstack dns service list
+
+##############################################################################
+# Include designate commands in bash completion on Controller host
+##############################################################################
+openstack complete | sudo tee /etc/bash_completion.d/osc.bash_completion > /dev/null
+source /etc/bash_completion

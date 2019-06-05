@@ -51,22 +51,22 @@ source <(sudo cat /var/lib/openstack/os_password.env)
 # Set OS infrastructure variables
 ##############################################################################
 cat << EOF | sudo tee /var/lib/openstack/os_environment.env
-export CONTROLLER_FQDN=jack.se.lemche.net
+export DNS_DOMAIN=se.lemche.net
+export CONTROLLER_FQDN=jack.\${DNS_DOMAIN}
 export CONTROLLER_IP_ADDRESS=192.168.1.30
-export COMPUTE_FQDN=jack.se.lemche.net
+export COMPUTE_FQDN=jack.\${DNS_DOMAIN}
 export COMPUTE_IP_ADDRESS=192.168.1.30
 export NETWORK_CIDR=192.168.1.0/24
 export NETWORK_INTERFACE=eno1
 export LVM_PREMIUM_PV_DEVICE=sde
 export LVM_STANDARD_PV_DEVICE=sdb
-export DNS_DOMAIN=se.lemche.net
 export SIMPLE_CRYPTO_CA=OpenStack
 export SSL_CA_NAME=Lemche.NET-CA
 export SSL_COUNTRY_NAME=SE
 export SSL_STATE=Scania
 export SSL_ORGANIZATION_NAME=Lemche.NET
 export SSL_ORGANIZATIONAL_UNIT_NAME=Technical
-export SSL_BASE_URL=http://ca.se.lemche.net/ssl
+export SSL_BASE_URL=http://ca.\${DNS_DOMAIN}/ssl
 export SSL_CA_DIR=/var/lib/ssl/${SSL_CA_NAME}
 EOF
 source <(sudo cat /var/lib/openstack/os_environment.env)
