@@ -1,12 +1,15 @@
 #!/bin/sh
 
 ##############################################################################
-# Create VLAN network on Controller host
+# Import environment variables, and passwords
 ##############################################################################
 source <(sudo cat /var/lib/openstack/admin-openrc)
 source <(sudo cat /var/lib/openstack/os_password.env)
 source <(sudo cat /var/lib/openstack/os_environment.env)
 
+##############################################################################
+# Create VLAN network on Controller host
+##############################################################################
 openstack network create \
   --enable \
   --enable-port-security \
