@@ -47,12 +47,6 @@ openstack network create \
   --share \
   outside
 
-openstack network set \
-  --default \
-  servers
-
-openstack network list
-
 ##############################################################################
 # Create subnets for VLANs on Controller host
 ##############################################################################
@@ -84,7 +78,6 @@ openstack subnet create \
   --subnet-range 10.0.0.0/24 \
   dmz
 
-openstack subnet list
 
 ##############################################################################
 # Create a fixed IP ports on Controller host
