@@ -52,7 +52,7 @@ openstack network create \
 ##############################################################################
 openstack subnet create \
   --allocation-pool start=192.168.1.129,end=192.168.1.196 \
-  --dns-nameserver 192.168.1.40 \
+  --dns-nameserver ${CONTROLLER_IP_ADDRESS} \
   --gateway 192.168.1.254 \
   --ip-version 4 \
   --network default \
@@ -62,7 +62,7 @@ openstack subnet create \
 openstack subnet create \
   --allocation-pool start=172.16.0.2,end=172.16.0.253 \
   --dhcp \
-  --dns-nameserver 192.168.1.40 \
+  --dns-nameserver ${CONTROLLER_IP_ADDRESS} \
   --gateway 172.16.0.254 \
   --ip-version 4 \
   --network servers \
@@ -70,7 +70,7 @@ openstack subnet create \
   servers
 openstack subnet create \
   --allocation-pool start=10.0.0.2,end=10.0.0.253 \
-  --dns-nameserver 192.168.1.40 \
+  --dns-nameserver ${CONTROLLER_IP_ADDRESS} \
   --gateway 10.0.0.254 \
   --ip-version 4 \
   --network dmz \
@@ -79,30 +79,24 @@ openstack subnet create \
   dmz
 
 ##############################################################################
-# Create DNS zones
+# Create DNS zones for additional subnets
 ##############################################################################
-openstack zone create \
-  --email hostmaster@${DNS_DOMAIN} \
-  ${DNS_DOMAIN}.
 openstack zone create \
   --email hostmaster@${DNS_DOMAIN} \
   servers.${DNS_DOMAIN}.
 openstack zone create \
   --email hostmaster@${DNS_DOMAIN} \
-  dmz.${DNS_DOMAIN}.
+  0.16.172.in-addr.arpa.
 
 openstack zone create \
   --email hostmaster@${DNS_DOMAIN} \
-  1.168.192.in-addr.arpa.
-openstack zone create \
-  --email hostmaster@${DNS_DOMAIN} \
-  0.16.172.in-addr.arpa.
+  dmz.${DNS_DOMAIN}.
 openstack zone create \
   --email hostmaster@${DNS_DOMAIN} \
   0.0.10.in-addr.arpa.
 
 ##############################################################################
-# Create a fixed IP ports on Controller host
+# Create a fixed IP ports
 ##############################################################################
 openstack port create \
   --fixed-ip ip-address=192.168.1.130 \
@@ -128,6 +122,7 @@ openstack recordset create \
   --record 'test2.se.lemche.net.' \
   --type PTR 1.168.192.in-addr.arpa. \
   130
+
 openstack recordset create \
   --record '172.16.0.130' \
   --type A servers.${DNS_DOMAIN}. \
@@ -136,6 +131,7 @@ openstack recordset create \
   --record 'test2.servers.se.lemche.net.' \
   --type PTR 0.16.172.in-addr.arpa. \
   130
+
 openstack recordset create \
   --record '10.0.0.130' \
   --type A dmz.${DNS_DOMAIN}. \
@@ -163,35 +159,6 @@ openstack security group rule create \
   --proto tcp \
   --dst-port 22 \
   default
-
-##############################################################################
-# Create Debian Jessie amd64 images on Controller host
-##############################################################################
-apt-get --yes install openstack-debian-images
-# add packages
-# qemu-guest-agent
-# cloud-init
-
-pushd .
-cd /var/lib/openstack/
-ROOT_PASSWORD=$(apg -m 8 -q -n 1 -a 1 -M NCL)
-build-openstack-debian-image \
-  --release jessie \
-  --minimal \
-  --automatic-resize \
-  --password $ROOT_PASSWORD \
-  --architecture amd64
-DEBIAN_IMAGE=$(ls -1 debian-jessie-*-amd64.raw | tail -1 | sed 's|\.raw||')
-qemu-img convert -f raw -O qcow2 ${DEBIAN_IMAGE}.raw ${DEBIAN_IMAGE}.qcow2
-echo $ROOT_PASSWORD > ${DEBIAN_IMAGE}.rootpw
-popd
-
-openstack image create \
-  --file /var/lib/openstack/${DEBIAN_IMAGE}.qcow2 \
-  --disk-format qcow2 \
-  --container-format bare \
-  --public \
-  debian-8-openstack-amd64
 
 ##############################################################################
 # Create debian-stretch-amd64 image on Controller host

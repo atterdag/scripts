@@ -488,11 +488,22 @@ sudo modprobe nbd
 cat << EOF | sudo tee /etc/modules-load.d/nbd.conf
 nbd
 EOF
+
+# On compute node restart compute
 sudo systemctl restart \
   nova-compute
 
 openstack compute service list \
   --service nova-compute
+
+# On controller node restart all nova services
+sudo systemctl restart \
+  nova-api \
+  nova-consoleauth \
+  nova-scheduler \
+  nova-conductor \
+  nova-novncproxy \
+  nova-compute
 
 sudo su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
 

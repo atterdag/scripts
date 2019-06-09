@@ -15,7 +15,6 @@ sudo chmod 0600 /var/lib/openstack/cinder.sql
 sudo cat /var/lib/openstack/cinder.sql | sudo mysql --host=localhost --user=root
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=cinder --password=$CINDER_DBPASS cinder
 
-
 openstack user create \
   --domain default \
   --password $CINDER_PASS \

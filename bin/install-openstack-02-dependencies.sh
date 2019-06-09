@@ -1,15 +1,22 @@
 #!/bin/sh
 
 ##############################################################################
-# Enable the OpenStack repository
+# Set default shell to bash
 ##############################################################################
-sudo apt-get --yes install software-properties-common
-sudo add-apt-repository --yes cloud-archive:rocky
-sudo apt-get update
-sudo apt-get --yes dist-upgrade
+echo 'dash dash/sh boolean false' | sudo debconf-set-selections
+sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 
 ##############################################################################
-# Install dependencies
+# Ensure that controller FQDN is present in /etc/hosts
+##############################################################################
+if ! grep $CONTROLLER_FQDN /etc/hosts > /dev/null; then
+  echo -e "$CONTROLLER_IP_ADDRESS\t$CONTROLLER_FQDN\t$(echo $CONTROLLER_FQDN | awk -F'.' '{print $1}')" | sudo tee -a /etc/hosts
+fi
+echo 'dash dash/sh boolean false' | sudo debconf-set-selections
+sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
+
+##############################################################################
+# Install dependencies that are not automatically installed
 ##############################################################################
 sudo apt-get --yes install \
   arptables \
@@ -43,95 +50,6 @@ EOT
 sudo chmod 0644 /etc/chrony/chrony.conf
 sudo chown root:root /etc/chrony/chrony.conf
 sudo systemctl restart chrony
-
-##############################################################################
-# Install OpenStack command line tool on Controller host
-##############################################################################
-sudo apt-get --yes install python-openstackclient python-oslo.log
-
-##############################################################################
-# Install Database on Controller host
-##############################################################################
-sudo apt-get --yes install mariadb-server python-pymysql
-
-cat << EOF | sudo tee /etc/mysql/mariadb.conf.d/99-openstack.cnf
-[mysqld]
-# bind-address = ${CONTROLLER_IP_ADDRESS}
-bind-address = 0.0.0.0
-
-default-storage-engine = innodb
-innodb_file_per_table = on
-max_connections = 4096
-collation-server = utf8_general_ci
-character-set-server = utf8
-EOF
-sudo systemctl restart mysql
-
-sudo mysqladmin password "${ROOT_DBPASS}"
-cat << EOF | sudo tee /var/lib/openstack/mysql_secure_installation.sql
-# SQL script performing actions in mysql_secure_installation
-DELETE FROM mysql.user WHERE User='';
-DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
-# Default mariadb doesn't create test database
-#DROP DATABASE test;
-#DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
-FLUSH PRIVILEGES;
-EOF
-sudo chmod 0600 /var/lib/openstack/mysql_secure_installation.sql
-sudo cat /var/lib/openstack/mysql_secure_installation.sql | sudo mysql --host=localhost --user=root
-echo "SELECT Host,User,Password FROM mysql.user WHERE User='root';" | sudo mysql --host=localhost --port=3306 --user=root --password="${ROOT_DBPASS}"
-
-##############################################################################
-# Install Queue Manager on Controller host
-##############################################################################
-sudo apt-get --yes install rabbitmq-server
-
-sudo rabbitmqctl add_user openstack $RABBIT_PASS
-sudo rabbitmqctl set_permissions openstack ".*" ".*" ".*"
-
-##############################################################################
-# Install Memcached on Controller
-##############################################################################
-sudo apt-get --yes install memcached python-memcache
-
-sudo sed -i "s/^-l\s.*$/-l ${CONTROLLER_IP_ADDRESS}/" /etc/memcached.conf
-sudo systemctl restart memcached
-
-##############################################################################
-# Install Apache on Controller host
-##############################################################################
-sudo apt-get --yes install apache2
-
-sudo sed -i 's|^ServerTokens|#ServerTokens|' /etc/apache2/conf-available/security.conf
-sudo sed -i 's|^#ServerTokens Minimal|ServerTokens Minimal|' /etc/apache2/conf-available/security.conf
-sudo sed -i 's|^ServerSignature|#ServerSignature|' /etc/apache2/conf-available/security.conf
-sudo sed -i 's|^#ServerSignature Off|ServerSignature Off|' /etc/apache2/conf-available/security.conf
-sudo a2enconf security
-
-echo "ServerName ${CONTROLLER_FQDN}" | sudo tee /etc/apache2/conf-available/servername.conf
-sudo a2enconf servername
-
-sudo systemctl reload apache2
-
-##############################################################################
-# Install Etcd on Controller host
-##############################################################################
-sudo apt-get install --yes etcd
-
-sudo mv /etc/default/etcd /etc/default/etcd.orig
-cat << EOF | sudo tee /etc/default/etcd
-ETCD_NAME="${CONTROLLER_FQDN}"
-ETCD_DATA_DIR="/var/lib/etcd"
-ETCD_INITIAL_CLUSTER_STATE="new"
-ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
-ETCD_INITIAL_CLUSTER="${CONTROLLER_FQDN}=http://${CONTROLLER_IP_ADDRESS}:2380"
-ETCD_INITIAL_ADVERTISE_PEER_URLS="http://${CONTROLLER_IP_ADDRESS}:2380"
-ETCD_ADVERTISE_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
-ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380"
-ETCD_LISTEN_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
-EOF
-sudo systemctl enable etcd
-sudo systemctl start etcd
 
 ##############################################################################
 # Install Bind on Controller host
@@ -170,7 +88,10 @@ sudo systemctl restart bind9
 ##############################################################################
 # Install OpenSSL on Controller host
 ##############################################################################
-sudo apt-get install --yes --quiet openssl
+sudo apt-get install --yes --quiet \
+  ca-certificates \
+  openssl \
+  ssl-cert
 
 sudo mkdir -p ${SSL_CA_DIR}/{certs,crl,reqs,newcerts,private}
 sudo chown -R root:ssl-cert ${SSL_CA_DIR}/private
@@ -485,15 +406,303 @@ sudo update-ca-certificates \
   --verbose \
   --fresh
 
+# Convert PKCS#12 database with the controller keypair
+sudo openssl pkcs12 \
+  -certfile ${SSL_CA_DIR}/certs/ca.crt \
+  -export \
+  -in ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
+  -inkey ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
+  -out ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.p12 \
+  -passout "pass:${CONTROLLER_KEYSTORE_PASS}"
+
 ##############################################################################
-# Restart apache2 to let it use SSL
+# Install Apache on Controller host
 ##############################################################################
+sudo apt-get --yes install apache2
+
+sudo sed -i 's|^ServerTokens|#ServerTokens|' /etc/apache2/conf-available/security.conf
+sudo sed -i 's|^#ServerTokens Minimal|ServerTokens Minimal|' /etc/apache2/conf-available/security.conf
+sudo sed -i 's|^ServerSignature|#ServerSignature|' /etc/apache2/conf-available/security.conf
+sudo sed -i 's|^#ServerSignature Off|ServerSignature Off|' /etc/apache2/conf-available/security.conf
+sudo a2enconf security
+
+echo "ServerName ${CONTROLLER_FQDN}" | sudo tee /etc/apache2/conf-available/servername.conf
+sudo a2enconf servername
+
 sudo a2enmod ssl
 sudo sed -i "s|SSLCertificateFile\s*/etc/ssl/certs/ssl-cert-snakeoil.pem|SSLCertificateFile /etc/ssl/certs/${CONTROLLER_FQDN}.crt|g" /etc/apache2/sites-available/default-ssl.conf
+#" Atom Unix shell botches the interpretation of the sed command, and misses the closing double qoute
 sudo sed -i "s|SSLCertificateKeyFile\s*/etc/ssl/private/ssl-cert-snakeoil.key|SSLCertificateKeyFile /etc/ssl/private/${CONTROLLER_FQDN}.key|g" /etc/apache2/sites-available/default-ssl.conf
+#" Atom Unix shell botches the interpretation of the sed command, and misses the closing double qoute
 sudo a2ensite default-ssl.conf
+
 sudo apachectl configtest
 sudo systemctl restart apache2
 
 # Check that apache is using the correct certificate
-echo Q | openssl s_client -connect jack.se.lemche.net:443 | openssl x509 -text
+echo Q | openssl s_client -connect ${CONTROLLER_FQDN}:443 | openssl x509 -text
+
+##############################################################################
+# Install 389 Directory Server
+##############################################################################
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install 389-ds
+
+cat << EOF | sudo tee /etc/sysctl.d/99-389-ds.conf
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.ip_local_port_range = 1024 65000
+fs.file-max = 64000
+EOF
+sudo sysctl --load=/etc/sysctl.d/99-389-ds.conf
+
+cat << EOF | sudo tee /etc/security/limits.d/389-ds.conf
+*             -       nofile          8192
+EOF
+
+cat << EOF | sudo tee /var/lib/openstack/389-ds-setup.inf
+[General]
+FullMachineName=${CONTROLLER_FQDN}
+SuiteSpotUserID=dirsrv
+SuiteSpotGroup=dirsrv
+AdminDomain=${DNS_DOMAIN}
+ConfigDirectoryAdminID=admin
+ConfigDirectoryAdminPwd=${DS_ADMIN_PASS}
+ConfigDirectoryLdapURL=ldap://${CONTROLLER_FQDN}:389/o=NetscapeRoot
+
+[slapd]
+SlapdConfigForMC=Yes
+UseExistingMC=0
+ServerPort=389
+ServerIdentifier=dir
+Suffix=${DS_SUFFIX}
+RootDN=cn=Directory Manager
+RootDNPwd=${DS_ROOT_PASS}
+ds_bename=DB1
+AddSampleEntries=Yes
+
+[admin]
+Port=9830
+ServerIpAddress=${CONTROLLER_IP_ADDRESS}
+ServerAdminID=admin
+ServerAdminPwd=${DS_ADMIN_PASS}
+EOF
+sudo setup-ds-admin \
+  --silent \
+  --file=/var/lib/openstack/389-ds-setup.inf
+
+sudo certutil \
+  -A \
+  -d /etc/dirsrv/slapd-dir/ \
+  -n "${SSL_ORGANIZATION_NAME}" \
+  -t "C,," \
+  -i ${SSL_CA_DIR}/certs/ca.crt
+sudo pk12util \
+  -i ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.p12 \
+  -d /etc/dirsrv/slapd-dir/ \
+  -K ${CONTROLLER_KEYSTORE_PASS} \
+  -W ${CONTROLLER_KEYSTORE_PASS}
+
+cat << EOF | sudo tee /var/lib/openstack/389-ds-enable-security.ldif
+dn: cn=config
+changetype: modify
+replace: nsslapd-security
+nsslapd-security: on
+EOF
+
+sudo ldapmodify \
+  -H ldap://${CONTROLLER_FQDN}:389 \
+  -D 'cn=Directory Manager' \
+  -w "${DS_ROOT_PASS}" \
+  -x \
+  -f /var/lib/openstack/389-ds-enable-security.ldif
+
+cat << EOF | sudo tee /var/lib/openstack/389-ds-configure-security.ldif
+dn: cn=encryption,cn=config
+changetype: modify
+replace: nsSSLSessionTimeout
+nsSSLSessionTimeout: 0
+-
+replace: nsSSLClientAuth
+nsSSLClientAuth: off
+-
+replace: nsSSL3
+nsSSL3: off
+-
+replace: nsSSL2
+nsSSL2: off
+EOF
+
+sudo ldapmodify \
+  -H ldap://${CONTROLLER_FQDN}:389 \
+  -D 'cn=Directory Manager' \
+  -w "${DS_ROOT_PASS}" \
+  -x \
+  -f /var/lib/openstack/389-ds-configure-security.ldif
+
+cat << EOF | sudo tee /var/lib/openstack/389-ds-add-rsa.ldif
+dn: cn=RSA,cn=encryption,cn=config
+changetype: add
+objectClass: nsEncryptionModule
+objectClass: top
+nsSSLActivation: on
+nsSSLToken: internal (software)
+nsSSLPersonalitySSL: ${CONTROLLER_FQDN} - ${SSL_ORGANIZATION_NAME}
+cn: RSA
+EOF
+
+sudo ldapmodify \
+  -H ldap://${CONTROLLER_FQDN}:389 \
+  -D 'cn=Directory Manager' \
+  -w "${DS_ROOT_PASS}" \
+  -x \
+  -f /var/lib/openstack/389-ds-add-rsa.ldif
+
+sudo systemctl restart dirsrv@dir.service
+
+# Check encryption configuration
+ldapsearch \
+  -H ldap://${CONTROLLER_FQDN}:389 \
+  -D 'cn=Directory Manager' \
+  -w "${DS_ROOT_PASS}" \
+  -Z \
+  -b 'cn=encryption,cn=config' \
+  -x
+
+cat << EOT | sudo tee -a /etc/dirsrv/admin-serv/adm.conf
+sslVersionMin: TLS1.1
+sslVersionMax: TLS1.2
+EOT
+
+##############################################################################
+# Install DogTag
+##############################################################################
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install dogtag-pki
+
+##############################################################################
+# Install rng-tools to improve the quality (entropy) of the randomness
+##############################################################################
+sudo apt --yes install rng-tools
+sudo sed -i 's|#HRNGDEVICE=/dev/null|#HRNGDEVICE=/dev/null\nHRNGDEVICE=/dev/urandom|' /etc/default/rng-tools
+sudo systemctl restart rng-tools
+
+##############################################################################
+# Install Kerberos Master
+##############################################################################
+sudo DEBIAN_FRONTEND=noninteractive apt --yes install krb5-kdc krb5-admin-server
+cat << EOF | sudo tee /etc/krb5.conf
+[libdefaults]
+        default_realm = SE.LEMCHE.NET
+        kdc_timesync = 1
+        ccache_type = 4
+        forwardable = true
+        proxiable = true
+        fcc-mit-ticketflags = true
+
+[realms]
+        SE.LEMCHE.NET = {
+                kdc = jack.se.lemche.net
+                admin_server = jack.se.lemche.net
+        }
+
+[domain_realm]
+        .se.lemche.net = SE.LEMCHE.NET
+        se.lemche.net = SE.LEMCHE.NET
+EOF
+
+sudo kdb5_util -P ${KERBEROS_MASTER_SECRET} create -s
+sudo systemctl restart \
+  krb5-kdc \
+  krb5-admin-server
+cat << EOF | sudo tee /etc/krb5kdc/kadm5.acl
+# This file Is the access control list for krb5 administration.
+# When this file is edited run service krb5-admin-server restart to activate
+# One common way to set up Kerberos administration is to allow any principal
+# ending in /admin  is given full administrative rights.
+# To enable this, uncomment the following line:
+*/admin *
+EOF
+
+##############################################################################
+# Install FreeIPA
+##############################################################################
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install freeipa-server
+
+##############################################################################
+# Install Database on Controller host
+##############################################################################
+sudo apt-get --yes install mariadb-server python-pymysql
+
+cat << EOF | sudo tee /etc/mysql/mariadb.conf.d/99-openstack.cnf
+[mysqld]
+# bind-address = ${CONTROLLER_IP_ADDRESS}
+bind-address = 0.0.0.0
+
+default-storage-engine = innodb
+innodb_file_per_table = on
+max_connections = 4096
+collation-server = utf8_general_ci
+character-set-server = utf8
+EOF
+sudo systemctl restart mysql
+
+sudo mysqladmin password "${ROOT_DBPASS}"
+cat << EOF | sudo tee /var/lib/openstack/mysql_secure_installation.sql
+# SQL script performing actions in mysql_secure_installation
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+# Default mariadb doesn't create test database
+#DROP DATABASE test;
+#DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
+FLUSH PRIVILEGES;
+EOF
+sudo chmod 0600 /var/lib/openstack/mysql_secure_installation.sql
+sudo cat /var/lib/openstack/mysql_secure_installation.sql | sudo mysql --host=localhost --user=root
+echo "SELECT Host,User,Password FROM mysql.user WHERE User='root';" | sudo mysql --host=localhost --port=3306 --user=root --password="${ROOT_DBPASS}"
+
+##############################################################################
+# Install Queue Manager on Controller host
+##############################################################################
+sudo apt-get --yes install rabbitmq-server
+
+sudo rabbitmqctl add_user openstack $RABBIT_PASS
+sudo rabbitmqctl set_permissions openstack ".*" ".*" ".*"
+
+##############################################################################
+# Install Memcached on Controller
+##############################################################################
+sudo apt-get --yes install memcached python-memcache
+
+sudo sed -i "s/^-l\s.*$/-l ${CONTROLLER_IP_ADDRESS}/" /etc/memcached.conf
+sudo systemctl restart memcached
+
+##############################################################################
+# Install Etcd on Controller host
+##############################################################################
+sudo apt-get install --yes etcd
+
+sudo mv /etc/default/etcd /etc/default/etcd.orig
+cat << EOF | sudo tee /etc/default/etcd
+ETCD_NAME="${CONTROLLER_FQDN}"
+ETCD_DATA_DIR="/var/lib/etcd"
+ETCD_INITIAL_CLUSTER_STATE="new"
+ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
+ETCD_INITIAL_CLUSTER="${CONTROLLER_FQDN}=http://${CONTROLLER_IP_ADDRESS}:2380"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://${CONTROLLER_IP_ADDRESS}:2380"
+ETCD_ADVERTISE_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
+ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380"
+ETCD_LISTEN_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
+EOF
+sudo systemctl enable etcd
+sudo systemctl start etcd
+
+##############################################################################
+# Enable the OpenStack repository
+##############################################################################
+sudo apt-get --yes install software-properties-common
+sudo add-apt-repository --yes cloud-archive:rocky
+sudo apt-get update
+sudo apt-get --yes dist-upgrade
+
+##############################################################################
+# Install OpenStack command line tool on Controller host
+##############################################################################
+sudo apt-get --yes install python-openstackclient python-oslo.log

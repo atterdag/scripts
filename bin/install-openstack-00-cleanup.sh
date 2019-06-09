@@ -4,11 +4,14 @@
 # Remove OpenStack, and immediate dependencies
 ##############################################################################
 sudo apt-get --yes --purge remove \
+  barbican-* \
   chrony \
   cinder* \
+  designate-* \
   etcd \
   glance* \
   keystone* \
+  krb5-* \
   libapache2-mod-wsgi* \
   libvirt0 \
   memcached \
@@ -28,10 +31,14 @@ sudo apt-get --yes --purge remove \
   rabbitmq-server \
   radvd \
   sphinx-common \
-  tgt
+  tgt \
+  ubuntu-cloud-keyring
 sudo apt-get --yes --purge autoremove
 sudo rm -fr \
+  /etc/barbican/ \
   /etc/cinder/ \
+  /etc/designate/ \
+  /etc/glance/ \
   /etc/keystone/ \
   /etc/libvirt/ \
   /etc/mysql/ \
@@ -41,7 +48,11 @@ sudo rm -fr \
   /etc/openvswitch/ \
   /etc/trafficserver/\
   /var/cache/trafficserver/ \
+  /var/cache/glance/ \
+  /var/cache/nova/ \
   /var/lib/libvirt/ \
+  /var/lib/barbican/ \
+  /var/lib/designate/ \
   /var/lib/glance/ \
   /var/lib/nova/ \
   /var/lib/openvswitch/ \
@@ -50,7 +61,7 @@ sudo rm -fr \
   /var/log/openvswitch/ \
   /var/log/trafficserver/
 
-for user in cinder glance keystone neutron nova radvd rabbitmq; do
+for user in barbican cinder designate glance keystone neutron nova radvd rabbitmq; do
   sudo userdel -r $user
 done
 
@@ -58,15 +69,34 @@ done
 # Remove packages on all base packages
 ##############################################################################
 sudo apt-get --yes --purge remove \
+  389-ds \
   apache2 \
+  arptables \
   bind9 \
   bind9-doc \
-  bind9utils
+  bind9utils \
+  binutils \
+  build-essential \
+  cpp \
+  cpp-7 \
+  gcc-7-base \
+  genisoimage \
+  krb5-locales \
+  libisl19 \
+  libmpc3 \
+  libsasl2-modules-gssapi-mit \
+  make \
+  python \
+  ssl-cert \
+  thin-provisioning-tools
 sudo apt-get --yes --purge autoremove
 sudo rm -fr \
   /etc/apache2/ \
   /etc/bind/ \
   /etc/ssl/ \
+  /var/cache/bind \
+  /usr/lib/x86_64-linux-gnu/dirsrv \
+  /var/lib/apache2 \
   /var/log/apache2/ \
   /var/log/bind/ \
   /var/lib/ssl/

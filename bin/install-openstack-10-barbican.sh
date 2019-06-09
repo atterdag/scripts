@@ -9,12 +9,13 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   barbican-keystone-listener \
   barbican-worker
 
-cat > /var/lib/openstack/barbican.sql << EOF
+cat << EOF | sudo tee /var/lib/openstack/barbican.sql
 CREATE DATABASE barbican;
 GRANT ALL PRIVILEGES ON barbican.* TO 'barbican'@'localhost' IDENTIFIED BY '${BARBICAN_DBPASS}';
 GRANT ALL PRIVILEGES ON barbican.* TO 'barbican'@'%' IDENTIFIED BY '${BARBICAN_DBPASS}';
 EOF
-mysql --user=root --password="${ROOT_DBPASS}" < /var/lib/openstack/barbican.sql
+sudo chmod 0600 /var/lib/openstack/barbican.sql
+sudo cat /var/lib/openstack/barbican.sql | sudo mysql --host=localhost --user=root
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=barbican --password=$BARBICAN_DBPASS barbican
 
 openstack user create \
@@ -37,18 +38,18 @@ openstack service create \
   key-manager
 openstack endpoint create \
   --region RegionOne \
-  key-manager public http://${CONTROLLER_FQDN}:9311/v1/%\(tenant_id\)s
+  key-manager public http://${CONTROLLER_FQDN}:9311
 openstack endpoint create \
   --region RegionOne \
-  key-manager internal http://${CONTROLLER_FQDN}:9311/v1/%\(tenant_id\)s
+  key-manager internal http://${CONTROLLER_FQDN}:9311
 openstack endpoint create \
   --region RegionOne \
-  key-manager admin http://${CONTROLLER_FQDN}:9311/v1/%\(tenant_id\)s
+  key-manager admin http://${CONTROLLER_FQDN}:9311
 
-usermod -a -G ssl-cert barbican
+sudo usermod -a -G ssl-cert barbican
 
-mv /etc/barbican/barbican.conf /etc/barbican/barbican.conf.org
-cat > /etc/barbican/barbican.conf << EOF
+sudo mv /etc/barbican/barbican.conf /etc/barbican/barbican.conf.org
+cat << EOF | sudo tee /etc/barbican/barbican.conf
 [DEFAULT]
 bind_host = 0.0.0.0
 bind_port = 9311
@@ -150,12 +151,12 @@ subca_cert_key_directory=/etc/barbican/${SIMPLE_CRYPTO_CA}-cas
 [cors.subdomain]
 
 EOF
-chmod 0640 /etc/barbican/barbican.conf
-chown barbican:barbican /etc/barbican/barbican.conf
+sudo chmod 0640 /etc/barbican/barbican.conf
+sudo chown barbican:barbican /etc/barbican/barbican.conf
 
-su -s /bin/sh -c "barbican-manage db current" barbican
+sudo su -s /bin/sh -c "barbican-manage db current" barbican
 
-systemctl restart \
+sudo systemctl restart \
   barbican-api \
   barbican-worker \
   barbican-keystone-listener
