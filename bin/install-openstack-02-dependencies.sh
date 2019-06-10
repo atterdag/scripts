@@ -12,8 +12,6 @@ sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 if ! grep $CONTROLLER_FQDN /etc/hosts > /dev/null; then
   echo -e "$CONTROLLER_IP_ADDRESS\t$CONTROLLER_FQDN\t$(echo $CONTROLLER_FQDN | awk -F'.' '{print $1}')" | sudo tee -a /etc/hosts
 fi
-echo 'dash dash/sh boolean false' | sudo debconf-set-selections
-sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 
 ##############################################################################
 # Install dependencies that are not automatically installed
@@ -65,8 +63,11 @@ sed -i 's|^};|\
 \tallow-new-zones yes;\
 \trequest-ixfr no;\
 \tlisten-on port 53 { any; };\
-\trecursion no;\
+\t// recursion no;\
 \tallow-query { any; };\
+\tforward first;\
+\tforwarders { 1.1.1.1; 1.0.0.1; };\
+\tallow-query-cache { any; };\
 };|' \
 /etc/bind/named.conf.options
 
@@ -103,7 +104,7 @@ sudo touch ${SSL_CA_DIR}/index.txt
 
 cat << EOF | sudo tee ${SSL_CA_DIR}/openssl.cnf
 HOME                           = ${SSL_CA_DIR}
-RANDFILE                       = ${OPENSSL_CA_DIR}/.rnd
+RANDFILE                       = ${SSL_CA_DIR}/.rnd
 oid_section                    = new_oids
 
 [ new_oids ]
@@ -260,6 +261,11 @@ tsa_name                       = yes
 ess_cert_id_chain              = no
 EOF
 
+# Generate random numbers
+sudo openssl rand \
+  -out ${SSL_CA_DIR}/.rnd \
+  4096
+
 # Generate new CA key, and certifiate
 sudo openssl req \
   -config ${SSL_CA_DIR}/openssl.cnf \
@@ -280,6 +286,38 @@ sudo openssl req \
   -verbose \
   -x509
 
+sudo openssl x509 \
+  -x509toreq \
+  -passin pass:${CA_PASSWORD} \
+  -signkey ${SSL_CA_DIR}/private/ca.key \
+  -in ${SSL_CA_DIR}/certs/ca.crt \
+  -out ${SSL_CA_DIR}/reqs/ca.csr
+
+# Generate new intermediate CA, and certifcate
+sudo su -c "openssl req \
+  -config ${SSL_CA_DIR}/openssl.cnf \
+  -keyout ${SSL_CA_DIR}/private/intermediate.key \
+  -new \
+  -newkey rsa:2048 \
+  -nodes \
+  -out ${SSL_CA_DIR}/reqs/intermediate.csr \
+  -passout pass:${CA_PASSWORD} \
+  -sha256 \
+  -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_INTERMEDIATE_CA_NAME}\" \
+  -subject \
+  -text"
+
+yes | sudo openssl ca \
+  -cert ${SSL_CA_DIR}/certs/ca.crt \
+  -config ${SSL_CA_DIR}/openssl.cnf \
+  -days 3650 \
+  -extensions v3_ca \
+  -in ${SSL_CA_DIR}/reqs/intermediate.csr \
+  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -keyform PEM \
+  -out ${SSL_CA_DIR}/certs/intermediate.crt \
+  -passin pass:${CA_PASSWORD}
+
 # Generate controller node key, and certifiate
 sudo su -c "openssl req \
   -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
@@ -296,14 +334,19 @@ sudo su -c "openssl req \
   -text"
 
 yes | sudo openssl ca \
-  -cert ${SSL_CA_DIR}/certs/ca.crt \
+  -cert ${SSL_CA_DIR}/certs/intermediate.crt \
   -config ${SSL_CA_DIR}/openssl.cnf \
   -days 365 \
   -in ${SSL_CA_DIR}/reqs/${CONTROLLER_FQDN}.csr \
-  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -keyfile ${SSL_CA_DIR}/private/intermediate.key \
   -keyform PEM \
   -out ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   -passin pass:${CA_PASSWORD}
+
+# sudo openssl ca \
+#   -config ${SSL_CA_DIR}/openssl.cnf \
+#   -revoke ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
+#   -passin "pass:${CA_PASSWORD}"
 
 # Generate compute node key, and certifiate
 sudo su -c "openssl req \
@@ -321,43 +364,13 @@ sudo su -c "openssl req \
   -text"
 
 yes | sudo openssl ca \
-  -cert ${SSL_CA_DIR}/certs/ca.crt \
+  -cert ${SSL_CA_DIR}/certs/intermediate.crt \
   -config ${SSL_CA_DIR}/openssl.cnf \
   -days 365 \
   -in ${SSL_CA_DIR}/reqs/${COMPUTE_FQDN}.csr \
-  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -keyfile ${SSL_CA_DIR}/private/intermediate.key \
   -keyform PEM \
   -out ${SSL_CA_DIR}/certs/${COMPUTE_FQDN}.crt \
-  -passin "pass:${CA_PASSWORD}"
-
-# Generate alm proxy key, and certifiate
-sudo openssl ca \
-  -config ${SSL_CA_DIR}/openssl.cnf \
-  -revoke ${SSL_CA_DIR}/certs/alm.se.lemche.net.crt \
-  -passin "pass:${CA_PASSWORD}"
-
-sudo openssl req \
-  -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
-    printf "[SAN]\nsubjectAltName=DNS:alm.se.lemche.net,DNS:joxit.se.lemche.net,DNS:registry.se.lemche.net,DNS:gogs.se.lemche.net,DNS:awx.se.lemche.net") \
-  -keyout ${SSL_CA_DIR}/private/alm.se.lemche.net.key \
-  -new \
-  -newkey rsa:2048 \
-  -nodes \
-  -out ${SSL_CA_DIR}/reqs/alm.se.lemche.net.csr \
-  -reqexts SAN \
-  -sha256 \
-  -subj "/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=alm.se.lemche.net" \
-  -subject \
-  -text
-
-yes | sudo openssl ca \
-  -cert ${SSL_CA_DIR}/certs/ca.crt \
-  -config ${SSL_CA_DIR}/openssl.cnf \
-  -days 365 \
-  -in ${SSL_CA_DIR}/reqs/alm.se.lemche.net.csr \
-  -keyfile ${SSL_CA_DIR}/private/ca.key \
-  -keyform PEM \
-  -out ${SSL_CA_DIR}/certs/alm.se.lemche.net.crt \
   -passin "pass:${CA_PASSWORD}"
 
 # Generate new CRL
@@ -377,13 +390,6 @@ sudo cp -f \
   ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
   /etc/ssl/private/${CONTROLLER_FQDN}.key
 
-sudo cp -f \
-  ${SSL_CA_DIR}/certs/alm.se.lemche.net.crt \
-  /etc/ssl/certs/alm.se.lemche.net.crt
-sudo cp -f \
-  ${SSL_CA_DIR}/private/alm.se.lemche.net.key \
-  /etc/ssl/private/alm.se.lemche.net.key
-
 # Ensure that the ssl-cert group owns the keypair
 sudo su -c "chown root:ssl-cert \
   /etc/ssl/certs/*.crt \
@@ -400,18 +406,30 @@ sudo usermod -a -G ssl-cert www-data
 sudo cp -f \
   ${SSL_CA_DIR}/certs/ca.crt \
   /usr/local/share/ca-certificates/${SSL_CA_NAME}.crt
+sudo cp -f \
+  ${SSL_CA_DIR}/certs/intermediate.crt \
+  /usr/local/share/ca-certificates/${SSL_INTERMEDIATE_CA_NAME}.crt
 
 # Update OS truststore
 sudo update-ca-certificates \
   --verbose \
   --fresh
 
+# Create CA chain
+cat \
+  ${SSL_CA_DIR}/certs/intermediate.crt \
+  ${SSL_CA_DIR}/certs/ca.crt \
+| sudo tee ${SSL_CA_DIR}/certs/ca-chain.crt
+
 # Convert PKCS#12 database with the controller keypair
 sudo openssl pkcs12 \
-  -certfile ${SSL_CA_DIR}/certs/ca.crt \
+  -caname "${SSL_INTERMEDIATE_CA_NAME}" \
+  -caname "${SSL_CA_NAME}" \
+  -certfile ${SSL_CA_DIR}/certs/ca-chain.crt \
   -export \
   -in ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
   -inkey ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
+  -name ${CONTROLLER_FQDN} \
   -out ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.p12 \
   -passout "pass:${CONTROLLER_KEYSTORE_PASS}"
 
@@ -492,14 +510,28 @@ sudo setup-ds-admin \
 sudo certutil \
   -A \
   -d /etc/dirsrv/slapd-dir/ \
-  -n "${SSL_ORGANIZATION_NAME}" \
+  -n "${SSL_CA_NAME}" \
   -t "C,," \
-  -i ${SSL_CA_DIR}/certs/ca.crt
+  -i /usr/local/share/ca-certificates/${SSL_CA_NAME}.crt
+sudo certutil \
+  -A \
+  -d /etc/dirsrv/slapd-dir/ \
+  -n "${SSL_INTERMEDIATE_CA_NAME}" \
+  -t "C,," \
+  -i /usr/local/share/ca-certificates/${SSL_INTERMEDIATE_CA_NAME}.crt
 sudo pk12util \
   -i ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.p12 \
   -d /etc/dirsrv/slapd-dir/ \
+  -n ${CONTROLLER_FQDN} \
   -K ${CONTROLLER_KEYSTORE_PASS} \
   -W ${CONTROLLER_KEYSTORE_PASS}
+
+sudo certutil \
+  -d /etc/dirsrv/slapd-dir/ \
+  -L
+
+echo "Internal (Software) Token:${CONTROLLER_KEYSTORE_PASS}" \
+| sudo tee /etc/dirsrv/slapd-dir/pin.txt
 
 cat << EOF | sudo tee /var/lib/openstack/389-ds-enable-security.ldif
 dn: cn=config
@@ -545,7 +577,7 @@ objectClass: nsEncryptionModule
 objectClass: top
 nsSSLActivation: on
 nsSSLToken: internal (software)
-nsSSLPersonalitySSL: ${CONTROLLER_FQDN} - ${SSL_ORGANIZATION_NAME}
+nsSSLPersonalitySSL: ${CONTROLLER_FQDN}
 cn: RSA
 EOF
 
@@ -576,6 +608,50 @@ EOT
 # Install DogTag
 ##############################################################################
 sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install dogtag-pki
+
+cat << EOF | sudo tee /var/lib/openstack/dogtag.cfg
+[DEFAULT]
+pki_instance_name = pki-tomcat
+pki_admin_password = ${PKI_ADMIN_PASSWORD}
+pki_backup_password = ${PKI_BACKUP_PASSWORD}
+pki_client_database_password = ${PKI_CLIENT_DATABASE_PASSWORD}
+pki_client_pkcs12_password = ${PKI_CLIENT_PKCS12_PASSWORD}
+pki_clone_pkcs12_password = ${PKI_CLONE_PKCS12_PASSWORD}
+pki_ds_password = ${DS_ROOT_PASS}
+pki_replication_password = ${PKI_REPLICATION_PASSWORD}
+pki_security_domain_password = ${PKI_SECURITY_DOMAIN_PASSWORD}
+pki_token_password = ${PKI_TOKEN_PASSWORD}
+
+[Tomcat]
+pki_clone_pkcs12_password=${PKI_CLONE_PKCS12_PASSWORD}
+
+[CA]
+pki_http_port = 8080
+pki_https_port = 8443
+pki_ajp_port = 8009
+pki_tomcat_server_port = 8005
+pki_admin_uid = caadmin
+pki_admin_password = ${PKI_ADMIN_PASSWORD}
+pki_backup_password = ${PKI_BACKUP_PASSWORD}
+pki_client_database_password = ${PKI_CLIENT_DATABASE_PASSWORD}
+pki_client_pkcs12_password = ${PKI_CLIENT_PKCS12_PASSWORD}
+pki_import_admin_cert = False
+pki_client_admin_cert = /root/.dogtag/pki-tomcat/ca_admin.cert
+pki_ds_hostname = ${CONTROLLER_FQDN}
+pki_ds_secure_connection = True
+pki_ds_ldaps_port = 636
+pki_ds_secure_connection_ca_pem_file = /usr/local/share/ca-certificates/${SSL_CA_NAME}.crt
+pki_ds_bind_dn = cn=Directory Manager
+pki_ds_password = ${DS_ROOT_PASS}
+pki_ds_base_dn = o=pki-tomcat-CA
+pki_security_domain_name = ${DNS_DOMAIN} Security Domain
+pki_clone_pkcs12_password = ${PKI_CLONE_PKCS12_PASSWORD}
+pki_replication_password = ${PKI_REPLICATION_PASSWORD}
+pki_security_domain_password = ${PKI_SECURITY_DOMAIN_PASSWORD}
+pki_token_password = ${PKI_TOKEN_PASSWORD}
+pki_admin_email=caadmin@${DNS_DOMAIN}
+EOF
+sudo pkispawn -s CA -f /var/lib/openstack/dogtag.cfg
 
 ##############################################################################
 # Install rng-tools to improve the quality (entropy) of the randomness

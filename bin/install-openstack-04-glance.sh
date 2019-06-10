@@ -42,9 +42,6 @@ sudo usermod -a -G ssl-cert glance
 sudo mv /etc/glance/glance-api.conf /etc/glance/glance-api.conf.org
 cat << EOF | sudo tee /etc/glance/glance-api.conf
 [DEFAULT]
-#ca_file = /etc/ssl/certs/${SSL_CA_NAME}.pem
-#cert_file = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-#key_file = /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 [cors]
 
@@ -66,7 +63,7 @@ www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
 auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
-cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
+cafile = /etc/ssl/certs/ca-certificates.crt
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default
@@ -123,7 +120,7 @@ www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
 auth_url = https://${CONTROLLER_FQDN}:5000
 certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
 keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
-cafile = /etc/ssl/certs/${SSL_CA_NAME}.pem
+cafile = /etc/ssl/certs/ca-certificates.crt
 region_name = RegionOne
 memcached_servers = ${CONTROLLER_FQDN}:11211
 project_domain_name = Default

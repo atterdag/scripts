@@ -2,12 +2,14 @@
 
 sudo systemctl start \
   chrony \
+  bind9 \
   mysql \
   rabbitmq-server \
   memcached \
-  apache2 \
   etcd \
-  bind9 \
+  dirsrv@dir.service \
+  pki-tomcatd \
+  apache2 \
   glance-registry \
   glance-api \
   nova-api \
@@ -56,10 +58,12 @@ sudo systemctl stop \
   nova-api \
   glance-api \
   glance-registry \
-  bind9 \
-  etcd \
   apache2 \
+  pki-tomcatd \
+  dirsrv@dir.service \
+  etcd \
   memcached \
   rabbitmq-server \
   mysql \
+  bind9 \
   chrony
