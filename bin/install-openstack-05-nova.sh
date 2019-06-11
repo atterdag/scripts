@@ -308,6 +308,10 @@ state_path = /var/lib/nova
 firewall_driver = nova.virt.firewall.NoopFirewallDriver
 transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 auth_strategy = keystone
+remove_unused_base_images = True
+image_cache_manager_interval = 10
+remove_unused_original_minimum_age_seconds = 10
+remove_unused_resized_minimum_age_seconds = 10
 
 [api]
 
