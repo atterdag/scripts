@@ -900,7 +900,11 @@ fi
 ##############################################################################
 # Install DogTag
 ##############################################################################
-sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install dogtag-pki
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install \
+  pki-ca \
+  pki-kra \
+  liboscache-java \
+  libstax-java
 
 cat << EOF | sudo tee /var/lib/openstack/dogtag.cfg
 [DEFAULT]
