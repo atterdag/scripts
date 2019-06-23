@@ -105,9 +105,6 @@ sudo chown glance:glance /etc/glance/glance-api.conf
 sudo mv /etc/glance/glance-registry.conf /etc/glance/glance-registry.conf.org
 cat << EOF | sudo tee /etc/glance/glance-registry.conf
 [DEFAULT]
-#ca_file = /etc/ssl/certs/${SSL_CA_NAME}.pem
-#cert_file = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-#key_file = /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 [database]
 connection = mysql+pymysql://glance:${GLANCE_DBPASS}@${CONTROLLER_FQDN}/glance

@@ -116,16 +116,16 @@ sudo chown keystone:keystone /etc/keystone/keystone.conf
 for i in private certs; do sudo mkdir -p /etc/keystone/ssl/$i; done
 
 sudo cp \
-  ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
+  ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
   /etc/keystone/ssl/certs/keystone.pem
 sudo cp \
-  ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
+  ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
   /etc/keystone/ssl/private/keystonekey.pem
 sudo cp \
-  ${SSL_CA_DIR}/certs/ca.crt \
+  ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_ROOT_CA_STRICT_NAME}.crt \
   /etc/keystone/ssl/certs/ca.pem
 sudo cp \
-  ${SSL_CA_DIR}/private/ca.key \
+  ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private/${SSL_ROOT_CA_STRICT_NAME}.key \
   /etc/keystone/ssl/private/cakey.pem
 sudo chown -R keystone:keystone /etc/keystone/ssl
 

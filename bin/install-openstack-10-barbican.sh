@@ -140,8 +140,8 @@ namespace = barbican.certificate.event.plugin
 enabled_certificate_event_plugins = simple_certificate_event
 
 [${SIMPLE_CRYPTO_CA}_ca_plugin]
-ca_cert_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-ca.crt
-ca_cert_key_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-ca.key
+ca_cert_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-${SSL_ROOT_CA_STRICT_NAME}.crt
+ca_cert_key_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-${SSL_ROOT_CA_STRICT_NAME}.key
 ca_cert_chain_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-ca.chain
 ca_cert_pkcs7_path = /etc/barbican/${SIMPLE_CRYPTO_CA}-ca.p7b
 subca_cert_key_directory=/etc/barbican/${SIMPLE_CRYPTO_CA}-cas

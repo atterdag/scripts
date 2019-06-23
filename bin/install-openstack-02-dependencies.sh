@@ -99,301 +99,566 @@ sudo apt-get install --yes --quiet \
   openssl \
   ssl-cert
 
-sudo mkdir -p ${SSL_CA_DIR}/{certs,crl,reqs,newcerts,private}
-sudo chown -R root:ssl-cert ${SSL_CA_DIR}/private
-sudo chmod 0750 ${SSL_CA_DIR}/private
-sed 's|./demoCA|${SSL_CA_DIR}|g' /etc/ssl/openssl.cnf | sudo tee ${SSL_CA_DIR}/openssl.cnf
-echo "01" | sudo tee ${SSL_CA_DIR}/serial
-echo "01" | sudo tee ${SSL_CA_DIR}/crlnumber
-sudo touch ${SSL_CA_DIR}/index.txt
 
-cat << EOF | sudo tee ${SSL_CA_DIR}/openssl.cnf
-HOME                           = ${SSL_CA_DIR}
-RANDFILE                       = ${SSL_CA_DIR}/.rnd
+#
+# Create root CA
+#
+sudo mkdir -p ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/{certs,crl,newcerts,private,reqs}
+sudo chown -R root:ssl-cert ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private
+sudo chmod 0750 ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private
+echo "01" | sudo tee ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/serial
+echo "01" | sudo tee ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/crlnumber
+sudo touch ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/index.{txt,txt.attr}
+
+# Generate random numbers
+sudo openssl rand \
+  -out ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private/.rnd \
+  4096
+
+cat << EOF | sudo tee ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/openssl.cnf
+HOME                           = ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}
 oid_section                    = new_oids
-
-[ new_oids ]
-tsa_policy1                    = 1.2.3.4.1
-tsa_policy2                    = 1.2.3.4.5.6
-tsa_policy3                    = 1.2.3.4.5.7
 
 [ ca ]
 default_ca                     = CA_default
 
 [ CA_default ]
-dir                            = ${SSL_CA_DIR}
+# General locations
+dir                            = ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}
 certs                          = \$dir/certs
-crl_dir                        = \$dir/crl
 database                       = \$dir/index.txt
 new_certs_dir                  = \$dir/newcerts
-certificate                    = \$dir/certs/ca.crt
+RANDFILE                       = \$dir/private/.rnd
 serial                         = \$dir/serial
+
+# Root CA keypair
+certificate                    = \$dir/certs/${SSL_ROOT_CA_STRICT_NAME}.crt
+private_key                    = \$dir/private/${SSL_ROOT_CA_STRICT_NAME}.key
+
+# CRL specific
+crl                            = \$dir/${SSL_ROOT_CA_STRICT_NAME}.crl
+crl_dir                        = \$dir/crl
+crl_extensions                 = crl_ext
 crlnumber                      = \$dir/crlnumber
-crl                            = \$dir/ca.crl
-private_key                    = \$dir/private/ca.key
-RANDFILE                       = \$dir/private/.rand
-x509_extensions                = usr_cert
-name_opt                       = ca_default
+default_crl_days               = 30
+
+# Set certifiate defaults
 cert_opt                       = ca_default
 copy_extensions                = copy
-crl_extensions                 = crl_ext
-default_days                   = 3650
-default_crl_days               = 30
-default_md                     = default
-preserve                       = no
+default_days                   = 375
+default_md                     = sha256
+name_opt                       = ca_default
 policy                         = policy_match
+preserve                       = no
+x509_extensions                = server_cert
 
+# Used for non CA certificate
 [ policy_match ]
+commonName                     = supplied
 countryName                    = match
-stateOrProvinceName            = match
+emailAddress                   = optional
+organizationalUnitName         = optional
 organizationName               = match
-organizationalUnitName         = optional
-commonName                     = supplied
-emailAddress                   = optional
+stateOrProvinceName            = match
 
+# Loose policy used for CA certificate
 [ policy_anything ]
-countryName                    = optional
-stateOrProvinceName            = optional
-localityName                   = optional
-organizationName               = optional
-organizationalUnitName         = optional
 commonName                     = supplied
+countryName                    = optional
 emailAddress                   = optional
+localityName                   = optional
+organizationalUnitName         = optional
+organizationName               = optional
+stateOrProvinceName            = optional
 
 [ req ]
-default_bits                   = 4096
-default_keyfile                = privkey.pem
+default_bits                   = 2048
+default_md                     = sha256
 distinguished_name             = req_distinguished_name
-attributes                     = req_attributes
-x509_extensions                = v3_ca
-string_mask                    = utf8only
-req_extensions                 = v3_req
+string_mask                    = pkix
+x509_extensions                = v3_root_ca
 
 [ req_distinguished_name ]
+commonName                     = Common Name (e.g. server FQDN or YOUR name)
 countryName                    = Country Name (2 letter code)
-countryName_default            = $SSL_COUNTRY_NAME
-countryName_min                = 2
-countryName_max                = 2
-stateOrProvinceName            = State or Province Name (full name)
-stateOrProvinceName_default    = $SSL_STATE
+emailAddress                   = Email Address
 localityName                   = Locality Name (eg, city)
 0.organizationName             = Organization Name (eg, company)
-0.organizationName_default     = $SSL_ORGANIZATION_NAME
 organizationalUnitName         = Organizational Unit Name (eg, section)
-organizationalUnitName_default = $SSL_ORGANIZATIONAL_UNIT_NAME
-commonName                     = Common Name (e.g. server FQDN or YOUR name)
+stateOrProvinceName            = State or Province Name (full name)
+
+# Max/min values for values
 commonName_max                 = 64
-emailAddress                   = Email Address
-emailAddress_max               = 64
+countryName_max                = 2
+countryName_min                = 2
+emailAddress_max               = 256
 
-[ req_attributes ]
-challengePassword              = A challenge password
-challengePassword_min          = 4
-challengePassword_max          = 20
-unstructuredName               = An optional company name
-
-[ usr_cert ]
-basicConstraints=CA:FALSE
-subjectKeyIdentifier           = hash
-authorityKeyIdentifier         = keyid,issuer
-nsBaseUrl                      = ${SSL_BASE_URL}
-nsCaRevocationUrl              = ${SSL_BASE_URL}/ca.crl
-nsRevocationUrl                = ${SSL_BASE_URL}/revocation.html
-nsRenewalUrl                   = ${SSL_BASE_URL}/renewal.html
-nsCaPolicyUrl                  = ${SSL_BASE_URL}/policy.html
-issuerAltName                  = @ca_ials
-crlDistributionPoints          = @crl_distpoints
-
-[ ca_sans ]
-DNS.1                          = ca.${DNS_DOMAIN}
-
-[ ca_ials ]
-URI.1                          = $SSL_BASE_URL
+# Set some default values
+countryName_default            = $SSL_COUNTRY_NAME
+emailAddress_default           = $SSL_CA_EMAIL
+0.organizationName_default     = $SSL_ORGANIZATION_NAME
+organizationalUnitName_default = $SSL_ORGANIZATIONAL_UNIT_NAME
+stateOrProvinceName_default    = $SSL_STATE
 
 [ crl_distpoints ]
 URI.1                          = ${SSL_BASE_URL}/ca.crl
 
-[ v3_req ]
-basicConstraints = CA:FALSE
-keyUsage                       = nonRepudiation, digitalSignature, keyEncipherment
-
-[ v3_ca ]
+# Extension for root CA certifiate
+[ v3_root_ca ]
 subjectKeyIdentifier           = hash
-authorityKeyIdentifier         = keyid:always,issuer:always
-basicConstraints               = critical,CA:true
-keyUsage                       = cRLSign, keyCertSign
-nsCertType                     = sslCA, emailCA
-subjectAltName                 = email:copy
-subjectAltName                 = @ca_sans
-nsBaseUrl                      = ${SSL_BASE_URL}
-nsCaRevocationUrl              = ${SSL_BASE_URL}/ca.crl
-nsRevocationUrl                = ${SSL_BASE_URL}/revocation.html
-nsRenewalUrl                   = ${SSL_BASE_URL}/renewal.html
-nsCaPolicyUrl                  = ${SSL_BASE_URL}/policy.html
-issuerAltName                  = issuer:copy
-issuerAltName                  = @ca_ials
+authorityKeyIdentifier         = keyid:always, issuer:always
+basicConstraints               = critical, CA:true
+keyUsage                       = critical, digitalSignature, cRLSign, keyCertSign
 crlDistributionPoints          = @crl_distpoints
 
+# Extension for intermediate CA certifiate
+[ v3_intermediate_ca ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid:always, issuer:always
+basicConstraints               = critical, CA:true, pathlen:0
+keyUsage                       = critical, digitalSignature, cRLSign, keyCertSign
+crlDistributionPoints          = @crl_distpoints
+
+# Extension for Client/User certificates
+[ usr_cert ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid, issuer:always
+basicConstraints               = CA:FALSE
+keyUsage                       = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage               = clientAuth, emailProtection
+nsCertType                     = client, email
+nsComment                      = "OpenSSL Generated Client Certificate"
+crlDistributionPoints          = @crl_distpoints
+authorityInfoAccess            = OCSP;URI:${SSL_BASE_URL}
+
+# Extension for Server certificates
+[ server_cert ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid, issuer:always
+basicConstraints               = CA:FALSE
+keyUsage                       = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage               = clientAuth, emailProtection
+nsCertType                     = server
+nsComment                      = "OpenSSL Generated Server Certificate"
+crlDistributionPoints          = @crl_distpoints
+authorityInfoAccess            = OCSP;URI:${SSL_BASE_URL}
+
+# Extension for CRLs
 [ crl_ext ]
 issuerAltName                  = issuer:copy
 authorityKeyIdentifier         = keyid:always
 
-[ proxy_cert_ext ]
+# Extension for OCSP signing certificates
+[ ocsp ]
+authorityKeyIdentifier         = keyid, issuer:always
 basicConstraints               = CA:FALSE
-nsCertType                     = server
+extendedKeyUsage               = critical, OCSPSigning
+keyUsage                       = critical, digitalSignature
 subjectKeyIdentifier           = hash
-authorityKeyIdentifier         = keyid:always,issuer
-proxyCertInfo                  = critical,language:id-ppl-anyLanguage,pathlen:3,policy:foo
+
+# Adds timestamp certifiate extensions
+[ new_oids ]
+tsa_policy1                    = 1.2.3.4.1
+tsa_policy2                    = 1.2.3.4.5.6
+tsa_policy3                    = 1.2.3.4.5.7
 
 [ tsa ]
 default_tsa                    = tsa_config1
 
 [ tsa_config1 ]
-dir                            = ${SSL_CA_DIR}
-serial                         = \$dir/tsaserial
-crypto_device                  = builtin
-signer_cert                    = \$dir/tsacert.pem
-certs                          = \$dir/cacert.pem
-signer_key                     = \$dir/private/tsakey.pem
-signer_digest                  = sha256
-default_policy                 = tsa_policy1
-other_policies                 = tsa_policy2, tsa_policy3
-digests                        = sha1, sha256, sha384, sha512
+dir                            = ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}
 accuracy                       = secs:1, millisecs:500, microsecs:100
+certs                          = \$dir/cacert.pem
 clock_precision_digits         = 0
-ordering                       = yes
-tsa_name                       = yes
+crypto_device                  = builtin
+default_policy                 = tsa_policy1
+digests                        = sha1, sha256, sha384, sha512
 ess_cert_id_chain              = no
+ordering                       = yes
+other_policies                 = tsa_policy2, tsa_policy3
+serial                         = \$dir/tsaserial
+signer_cert                    = \$dir/tsacert.pem
+signer_digest                  = sha256
+signer_key                     = \$dir/private/tsakey.pem
+tsa_name                       = yes
 EOF
 
-# Generate random numbers
-sudo openssl rand \
-  -out ${SSL_CA_DIR}/.rnd \
+# Generate new CA key
+sudo openssl genrsa \
+  -aes256 \
+  -out ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private/${SSL_ROOT_CA_STRICT_NAME}.key \
+  -passout pass:${CA_PASSWORD} \
   4096
 
-# Generate new CA key, and certifiate
+# Generate new CA certifiate
 sudo openssl req \
-  -config ${SSL_CA_DIR}/openssl.cnf \
-  -days 3650 \
-  -extensions v3_ca \
+  -batch \
+  -config ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/openssl.cnf \
+  -days 10950 \
+  -extensions "v3_root_ca" \
+  -key ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private/${SSL_ROOT_CA_STRICT_NAME}.key \
   -keyform PEM \
-  -keyout ${SSL_CA_DIR}/private/ca.key \
   -new \
-  -newkey rsa:4096  \
-  -out ${SSL_CA_DIR}/certs/ca.crt \
+  -out ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_ROOT_CA_STRICT_NAME}.crt \
   -outform PEM \
   -passin pass:${CA_PASSWORD} \
   -passout pass:${CA_PASSWORD} \
   -sha512 \
-  -subj "/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_CA_NAME}" \
+  -subj "/C=${SSL_COUNTRY_NAME}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_ROOT_CA_COMMON_NAME}" \
   -subject \
   -text \
   -verbose \
+  -utf8 \
   -x509
 
+# ... out of curiosity
 sudo openssl x509 \
   -x509toreq \
   -passin pass:${CA_PASSWORD} \
-  -signkey ${SSL_CA_DIR}/private/ca.key \
-  -in ${SSL_CA_DIR}/certs/ca.crt \
-  -out ${SSL_CA_DIR}/reqs/ca.csr
+  -signkey ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private/${SSL_ROOT_CA_STRICT_NAME}.key \
+  -in ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_ROOT_CA_STRICT_NAME}.crt \
+  -out ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/reqs/${SSL_ROOT_CA_STRICT_NAME}.csr
 
-# Generate new intermediate CA, and certifcate
-sudo su -c "openssl req \
-  -config ${SSL_CA_DIR}/openssl.cnf \
-  -keyout ${SSL_CA_DIR}/private/intermediate.key \
-  -new \
-  -newkey rsa:2048 \
-  -nodes \
-  -out ${SSL_CA_DIR}/reqs/intermediate.csr \
+#
+# Create intermediate CA 1
+#
+sudo mkdir -p ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/{certs,crl,newcerts,private,reqs}
+sudo chown -R root:ssl-cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private
+sudo chmod 0750 ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private
+echo "01" | sudo tee ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/serial
+echo "01" | sudo tee ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/crlnumber
+sudo touch ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/index.{txt,txt.attr}
+
+# Generate random numbers
+sudo openssl rand \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/.rnd \
+  4096
+
+cat << EOF | sudo tee ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf
+HOME                           = ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}
+oid_section                    = new_oids
+
+[ ca ]
+default_ca                     = CA_default
+
+[ CA_default ]
+# General locations
+dir                            = ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}
+certs                          = \$dir/certs
+database                       = \$dir/index.txt
+new_certs_dir                  = \$dir/newcerts
+RANDFILE                       = \$dir/private/.rnd
+serial                         = \$dir/serial
+
+# Root CA keypair
+certificate                    = \$dir/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt
+private_key                    = \$dir/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key
+
+# CRL specific
+crl                            = \$dir/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crl
+crl_dir                        = \$dir/crl
+crl_extensions                 = crl_ext
+crlnumber                      = \$dir/crlnumber
+default_crl_days               = 30
+
+# Set certifiate defaults
+cert_opt                       = ca_default
+copy_extensions                = copy
+default_days                   = 375
+default_md                     = sha256
+name_opt                       = ca_default
+policy                         = policy_anything
+preserve                       = no
+x509_extensions                = server_cert
+
+# Used for non CA certificate
+[ policy_match ]
+commonName                     = supplied
+countryName                    = match
+emailAddress                   = optional
+organizationalUnitName         = optional
+organizationName               = match
+stateOrProvinceName            = match
+
+# Loose policy used for CA certificate
+[ policy_anything ]
+commonName                     = supplied
+countryName                    = optional
+emailAddress                   = optional
+localityName                   = optional
+organizationalUnitName         = optional
+organizationName               = optional
+stateOrProvinceName            = optional
+
+[ req ]
+default_bits                   = 2048
+default_md                     = sha256
+distinguished_name             = req_distinguished_name
+string_mask                    = pkix
+x509_extensions                = v3_root_ca
+
+[ req_distinguished_name ]
+commonName                     = Common Name (e.g. server FQDN or YOUR name)
+countryName                    = Country Name (2 letter code)
+emailAddress                   = Email Address
+localityName                   = Locality Name (eg, city)
+0.organizationName             = Organization Name (eg, company)
+organizationalUnitName         = Organizational Unit Name (eg, section)
+stateOrProvinceName            = State or Province Name (full name)
+
+# Max/min values for values
+commonName_max                 = 64
+countryName_max                = 2
+countryName_min                = 2
+emailAddress_max               = 256
+
+# Set some default values
+countryName_default            = $SSL_COUNTRY_NAME
+emailAddress_default           = $SSL_CA_EMAIL
+0.organizationName_default     = $SSL_ORGANIZATION_NAME
+organizationalUnitName_default = $SSL_ORGANIZATIONAL_UNIT_NAME
+stateOrProvinceName_default    = $SSL_STATE
+
+[ crl_distpoints ]
+URI.1                          = ${SSL_BASE_URL}/ca.crl
+
+# Extension for root CA certifiate
+[ v3_root_ca ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid:always, issuer:always
+basicConstraints               = critical, CA:true
+keyUsage                       = critical, digitalSignature, cRLSign, keyCertSign
+crlDistributionPoints          = @crl_distpoints
+
+# Extension for intermediate CA certifiate
+[ v3_intermediate_ca ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid:always, issuer:always
+basicConstraints               = critical, CA:true, pathlen:0
+keyUsage                       = critical, digitalSignature, cRLSign, keyCertSign
+crlDistributionPoints          = @crl_distpoints
+
+# Extension for Client/User certificates
+[ usr_cert ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid, issuer:always
+basicConstraints               = CA:FALSE
+keyUsage                       = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage               = clientAuth, emailProtection
+nsCertType                     = client, email
+nsComment                      = "OpenSSL Generated Client Certificate"
+crlDistributionPoints          = @crl_distpoints
+authorityInfoAccess            = OCSP;URI:${SSL_BASE_URL}
+
+# Extension for Server certificates
+[ server_cert ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid, issuer:always
+basicConstraints               = CA:FALSE
+keyUsage                       = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage               = clientAuth, emailProtection
+nsCertType                     = server
+nsComment                      = "OpenSSL Generated Server Certificate"
+crlDistributionPoints          = @crl_distpoints
+authorityInfoAccess            = OCSP;URI:${SSL_BASE_URL}
+
+# Extension for CRLs
+[ crl_ext ]
+issuerAltName                  = issuer:copy
+authorityKeyIdentifier         = keyid:always
+
+# Extension for OCSP signing certificates
+[ ocsp ]
+subjectKeyIdentifier           = hash
+authorityKeyIdentifier         = keyid, issuer:always
+basicConstraints               = CA:FALSE
+extendedKeyUsage               = critical, OCSPSigning
+keyUsage                       = critical, digitalSignature
+
+# Adds timestamp certifiate extensions
+[ new_oids ]
+tsa_policy1                    = 1.2.3.4.1
+tsa_policy2                    = 1.2.3.4.5.6
+tsa_policy3                    = 1.2.3.4.5.7
+
+[ tsa ]
+default_tsa                    = tsa_config1
+
+[ tsa_config1 ]
+dir                            = ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}
+accuracy                       = secs:1, millisecs:500, microsecs:100
+certs                          = \$dir/cacert.pem
+clock_precision_digits         = 0
+crypto_device                  = builtin
+default_policy                 = tsa_policy1
+digests                        = sha1, sha256, sha384, sha512
+ess_cert_id_chain              = no
+ordering                       = yes
+other_policies                 = tsa_policy2, tsa_policy3
+serial                         = \$dir/tsaserial
+signer_cert                    = \$dir/tsacert.pem
+signer_digest                  = sha256
+signer_key                     = \$dir/private/tsakey.pem
+tsa_name                       = yes
+EOF
+
+# Generate new intermediate CA key
+sudo openssl genrsa \
+  -aes256 \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
   -passout pass:${CA_PASSWORD} \
-  -sha256 \
-  -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_INTERMEDIATE_CA_NAME}\" \
-  -subject \
-  -text"
+  4096
 
-yes | sudo openssl ca \
-  -cert ${SSL_CA_DIR}/certs/ca.crt \
-  -config ${SSL_CA_DIR}/openssl.cnf \
+# Generate new intermediate CA request
+sudo -E openssl req \
+  -batch \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -key ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
+  -new \
+  -nodes \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.csr \
+  -passin pass:${CA_PASSWORD} \
+  -sha256 \
+  -subj "/C=${SSL_COUNTRY_NAME}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_INTERMEDIATE_CA_ONE_COMMON_NAME}" \
+  -subject \
+  -text \
+  -utf8
+
+# Copy intermediate CA certificate request to root CA
+sudo cp ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.csr \
+  ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/reqs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.csr
+
+# Generate new intermediate CA certifiate
+sudo openssl ca \
+  -batch \
+  -cert ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_ROOT_CA_STRICT_NAME}.crt \
+  -config ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/openssl.cnf \
   -days 3650 \
-  -extensions v3_ca \
-  -in ${SSL_CA_DIR}/reqs/intermediate.csr \
-  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -extensions v3_intermediate_ca \
+  -in ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/reqs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.csr \
+  -keyfile ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/private/${SSL_ROOT_CA_STRICT_NAME}.key \
   -keyform PEM \
-  -out ${SSL_CA_DIR}/certs/intermediate.crt \
+  -out ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+  -passin pass:${CA_PASSWORD} \
+  -policy policy_anything
+
+# Copy intermediate CA certificate to intermediate CA
+sudo cp ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+  ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt
+
+# Generate new OCSP key
+sudo openssl genrsa \
+  -aes256 \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.key \
+  -passout pass:${CA_PASSWORD} \
+  4096
+
+# Generate OCSP certificate request
+sudo openssl req \
+  -batch \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -key ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.key \
+  -new \
+  -nodes \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.csr \
+  -passin pass:${CA_PASSWORD} \
+  -sha256 \
+  -subj "/C=${SSL_COUNTRY_NAME}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_INTERMEDIATE_OCSP_ONE_FQDN}" \
+  -subject \
+  -text \
+  -utf8
+
+# Generate OCSP certifiate
+sudo openssl ca \
+  -batch \
+  -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -days 375 \
+  -extensions ocsp \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.csr \
+  -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
+  -keyform PEM \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt \
+  -md sha256 \
   -passin pass:${CA_PASSWORD}
 
 # Generate controller node key, and certifiate
 sudo su -c "openssl req \
-  -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
+  -batch \
+  -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
     printf \"[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}\") \
-  -keyout ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
+  -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
   -new \
   -newkey rsa:2048 \
   -nodes \
-  -out ${SSL_CA_DIR}/reqs/${CONTROLLER_FQDN}.csr \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${CONTROLLER_FQDN}.csr \
   -reqexts SAN \
   -sha256 \
   -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${CONTROLLER_FQDN}\" \
   -subject \
-  -text"
+  -utf8"
 
-yes | sudo openssl ca \
-  -cert ${SSL_CA_DIR}/certs/intermediate.crt \
-  -config ${SSL_CA_DIR}/openssl.cnf \
+sudo openssl ca \
+  -batch \
+  -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
   -days 365 \
-  -in ${SSL_CA_DIR}/reqs/${CONTROLLER_FQDN}.csr \
-  -keyfile ${SSL_CA_DIR}/private/intermediate.key \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${CONTROLLER_FQDN}.csr \
+  -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
   -keyform PEM \
-  -out ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
   -passin pass:${CA_PASSWORD}
 
 # sudo openssl ca \
-#   -config ${SSL_CA_DIR}/openssl.cnf \
-#   -revoke ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
+#   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+#   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt \
 #   -passin "pass:${CA_PASSWORD}"
 
+# DON'T RUN IF CONTROLLER IS COMPUTE NODE
 # Generate compute node key, and certifiate
 sudo su -c "openssl req \
-  -config <(cat ${SSL_CA_DIR}/openssl.cnf; \
+  -aes256 \
+  -batch \
+  -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
     printf \"[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}\") \
-  -keyout ${SSL_CA_DIR}/private/${COMPUTE_FQDN}.key \
+  -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${COMPUTE_FQDN}.key \
   -new \
   -newkey rsa:2048 \
   -nodes \
-  -out ${SSL_CA_DIR}/reqs/${COMPUTE_FQDN}.csr \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${COMPUTE_FQDN}.csr \
   -reqexts SAN \
   -sha256 \
   -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${COMPUTE_FQDN}\" \
-  -subject \
-  -text"
+  -subject"
 
-yes | sudo openssl ca \
-  -cert ${SSL_CA_DIR}/certs/intermediate.crt \
-  -config ${SSL_CA_DIR}/openssl.cnf \
+sudo openssl ca \
+  -batch \
+  -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
   -days 365 \
-  -in ${SSL_CA_DIR}/reqs/${COMPUTE_FQDN}.csr \
-  -keyfile ${SSL_CA_DIR}/private/intermediate.key \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${COMPUTE_FQDN}.csr \
+  -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
   -keyform PEM \
-  -out ${SSL_CA_DIR}/certs/${COMPUTE_FQDN}.crt \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${COMPUTE_FQDN}.crt \
   -passin "pass:${CA_PASSWORD}"
 
 # Generate new CRL
-yes | sudo openssl ca \
+sudo openssl ca \
+  -batch \
   -gencrl \
-  -config ${SSL_CA_DIR}/openssl.cnf \
-  -keyfile ${SSL_CA_DIR}/private/ca.key \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
   -keyform PEM \
-  -out ${SSL_CA_DIR}/ca.crl \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/ca.crl \
   -passin pass:${CA_PASSWORD}
 
 # Copy certificate, and key to OS keystore
-sudo cp -f \
-  ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
-  /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-sudo cp -f \
-  ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
-  /etc/ssl/private/${CONTROLLER_FQDN}.key
+sudo openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
+  -out /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+sudo openssl rsa \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
+  -out /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 # Ensure that the ssl-cert group owns the keypair
 sudo su -c "chown root:ssl-cert \
@@ -408,12 +673,12 @@ sudo su -c "chmod 640 /etc/ssl/private/*.key"
 sudo usermod -a -G ssl-cert www-data
 
 # Add CA certifiate to OS trust store
-sudo cp -f \
-  ${SSL_CA_DIR}/certs/ca.crt \
-  /usr/local/share/ca-certificates/${SSL_CA_NAME}.crt
-sudo cp -f \
-  ${SSL_CA_DIR}/certs/intermediate.crt \
-  /usr/local/share/ca-certificates/${SSL_INTERMEDIATE_CA_NAME}.crt
+sudo openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_ROOT_CA_STRICT_NAME}.crt \
+  -out /usr/local/share/ca-certificates/${SSL_ROOT_CA_STRICT_NAME}.crt
+sudo openssl x509 \
+  -in  ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+  -out /usr/local/share/ca-certificates/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt
 
 # Update OS truststore
 sudo update-ca-certificates \
@@ -421,21 +686,43 @@ sudo update-ca-certificates \
   --fresh
 
 # Create CA chain
-cat \
-  ${SSL_CA_DIR}/certs/intermediate.crt \
-  ${SSL_CA_DIR}/certs/ca.crt \
-| sudo tee ${SSL_CA_DIR}/certs/ca-chain.crt
+openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+| sudo tee ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt
+openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_ROOT_CA_STRICT_NAME}.crt \
+| sudo tee -a ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt
+
+# Test OCSP
+echo ${CA_PASSWORD}
+sudo openssl ocsp \
+  -index ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/index.txt \
+  -port 2560 \
+  -rsigner ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt \
+  -rkey ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.key \
+  -CA ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt \
+  -text \
+  -nrequest 1 \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.log
+
+# Test in another terminal
+sudo openssl ocsp \
+  -CAfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt \
+  -url http://127.0.0.1:2560 \
+  -resp_text \
+  -issuer ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt \
+  -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt
 
 # Convert PKCS#12 database with the controller keypair
 sudo openssl pkcs12 \
-  -caname "${SSL_INTERMEDIATE_CA_NAME}" \
-  -caname "${SSL_CA_NAME}" \
-  -certfile ${SSL_CA_DIR}/certs/ca-chain.crt \
+  -caname "${SSL_INTERMEDIATE_CA_ONE_COMMON_NAME}" \
+  -caname "${SSL_ROOT_CA_COMMON_NAME}" \
+  -certfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt \
   -export \
-  -in ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.crt \
-  -inkey ${SSL_CA_DIR}/private/${CONTROLLER_FQDN}.key \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
+  -inkey ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
   -name ${CONTROLLER_FQDN} \
-  -out ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.p12 \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.p12 \
   -passout "pass:${CONTROLLER_KEYSTORE_PASS}"
 
 ##############################################################################
