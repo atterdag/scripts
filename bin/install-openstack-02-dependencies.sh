@@ -782,11 +782,10 @@ ConfigDirectoryLdapURL=ldap://${CONTROLLER_FQDN}:389/o=NetscapeRoot
 SlapdConfigForMC=Yes
 UseExistingMC=0
 ServerPort=389
-ServerIdentifier=dir
+ServerIdentifier=default
 Suffix=${DS_SUFFIX}
 RootDN=cn=Directory Manager
 RootDNPwd=${DS_ROOT_PASS}
-ds_bename=DB1
 AddSampleEntries=Yes
 
 [admin]
@@ -801,29 +800,28 @@ sudo setup-ds-admin \
 
 sudo certutil \
   -A \
-  -d /etc/dirsrv/slapd-dir/ \
-  -n "${SSL_CA_NAME}" \
+  -d /etc/dirsrv/slapd-default/ \
+  -n "${SSL_ROOT_CA_COMMON_NAME}" \
   -t "C,," \
-  -i /usr/local/share/ca-certificates/${SSL_CA_NAME}.crt
+  -i /usr/local/share/ca-certificates/${SSL_ROOT_CA_STRICT_NAME}.crt
 sudo certutil \
   -A \
-  -d /etc/dirsrv/slapd-dir/ \
-  -n "${SSL_INTERMEDIATE_CA_NAME}" \
+  -d /etc/dirsrv/slapd-default/ \
+  -n "${SSL_INTERMEDIATE_CA_ONE_COMMON_NAME}" \
   -t "C,," \
-  -i /usr/local/share/ca-certificates/${SSL_INTERMEDIATE_CA_NAME}.crt
+  -i /usr/local/share/ca-certificates/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt
 sudo pk12util \
-  -i ${SSL_CA_DIR}/certs/${CONTROLLER_FQDN}.p12 \
-  -d /etc/dirsrv/slapd-dir/ \
+  -i ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.p12 \
+  -d /etc/dirsrv/slapd-default/ \
   -n ${CONTROLLER_FQDN} \
   -K ${CONTROLLER_KEYSTORE_PASS} \
   -W ${CONTROLLER_KEYSTORE_PASS}
-
 sudo certutil \
-  -d /etc/dirsrv/slapd-dir/ \
+  -d /etc/dirsrv/slapd-default/ \
   -L
 
 echo "Internal (Software) Token:${CONTROLLER_KEYSTORE_PASS}" \
-| sudo tee /etc/dirsrv/slapd-dir/pin.txt
+| sudo tee /etc/dirsrv/slapd-default/pin.txt
 
 cat << EOF | sudo tee /var/lib/openstack/389-ds-enable-security.ldif
 dn: cn=config
@@ -880,7 +878,8 @@ sudo ldapmodify \
   -x \
   -f /var/lib/openstack/389-ds-add-rsa.ldif
 
-sudo systemctl restart dirsrv@dir.service
+sudo systemctl enable dirsrv@default.service
+sudo systemctl restart dirsrv@default.service
 
 # Check encryption configuration
 ldapsearch \
@@ -891,10 +890,12 @@ ldapsearch \
   -b 'cn=encryption,cn=config' \
   -x
 
-cat << EOT | sudo tee -a /etc/dirsrv/admin-serv/adm.conf
-sslVersionMin: TLS1.1
-sslVersionMax: TLS1.2
-EOT
+if ! sudo grep "sslVersionMin: TLS1.1" /etc/dirsrv/admin-serv/adm.conf > /dev/null; then
+  echo "sslVersionMin: TLS1.1" | sudo tee -a /etc/dirsrv/admin-serv/adm.conf
+fi
+if ! sudo grep "sslVersionMax: TLS1.2" /etc/dirsrv/admin-serv/adm.conf > /dev/null; then
+  echo "sslVersionMax: TLS1.2" | sudo tee -a /etc/dirsrv/admin-serv/adm.conf
+fi
 
 ##############################################################################
 # Install DogTag
