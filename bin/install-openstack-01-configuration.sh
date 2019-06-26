@@ -81,6 +81,7 @@ export SSL_COUNTRY_NAME='SE'
 export SSL_STATE='Scania'
 export SSL_ORGANIZATION_NAME='Lemche.NET'
 export SSL_ORGANIZATIONAL_UNIT_NAME='Security Operation Center'
+export SSL_PKI_INSTANCE_NAME='pki-tomcat'
 
 # Calculated values
 export CONTROLLER_FQDN="jack.\${DNS_DOMAIN}"
