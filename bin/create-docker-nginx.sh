@@ -120,7 +120,7 @@ $HOSTNAME:
     - 192.168.1.42:80:80
     - 192.168.1.42:443:443
   restart: unless-stopped
-  volume:
+  volumes:
     - /var/lib/$HOSTNAME/conf.d:/etc/nginx/conf.d
     - /var/lib/$HOSTNAME/ssl:/etc/nginx/ssl
     - /var/lib/$HOSTNAME/logs:/var/log/nginx
