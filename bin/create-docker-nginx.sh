@@ -47,7 +47,7 @@ if [ ! -d /var/lib/$HOSTNAME/logs ]; then
 fi
 echo '***'
 
-cat > /var/lib/$HOSTNAME/conf.d/ssl.conf << EOF
+cat << EOF | sudo tee /var/lib/$HOSTNAME/conf.d/ssl.conf
 # SSL
 ssl_session_timeout 1d;
 ssl_session_cache shared:SSL:50m;
@@ -66,7 +66,7 @@ resolver_timeout 2s;
 EOF
 echo '***'
 
-cat > /var/lib/$HOSTNAME/conf.d/awx.se.lemche.net.conf << EOF
+cat << EOF | sudo tee /var/lib/$HOSTNAME/conf.d/awx.se.lemche.net.conf
 server {
   listen 80;
 	listen [::]:80;
@@ -97,15 +97,15 @@ echo '***'
 
 echo '***'
 echo -n '*** ensure that /var/lib/'$HOSTNAME'/ is readable for nginx user in container'
-cp /var/lib/ssl/Lemche.NET-CA/certs/${HOSTNAME}.se.lemche.net.crt /var/lib/$HOSTNAME/ssl
-cp /var/lib/ssl/Lemche.NET-CA/private/${HOSTNAME}.se.lemche.net.key /var/lib/$HOSTNAME/ssl
-cp /etc/ssl/certs/ca-certificates.crt /var/lib/$HOSTNAME/ssl
+sudo cp /etc/ssl/certs/${HOSTNAME}.se.lemche.net.crt /var/lib/$HOSTNAME/ssl
+sudo cp /etc/ssl/private/${HOSTNAME}.se.lemche.net.key /var/lib/$HOSTNAME/ssl
+sudo cp /etc/ssl/certs/ca-certificates.crt /var/lib/$HOSTNAME/ssl
 echo '***'
 
 echo '***'
 echo -n '*** ensure that /var/lib/'$HOSTNAME'/ is readable for nginx user in container'
-chmod -R 0755 /var/lib/$HOSTNAME
-chown -R 101:101 /var/lib/$HOSTNAME
+sudo chmod -R 0755 /var/lib/$HOSTNAME
+sudo chown -R 101:101 /var/lib/$HOSTNAME
 echo '***'
 
 echo '***'
