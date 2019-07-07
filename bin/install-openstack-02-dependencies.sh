@@ -236,8 +236,8 @@ authorityInfoAccess            = OCSP;URI:${SSL_BASE_URL}
 subjectKeyIdentifier           = hash
 authorityKeyIdentifier         = keyid, issuer:always
 basicConstraints               = CA:FALSE
-keyUsage                       = critical, nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage               = clientAuth, emailProtection
+keyUsage                       = critical, digitalSignature, keyEncipherment
+extendedKeyUsage               = serverAuth
 nsCertType                     = server
 nsComment                      = "OpenSSL Generated Server Certificate"
 crlDistributionPoints          = @crl_distpoints
@@ -455,8 +455,8 @@ authorityInfoAccess            = OCSP;URI:${SSL_BASE_URL}
 subjectKeyIdentifier           = hash
 authorityKeyIdentifier         = keyid, issuer:always
 basicConstraints               = CA:FALSE
-keyUsage                       = critical, nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage               = clientAuth, emailProtection
+keyUsage                       = critical, digitalSignature, keyEncipherment
+extendedKeyUsage               = serverAuth
 nsCertType                     = server
 nsComment                      = "OpenSSL Generated Server Certificate"
 crlDistributionPoints          = @crl_distpoints
@@ -603,6 +603,7 @@ sudo openssl ca \
   -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
   -days 365 \
+  -extensions server_cert \
   -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${CONTROLLER_FQDN}.csr \
   -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
   -keyform PEM \
@@ -644,6 +645,7 @@ sudo openssl ca \
   -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
   -days 365 \
+  -extensions server_cert \
   -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/${COMPUTE_FQDN}.csr \
   -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
   -keyform PEM \
@@ -679,6 +681,7 @@ sudo openssl ca \
   -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
   -days 365 \
+  -extensions server_cert \
   -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/alm.se.lemche.net.csr \
   -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
   -keyform PEM \
