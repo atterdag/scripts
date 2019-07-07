@@ -773,6 +773,9 @@ sudo openssl pkcs12 \
 ##############################################################################
 sudo apt-get --yes install apache2
 
+sudo sed -i "s|Listen\s80|Listen ${CONTROLLER_IP_ADDRESS}:80|" /etc/apache2/ports.conf
+sudo sed -i "s|Listen\s443|Listen ${CONTROLLER_IP_ADDRESS}:443|g" /etc/apache2/ports.conf
+
 sudo sed -i 's|^ServerTokens|#ServerTokens|' /etc/apache2/conf-available/security.conf
 sudo sed -i 's|^#ServerTokens Minimal|ServerTokens Minimal|' /etc/apache2/conf-available/security.conf
 sudo sed -i 's|^ServerSignature|#ServerSignature|' /etc/apache2/conf-available/security.conf
