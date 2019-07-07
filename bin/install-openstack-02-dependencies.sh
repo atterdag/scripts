@@ -583,6 +583,11 @@ sudo openssl ca \
   -passin pass:${CA_PASSWORD}
 
 # Generate controller node key, and certifiate
+sudo openssl ca \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
+  -passin "pass:${CA_PASSWORD}"
+
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
@@ -618,13 +623,13 @@ sudo openssl rsa \
   -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
   -out /etc/ssl/private/${CONTROLLER_FQDN}.key
 
-# sudo openssl ca \
-#   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
-#   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt \
-#   -passin "pass:${CA_PASSWORD}"
-
 # DON'T RUN IF CONTROLLER IS COMPUTE NODE
 # Generate compute node key, and certifiate
+sudo openssl ca \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${COMPUTE_FQDN}.crt \
+  -passin "pass:${CA_PASSWORD}"
+
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
@@ -661,6 +666,11 @@ sudo openssl rsa \
   -out /etc/ssl/private/${COMPUTE_FQDN}.key
 
 # Generate ALM key, and certifiate
+sudo openssl ca \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/alm.se.lemche.net.crt \
+  -passin "pass:${CA_PASSWORD}"
+
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
