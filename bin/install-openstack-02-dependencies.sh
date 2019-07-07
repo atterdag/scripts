@@ -706,6 +706,46 @@ sudo openssl rsa \
   -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/alm.se.lemche.net.key \
   -out /etc/ssl/private/alm.se.lemche.net.key
 
+# Generate registry key, and certifiate
+sudo openssl ca \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/registry.se.lemche.net.crt \
+  -passin "pass:${CA_PASSWORD}"
+
+sudo su -c "openssl req \
+  -batch \
+  -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
+    printf \"[SAN]\nsubjectAltName=DNS:registry.se.lemche.net\") \
+  -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/registry.se.lemche.net.key \
+  -new \
+  -newkey rsa:4096 \
+  -nodes \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/registry.se.lemche.net.csr \
+  -reqexts SAN \
+  -sha256 \
+  -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=registry.se.lemche.net\" \
+  -subject \
+  -utf8"
+
+sudo openssl ca \
+  -batch \
+  -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -days 365 \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/registry.se.lemche.net.csr \
+  -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
+  -keyform PEM \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/registry.se.lemche.net.crt \
+  -passin "pass:${CA_PASSWORD}"
+
+# Copy registry certificate, and key to OS keystore
+sudo openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/registry.se.lemche.net.crt \
+  -out /etc/ssl/certs/registry.se.lemche.net.crt
+sudo openssl rsa \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/registry.se.lemche.net.key \
+  -out /etc/ssl/private/registry.se.lemche.net.key
+
 # Generate new CRL
 sudo openssl ca \
   -batch \
