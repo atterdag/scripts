@@ -625,7 +625,6 @@ sudo openssl rsa \
 # DON'T RUN IF CONTROLLER IS COMPUTE NODE
 # Generate compute node key, and certifiate
 sudo su -c "openssl req \
-  -aes256 \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
     printf \"[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}\") \
@@ -637,7 +636,8 @@ sudo su -c "openssl req \
   -reqexts SAN \
   -sha256 \
   -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${COMPUTE_FQDN}\" \
-  -subject"
+  -subject \
+  -utf8"
 
 sudo openssl ca \
   -batch \
@@ -648,7 +648,50 @@ sudo openssl ca \
   -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
   -keyform PEM \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${COMPUTE_FQDN}.crt \
+  -passin pass:${CA_PASSWORD}
+
+# Copy compute certificate, and key to OS keystore
+sudo openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${COMPUTE_FQDN}.crt \
+  -out /etc/ssl/certs/${COMPUTE_FQDN}.crt
+sudo openssl rsa \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${COMPUTE_FQDN}.key \
+  -out /etc/ssl/private/${COMPUTE_FQDN}.key
+
+# Generate ALM key, and certifiate
+sudo su -c "openssl req \
+  -batch \
+  -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
+    printf \"[SAN]\nsubjectAltName=DNS:alm.se.lemche.net,DNS:joxit.se.lemche.net,DNS:registry.se.lemche.net,DNS:gogs.se.lemche.net,DNS:awx.se.lemche.net\") \
+  -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/alm.se.lemche.net.key \
+  -new \
+  -newkey rsa:2048 \
+  -nodes \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/alm.se.lemche.net.csr \
+  -reqexts SAN \
+  -sha256 \
+  -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=alm.se.lemche.net\" \
+  -subject \
+  -utf8"
+
+sudo openssl ca \
+  -batch \
+  -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt \
+  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+  -days 365 \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/reqs/alm.se.lemche.net.csr \
+  -keyfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
+  -keyform PEM \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/alm.se.lemche.net.crt \
   -passin "pass:${CA_PASSWORD}"
+
+# Copy ALM certificate, and key to OS keystore
+sudo openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/alm.se.lemche.net.crt \
+  -out /etc/ssl/certs/alm.se.lemche.net.crt
+sudo openssl rsa \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/alm.se.lemche.net.key \
+  -out /etc/ssl/private/alm.se.lemche.net.key
 
 # Generate new CRL
 sudo openssl ca \
