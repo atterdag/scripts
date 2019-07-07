@@ -586,7 +586,7 @@ sudo openssl ca \
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
-    printf \"[SAN]\nsubjectAltName=DNS:${COMPUTE_FQDN}\") \
+    printf \"[SAN]\nsubjectAltName=DNS:${CONTROLLER_FQDN}\") \
   -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
   -new \
   -newkey rsa:2048 \
