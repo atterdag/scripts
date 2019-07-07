@@ -1,14 +1,26 @@
 #!/bin/sh
 
 echo '***'
-echo '*** install software required to run ansible, molecule, docker-compose  etc'
+echo '*** install software required to run ansible, molecule, docker-compose etc'
 echo '***'
 sudo apt-get install -y \
   bash-completion \
+  gcc \
+  git \
   python-dev \
   python-virtualenv \
-  gcc \
-  git
+  virtualenv-clone \
+  virtualenvwrapper
+
+echo '***'
+echo '*** setup virtualenvwrapper'
+echo '***'
+mkdir $HOME/.virtualenvs
+cat >> $HOME/.bashrc << EOT
+export WORKON_HOME=$HOME/.virtualenvs
+source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+EOT
+source ~/.bashrc
 
 echo '***'
 echo '*** Configure pip'
@@ -22,10 +34,10 @@ EOF
 echo '***'
 echo '*** add Python virtualenv environment'
 echo '***'
-virtualenv ~/venv/ansible
-~/venv/ansible/bin/pip install -U \
-  ansible-tower-cli \
+mkvirtualenv ansible
+pip install -U \
   ansible \
+  ansible-tower-cli \
   docker \
   docker-compose \
   jmespath \
@@ -54,7 +66,6 @@ source ~/.bash_completion
 echo '***'
 echo '*** testing'
 echo '***'
-source ~/venv/ansible/bin/activate
 mkdir ~/src
 cd ~/src
 molecule init role --role-name hello
@@ -94,3 +105,8 @@ echo '***'
 echo '*** clean up'
 echo '***'
 rm -fr ~/src/hello
+
+echo '***'
+echo '*** load virtualenv when logging in again'
+echo '***'
+workon ansible
