@@ -609,6 +609,14 @@ sudo openssl ca \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
   -passin pass:${CA_PASSWORD}
 
+# Copy controller certificate, and key to OS keystore
+sudo openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
+  -out /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+sudo openssl rsa \
+  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
+  -out /etc/ssl/private/${CONTROLLER_FQDN}.key
+
 # sudo openssl ca \
 #   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
 #   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt \
@@ -651,14 +659,6 @@ sudo openssl ca \
   -keyform PEM \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/ca.crl \
   -passin pass:${CA_PASSWORD}
-
-# Copy certificate, and key to OS keystore
-sudo openssl x509 \
-  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
-  -out /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-sudo openssl rsa \
-  -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
-  -out /etc/ssl/private/${CONTROLLER_FQDN}.key
 
 # Ensure that the ssl-cert group owns the keypair
 sudo su -c "chown root:ssl-cert \
