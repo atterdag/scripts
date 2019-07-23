@@ -765,9 +765,6 @@ sudo su -c "chown root:ssl-cert \
 sudo chmod 644 /etc/ssl/certs/*.crt
 sudo su -c "chmod 640 /etc/ssl/private/*.key"
 
-# Make the apache runtime user a member of ssl-cert
-sudo usermod -a -G ssl-cert www-data
-
 # Add CA certifiate to OS trust store
 sudo openssl x509 \
   -in ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_ROOT_CA_STRICT_NAME}.crt \
@@ -880,6 +877,9 @@ sudo sed -i "s|SSLCertificateFile\s*/etc/ssl/certs/ssl-cert-snakeoil.pem|SSLCert
 sudo sed -i "s|SSLCertificateKeyFile\s*/etc/ssl/private/ssl-cert-snakeoil.key|SSLCertificateKeyFile /etc/ssl/private/${CONTROLLER_FQDN}.key|g" /etc/apache2/sites-available/default-ssl.conf
 #" Atom Unix shell botches the interpretation of the sed command, and misses the closing double qoute
 sudo a2ensite default-ssl.conf
+
+# Make the apache runtime user a member of ssl-cert
+sudo usermod -a -G ssl-cert www-data
 
 sudo apachectl configtest
 sudo systemctl restart apache2
