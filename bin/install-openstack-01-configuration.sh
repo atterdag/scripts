@@ -268,38 +268,44 @@ export VAULT_LOCAL_PASS=$(vault kv get -field=value secret/VAULT_LOCAL_PASS)
 ##############################################################################
 cat << EOF | sudo tee /var/lib/openstack/os_environment.env
 # Specified values
-export DNS_DOMAIN='se.lemche.net'
-export CONTROLLER_IP_ADDRESS='192.168.1.30'
+export COMPUTE_HOST_NAME='jack'
 export COMPUTE_IP_ADDRESS='192.168.1.30'
-export LVM_PREMIUM_PV_DEVICE='sde'
-export LVM_STANDARD_PV_DEVICE='sdb'
+export CONTROLLER_HOST_NAME='jack'
+export CONTROLLER_IP_ADDRESS='192.168.1.30'
+export DNS_DOMAIN='se.lemche.net'
+export LVM_PREMIUM_PV_DEVICE='sdb'
+export LVM_STANDARD_PV_DEVICE='sde'
 export NETWORK_CIDR='192.168.1.0/24'
 export NETWORK_INTERFACE='eno1'
 export SIMPLE_CRYPTO_CA='OpenStack'
-export SSL_ROOT_CA_COMMON_NAME='Lemche.NET Root CA'
+export SSL_COUNTRY_NAME='SE'
+export SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME='Lemche.NET Intermediate AUDIT 2'
 export SSL_INTERMEDIATE_CA_ONE_COMMON_NAME='Lemche.NET Intermediate CA 1'
 export SSL_INTERMEDIATE_CA_TWO_COMMON_NAME='Lemche.NET Intermediate CA 2'
-export SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME='Lemche.NET Intermediate AUDIT 2'
-export SSL_COUNTRY_NAME='SE'
-export SSL_STATE='Scania'
+export SSL_INTERMEDIATE_OCSP_ONE_HOSTNAME='ocsp1'
+export SSL_INTERMEDIATE_OCSP_TWO_HOSTNAME='ocsp2'
 export SSL_ORGANIZATION_NAME='Lemche.NET'
 export SSL_ORGANIZATIONAL_UNIT_NAME='Security Operation Center'
 export SSL_PKI_INSTANCE_NAME='pki-tomcat'
+export SSL_ROOT_CA_COMMON_NAME='Lemche.NET Root CA'
+export SSL_ROOT_CA_EMAIL_USER='ca'
+export SSL_ROOT_CA_HOST_NAME='ca'
+export SSL_STATE='Scania'
 
 # Calculated values
-export CONTROLLER_FQDN="jack.\${DNS_DOMAIN}"
-export COMPUTE_FQDN="jack.\${DNS_DOMAIN}"
+export COMPUTE_FQDN="\${COMPUTE_HOST_NAME}.\${DNS_DOMAIN}"
+export CONTROLLER_FQDN="\${CONTROLLER_HOST_NAME}.\${DNS_DOMAIN}"
 export DNS_REVERSE_DOMAIN=\$(echo \${CONTROLLER_IP_ADDRESS} | awk -F'.' '{print \$3"."\$2"."\$1}').in-addr.arpa
 export DS_SUFFIX='dc='\$(echo \${DNS_DOMAIN} | sed 's|\.|,dc=|g')
-export SSL_BASE_URL="http://ca.\${DNS_DOMAIN}"
 export SSL_BASE_DIR="/var/lib/ssl/\${SSL_ORGANIZATION_NAME}"
-export SSL_CA_EMAIL="ca@${DNS_DOMAIN}"
-export SSL_ROOT_CA_STRICT_NAME=\$(echo \${SSL_ROOT_CA_COMMON_NAME} | sed 's/\s/_/g')
+export SSL_BASE_URL="http://\${SSL_ROOT_CA_HOST_NAME}.\${DNS_DOMAIN}"
+export SSL_CA_EMAIL="\${SSL_ROOT_CA_EMAIL_USER}@${DNS_DOMAIN}"
+export SSL_INTERMEDIATE_AUDIT_TWO_STRICT_NAME=\$(echo \${SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME} | sed 's/\s/_/g')
 export SSL_INTERMEDIATE_CA_ONE_STRICT_NAME=\$(echo \${SSL_INTERMEDIATE_CA_ONE_COMMON_NAME} | sed 's/\s/_/g')
 export SSL_INTERMEDIATE_CA_TWO_STRICT_NAME=\$(echo \${SSL_INTERMEDIATE_CA_TWO_COMMON_NAME} | sed 's/\s/_/g')
-export SSL_INTERMEDIATE_OCSP_ONE_FQDN="ocsp.\${DNS_DOMAIN}"
-export SSL_INTERMEDIATE_OCSP_TWO_FQDN="jack.\${DNS_DOMAIN}"
-export SSL_INTERMEDIATE_AUDIT_TWO_STRICT_NAME=\$(echo \${SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME} | sed 's/\s/_/g')
+export SSL_INTERMEDIATE_OCSP_ONE_FQDN="\${SSL_INTERMEDIATE_OCSP_ONE_HOSTNAME}.\${DNS_DOMAIN}"
+export SSL_INTERMEDIATE_OCSP_TWO_FQDN="\${SSL_INTERMEDIATE_OCSP_TWO_HOSTNAME}.\${DNS_DOMAIN}"
+export SSL_ROOT_CA_STRICT_NAME=\$(echo \${SSL_ROOT_CA_COMMON_NAME} | sed 's/\s/_/g')
 EOF
 source <(sudo cat /var/lib/openstack/os_environment.env)
 

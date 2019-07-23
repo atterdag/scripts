@@ -1041,6 +1041,8 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install \
   liboscache-java \
   libstax-java
 
+sudo rm -fr /root/.dogtag
+
 cat << EOF | sudo tee /var/lib/openstack/dogtag-step1.cfg
 [DEFAULT]
 pki_admin_password = ${PKI_ADMIN_PASSWORD}
@@ -1272,7 +1274,7 @@ pki_ds_secure_connection_ca_pem_file = /usr/local/share/ca-certificates/${SSL_RO
 pki_ds_secure_connection = True
 pki_http_port = 8080
 pki_https_port = 8443
-pki_instance_name = pki-tomcat
+pki_instance_name = ${SSL_PKI_INSTANCE_NAME}
 pki_replication_password = ${PKI_REPLICATION_PASSWORD}
 pki_security_domain_hostname = ${CONTROLLER_FQDN}
 pki_security_domain_name = ${SSL_ORGANIZATION_NAME}
@@ -1286,7 +1288,7 @@ pki_ajp_port = 8009
 pki_tomcat_server_port = 8005
 
 [KRA]
-pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
+pki_admin_cert_file=/root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca_admin.cert
 pki_admin_email=kraadmin@${DNS_DOMAIN}
 pki_admin_name=kraadmin
 pki_admin_nickname=PKI KRA Administrator
@@ -1295,7 +1297,9 @@ pki_client_database_purge=False
 pki_ds_base_dn=dc=kra,dc=pki,${DS_SUFFIX}
 pki_ds_database=kra
 EOF
-sudo pkispawn -s KRA -f /var/lib/openstack/dogtag-kra.cfg
+sudo pkispawn \
+  -s KRA \
+  -f /var/lib/openstack/dogtag-kra.cfg
 
 ##############################################################################
 # Install rng-tools to improve the quality (entropy) of the randomness
