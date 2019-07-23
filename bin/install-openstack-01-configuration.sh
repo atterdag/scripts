@@ -1,11 +1,9 @@
 #!/bin/sh
 
 ##############################################################################
-# Create directory to store openstack files
+# Ensure you can sudo to root
 ##############################################################################
-sudo mkdir -p /var/lib/openstack/
-sudo chown root:root /var/lib/openstack/
-sudo chmod 0700 /var/lib/openstack/
+sudo -i id
 
 ##############################################################################
 # Create function to generate passwords
@@ -15,6 +13,12 @@ genpasswd() {
        	[ "$l" == "" ] && l=16
       	tr -dc A-Za-z0-9_ < /dev/urandom | head -c ${l} | xargs
 }
+##############################################################################
+# Create directory to store openstack files
+##############################################################################
+sudo mkdir -p /var/lib/openstack/
+sudo chown root:root /var/lib/openstack/
+sudo chmod 0700 /var/lib/openstack/
 
 ##############################################################################
 # Install HashiCorp Vault on Controller node, so we can store secrets securely
