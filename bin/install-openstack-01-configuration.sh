@@ -57,7 +57,34 @@ sudo setcap cap_ipc_lock=+ep /usr/local/bin/vault
 sudo useradd \
   --system \
   --home /etc/vault.d \
-  --shell /bin/false vault
+  --shell /bin/false \
+  vault
+
+# Configure Vault
+sudo mkdir \
+  --parents \
+  /etc/vault.d \
+  /var/lib/vault/data
+
+cat << EOF | sudo tee /etc/vault.d/vault.hcl
+listener "tcp" {
+  # Until we have a PKI we have to start vault without HTTPS
+  tls_disable   = "true"
+  # But we'll only listen to localhost
+  address       = "127.0.0.1:8200"
+}
+
+storage "file" {
+  path = "/var/lib/vault/data"
+}
+
+api_addr = "https://127.0.0.1:8200"
+cluster_addr = "https://127.0.0.1:8201"
+ui = true
+EOF
+sudo chown --recursive vault:vault /etc/vault.d /var/lib/vault
+sudo chmod 0640 /etc/vault.d/vault.hcl
+sudo chmod 0750 /var/lib/vault
 
 # Create systemd service
 cat << EOF | sudo tee /etc/systemd/system/vault.service
@@ -95,33 +122,6 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 EOF
 
-# Configure Vault
-sudo mkdir \
-  --parents \
-  /etc/vault.d \
-  /var/lib/vault/data
-
-cat << EOF | sudo tee /etc/vault.d/vault.hcl
-listener "tcp" {
-  # Until we have a PKI we have to start vault without HTTPS
-  tls_disable   = "true"
-  # But we'll only listen to localhost
-  address       = "127.0.0.1:8200"
-}
-
-storage "file" {
-  path = "/var/lib/vault/data"
-}
-
-api_addr = "https://127.0.0.1:8200"
-cluster_addr = "https://127.0.0.1:8201"
-ui = true
-EOF
-sudo chown --recursive vault:vault /etc/vault.d
-sudo chmod 640 /etc/vault.d/vault.hcl
-sudo chown -R vault:vault /var/lib/vault
-sudo chmod -R 0750 /var/lib/vault
-
 # Enable systemd service, and start it
 sudo systemctl enable vault
 sudo systemctl start vault
@@ -133,7 +133,7 @@ export VAULT_ADDR='http://127.0.0.1:8200'
 # Initialize Vault - Obviously its a bad idea to store the keys, and tokens
 # on the same server as HashiCorp Vault. So please ensure to split up the keys
 # in /var/lib/openstack/vault_keys.txt, and move them to seperate locations.
-# As putting the root token in a secure location ... and delete
+# As putting the root token in a secure location ... and delete of course
 # /var/lib/openstack/vault_keys.txt.
 vault operator init \
 | sudo tee /var/lib/openstack/vault_keys.txt
@@ -312,9 +312,10 @@ source <(sudo cat /var/lib/openstack/os_environment.env)
 ##############################################################################
 # Setting up compute node
 ##############################################################################
-# Copy env files to compute node
 export VAULT_ADDR="http://${CONTROLLER_FQDN}:8200"
 export VAULT_LOCAL_PASS=<get it from controller>
 vault login -method=userpass username=local password=$VAULT_LOCAL_PASS
-# Run export commands in "Set OS password variables"
+# !!! Run export commands in "Set OS password variables"
+
+# Copy os_environment.env file to compute node
 source <(sudo cat /var/lib/openstack/os_environment.env)
