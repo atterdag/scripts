@@ -99,6 +99,7 @@ sudo apt-get install --yes --quiet \
   openssl \
   ssl-cert
 
+sudo rm -fr /var/lib/ssl/*
 
 #
 # Create root CA
@@ -892,6 +893,8 @@ echo Q | openssl s_client -connect ${CONTROLLER_FQDN}:443 | openssl x509 -text
 ##############################################################################
 sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install 389-ds
 
+sudo ds_removal -s default -w ${DS_ADMIN_PASS}
+
 cat << EOF | sudo tee /etc/sysctl.d/99-389-ds.conf
 net.ipv4.tcp_keepalive_time = 300
 net.ipv4.ip_local_port_range = 1024 65000
@@ -1041,7 +1044,14 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install \
   liboscache-java \
   libstax-java
 
+sudo openssl ca \
+  -config ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/openssl.cnf \
+  -revoke ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
+  -passin "pass:${CA_PASSWORD}"
 sudo rm -fr /root/.dogtag
+sudo pkidestroy \
+  -s CA \
+  -i ${SSL_PKI_INSTANCE_NAME}
 
 cat << EOF | sudo tee /var/lib/openstack/dogtag-step1.cfg
 [DEFAULT]
