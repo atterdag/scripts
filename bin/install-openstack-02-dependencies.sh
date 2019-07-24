@@ -1409,32 +1409,24 @@ sudo sed -i "s/^-l\s.*$/-l ${CONTROLLER_IP_ADDRESS}/" /etc/memcached.conf
 sudo systemctl restart memcached
 
 ##############################################################################
-# Install Etcd on Controller host
+# Enable SSL for etcd on Controller host
 ##############################################################################
-sudo apt-get install --yes etcd
+sudo sed -i "s|^.*ETCD_NAME=.*|ETCD_NAME=\"${CONTROLLER_FQDN}\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_DATA_DIR=.*|ETCD_DATA_DIR=\"/var/lib/etcd/default\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_LISTEN_PEER_URLS=.*|ETCD_LISTEN_PEER_URLS=\"http://localhost:2380,https://${CONTROLLER_IP_ADDRESS}:2380\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_LISTEN_CLIENT_URLS=.*|ETCD_LISTEN_CLIENT_URLS=\"http://localhost:2379,https://${CONTROLLER_IP_ADDRESS}:2379\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_INITIAL_ADVERTISE_PEER_URLS=.*|ETCD_INITIAL_ADVERTISE_PEER_URLS=\"http://localhost:2380,https://${CONTROLLER_FQDN}:2380\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_INITIAL_CLUSTER=.*|ETCD_INITIAL_CLUSTER=\"default=http://localhost:2380,default=https://${CONTROLLER_FQDN}:2380\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_ADVERTISE_CLIENT_URLS=.*|ETCD_ADVERTISE_CLIENT_URLS=\"http://localhost:2379,https://${CONTROLLER_FQDN}:2379\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_CERT_FILE=.*|ETCD_CERT_FILE=\"/etc/ssl/certs/${CONTROLLER_FQDN}.crt\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_KEY_FILE=.*|ETCD_KEY_FILE=\"/etc/ssl/private/${CONTROLLER_FQDN}.key\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_PEER_CERT_FILE.*|ETCD_PEER_CERT_FILE=\"/etc/ssl/certs/${CONTROLLER_FQDN}.crt\"|" /etc/default/etcd
+sudo sed -i "s|^.*ETCD_PEER_KEY_FILE.*|ETCD_PEER_KEY_FILE=\"/etc/ssl/private/${CONTROLLER_FQDN}.key\"|" /etc/default/etcd
 
-sudo mv /etc/default/etcd /etc/default/etcd.orig
-cat << EOF | sudo tee /etc/default/etcd
-ETCD_NAME="${CONTROLLER_FQDN}"
-ETCD_DATA_DIR="/var/lib/etcd/default"
-ETCD_INITIAL_CLUSTER_STATE="new"
-ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
-ETCD_INITIAL_CLUSTER="default=http://${CONTROLLER_IP_ADDRESS}:2380"
-ETCD_INITIAL_ADVERTISE_PEER_URLS="http://localhost:2380,https://localhost:7001,http://${CONTROLLER_IP_ADDRESS}:2380,https://${CONTROLLER_IP_ADDRESS}:7001"
-ETCD_ADVERTISE_CLIENT_URLS="http://localhost:2379,https://localhost:4001,http://${CONTROLLER_IP_ADDRESS}:2379,https://${CONTROLLER_IP_ADDRESS}:4001"
-ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380,https://0.0.0.0:7001"
-ETCD_LISTEN_CLIENT_URLS=="http://localhost:2379,https://localhost:4001,http://${CONTROLLER_IP_ADDRESS}:2379,https://${CONTROLLER_IP_ADDRESS}:4001"
-ETCD_CERT_FILE="/etc/ssl/certs/${CONTROLLER_FQDN}.crt"
-ETCD_KEY_FILE="/etc/ssl/private/${CONTROLLER_FQDN}.key"
-ETCD_PEER_CERT_FILE="/etc/ssl/certs/${CONTROLLER_FQDN}.crt"
-ETCD_PEER_KEY_FILE="/etc/ssl/private/${CONTROLLER_FQDN}.key"
-EOF
-
-# Make the apache runtime user a member of ssl-cert
+# "Make the apache runtime user a member of ssl-cert
 sudo usermod -a -G ssl-cert etcd
 
-sudo systemctl enable etcd
-sudo systemctl start etcd
+sudo systemctl restart etcd
 
 ##############################################################################
 # Enable the OpenStack repository
