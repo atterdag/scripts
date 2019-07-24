@@ -151,117 +151,80 @@ export VAULT_TOKEN=$(sudo grep "Initial Root Token:" /var/lib/openstack/vault_ke
 vault auth enable -local userpass
 
 # Generate a secret for the local vault user with the root token
-export VAULT_LOCAL_PASS=$(genpasswd 32)
+export VAULT_OPENSTACK_PASS=$(genpasswd 32)
 
-# Enable key vault version 2 in secret path
+# Enable key vault version 2 in secret path for local users
 vault secrets enable -path=secret/ kv-v2
 
-# Create policy that allows users to read secrets in secret/*
-cat << EOF | vault policy write secret_read -
-path "secret/*"
+# Create policy that allows users to read secrets in openstack/*
+cat << EOF | vault policy write openstack -
+path "openstack/*"
 {
   capabilities = ["read"]
 }
 EOF
 
 # Put the local user secret in the root data for later retrieval
-vault kv put secret/VAULT_LOCAL_PASS value=$(genpasswd 32)
+vault kv put secret/VAULT_OPENSTACK_PASS value=$VAULT_OPENSTACK_PASS
 
 # Create local user in vault, that we can use for future authentication
 vault write \
-  auth/userpass/users/local \
-  password=${VAULT_LOCAL_PASS} \
-  policies=secret_read
+  auth/userpass/users/openstack \
+  password=${VAULT_OPENSTACK_PASS} \
+  policies=openstack
 
 ##############################################################################
 # Set passwords in Vault on controller node
 ##############################################################################
-vault kv put secret/ADMIN_PASS value=$(genpasswd 16)
-vault kv put secret/BARBICAN_DBPASS value=$(genpasswd 16)
-vault kv put secret/BARBICAN_KEK=$(echo $(genpasswd 32) | base64)
-vault kv put secret/BARBICAN_PASS value=$(genpasswd 16)
-vault kv put secret/CA_PASSWORD value=$(genpasswd 32)
-vault kv put secret/CINDER_DBPASS value=$(genpasswd 16)
-vault kv put secret/CINDER_PASS value=$(genpasswd 16)
-vault kv put secret/COMPUTE_KEYSTORE_PASS value=$(genpasswd 16)
-vault kv put secret/CONTROLLER_KEYSTORE_PASS value=$(genpasswd 16)
-vault kv put secret/DASH_DBPASS value=$(genpasswd 16)
-vault kv put secret/DEMO_PASS value=$(genpasswd 16)
-vault kv put secret/DESIGNATE_DBPASS value=$(genpasswd 16)
-vault kv put secret/DESIGNATE_PASS value=$(genpasswd 16)
-vault kv put secret/DS_ADMIN_PASS value=$(genpasswd 16)
-vault kv put secret/DS_ROOT_PASS value=$(genpasswd 16)
-vault kv put secret/GLANCE_DBPASS value=$(genpasswd 16)
-vault kv put secret/GLANCE_PASS value=$(genpasswd 16)
-vault kv put secret/KERBEROS_MASTER_SECRET value=$(genpasswd 32)
-vault kv put secret/KEYSTONE_DBPASS value=$(genpasswd 16)
-vault kv put secret/METADATA_SECRET value=$(genpasswd 32)
-vault kv put secret/NEUTRON_DBPASS value=$(genpasswd 16)
-vault kv put secret/NEUTRON_PASS value=$(genpasswd 16)
-vault kv put secret/NOVA_DBPASS value=$(genpasswd 16)
-vault kv put secret/NOVA_PASS value=$(genpasswd 16)
-vault kv put secret/PKI_ADMIN_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PKI_BACKUP_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PKI_CLIENT_DATABASE_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PKI_CLIENT_PKCS12_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PKI_CLONE_PKCS12_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PKI_REPLICATION_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PKI_SECURITY_DOMAIN_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PKI_SERVER_DATABASE_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PKI_TOKEN_PASSWORD value=$(genpasswd 16)
-vault kv put secret/PLACEMENT_DBPASS value=$(genpasswd 16)
-vault kv put secret/PLACEMENT_PASS value=$(genpasswd 16)
-vault kv put secret/RABBIT_PASS value=$(genpasswd 16)
-vault kv put secret/ROOT_DBPASS value=$(genpasswd 16)
+# Enable key vault version 2 in openstack path for OpenStack secrets
+vault secrets enable -path=openstack/ kv-v2
 
-##############################################################################
+vault kv put openstack/ADMIN_PASS value=$(genpasswd 16)
+vault kv put openstack/BARBICAN_DBPASS value=$(genpasswd 16)
+vault kv put openstack/BARBICAN_KEK=$(echo $(genpasswd 32) | base64)
+vault kv put openstack/BARBICAN_PASS value=$(genpasswd 16)
+vault kv put openstack/CA_PASSWORD value=$(genpasswd 32)
+vault kv put openstack/CINDER_DBPASS value=$(genpasswd 16)
+vault kv put openstack/CINDER_PASS value=$(genpasswd 16)
+vault kv put openstack/COMPUTE_KEYSTORE_PASS value=$(genpasswd 16)
+vault kv put openstack/CONTROLLER_KEYSTORE_PASS value=$(genpasswd 16)
+vault kv put openstack/DASH_DBPASS value=$(genpasswd 16)
+vault kv put openstack/DEMO_PASS value=$(genpasswd 16)
+vault kv put openstack/DESIGNATE_DBPASS value=$(genpasswd 16)
+vault kv put openstack/DESIGNATE_PASS value=$(genpasswd 16)
+vault kv put openstack/DS_ADMIN_PASS value=$(genpasswd 16)
+vault kv put openstack/DS_ROOT_PASS value=$(genpasswd 16)
+vault kv put openstack/GLANCE_DBPASS value=$(genpasswd 16)
+vault kv put openstack/GLANCE_PASS value=$(genpasswd 16)
+vault kv put openstack/KERBEROS_MASTER_SECRET value=$(genpasswd 32)
+vault kv put openstack/KEYSTONE_DBPASS value=$(genpasswd 16)
+vault kv put openstack/METADATA_SECRET value=$(genpasswd 32)
+vault kv put openstack/NEUTRON_DBPASS value=$(genpasswd 16)
+vault kv put openstack/NEUTRON_PASS value=$(genpasswd 16)
+vault kv put openstack/NOVA_DBPASS value=$(genpasswd 16)
+vault kv put openstack/NOVA_PASS value=$(genpasswd 16)
+vault kv put openstack/PKI_ADMIN_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PKI_BACKUP_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PKI_CLIENT_DATABASE_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PKI_CLIENT_PKCS12_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PKI_CLONE_PKCS12_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PKI_REPLICATION_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PKI_SECURITY_DOMAIN_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PKI_SERVER_DATABASE_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PKI_TOKEN_PASSWORD value=$(genpasswd 16)
+vault kv put openstack/PLACEMENT_DBPASS value=$(genpasswd 16)
+vault kv put openstack/PLACEMENT_PASS value=$(genpasswd 16)
+vault kv put openstack/RABBIT_PASS value=$(genpasswd 16)
+vault kv put openstack/ROOT_DBPASS value=$(genpasswd 16)
+
 # Unset VAULT_TOKEN
-##############################################################################
 unset VAULT_TOKEN
 
-##############################################################################
 # Set OS password variables
-##############################################################################
-vault login -method=userpass username=local password=$VAULT_LOCAL_PASS
-
-export ADMIN_PASS=$(vault kv get -field=value secret/ADMIN_PASS)
-export BARBICAN_DBPASS=$(vault kv get -field=value secret/BARBICAN_DBPASS)
-export BARBICAN_PASS=$(vault kv get -field=value secret/BARBICAN_PASS)
-export BARBICAN_KEK=$(echo $(vault kv get -field=value secret/BARBICAN_KEK) | base64)
-export CA_PASSWORD=$(vault kv get -field=value secret/CA_PASSWORD)
-export CINDER_DBPASS=$(vault kv get -field=value secret/CINDER_DBPASS)
-export CINDER_PASS=$(vault kv get -field=value secret/CINDER_PASS)
-export CONTROLLER_KEYSTORE_PASS=$(vault kv get -field=value secret/CONTROLLER_KEYSTORE_PASS)
-export COMPUTE_KEYSTORE_PASS=$(vault kv get -field=value secret/COMPUTE_KEYSTORE_PASS)
-export DASH_DBPASS=$(vault kv get -field=value secret/DASH_DBPASS)
-export DEMO_PASS=$(vault kv get -field=value secret/DEMO_PASS)
-export DESIGNATE_PASS=$(vault kv get -field=value secret/DESIGNATE_PASS)
-export DESIGNATE_DBPASS=$(vault kv get -field=value secret/DESIGNATE_DBPASS)
-export DS_ADMIN_PASS=$(vault kv get -field=value secret/DS_ADMIN_PASS)
-export DS_ROOT_PASS=$(vault kv get -field=value secret/DS_ROOT_PASS)
-export GLANCE_DBPASS=$(vault kv get -field=value secret/GLANCE_DBPASS)
-export GLANCE_PASS=$(vault kv get -field=value secret/GLANCE_PASS)
-export KERBEROS_MASTER_SECRET=$(vault kv get -field=value secret/KERBEROS_MASTER_SECRET)
-export KEYSTONE_DBPASS=$(vault kv get -field=value secret/KEYSTONE_DBPASS)
-export METADATA_SECRET=$(vault kv get -field=value secret/METADATA_SECRET)
-export NEUTRON_DBPASS=$(vault kv get -field=value secret/NEUTRON_DBPASS)
-export NEUTRON_PASS=$(vault kv get -field=value secret/NEUTRON_PASS)
-export NOVA_DBPASS=$(vault kv get -field=value secret/NOVA_DBPASS)
-export NOVA_PASS=$(vault kv get -field=value secret/NOVA_PASS)
-export PKI_ADMIN_PASSWORD=$(vault kv get -field=value secret/PKI_ADMIN_PASSWORD)
-export PKI_BACKUP_PASSWORD=$(vault kv get -field=value secret/PKI_BACKUP_PASSWORD)
-export PKI_CLIENT_DATABASE_PASSWORD=$(vault kv get -field=value secret/PKI_CLIENT_DATABASE_PASSWORD)
-export PKI_CLIENT_PKCS12_PASSWORD=$(vault kv get -field=value secret/PKI_CLIENT_PKCS12_PASSWORD)
-export PKI_CLONE_PKCS12_PASSWORD=$(vault kv get -field=value secret/PKI_CLONE_PKCS12_PASSWORD)
-export PKI_REPLICATION_PASSWORD=$(vault kv get -field=value secret/PKI_REPLICATION_PASSWORD)
-export PKI_SECURITY_DOMAIN_PASSWORD=$(vault kv get -field=value secret/PKI_SECURITY_DOMAIN_PASSWORD)
-export PKI_SERVER_DATABASE_PASSWORD=$(vault kv get -field=value secret/PKI_SERVER_DATABASE_PASSWORD)
-export PKI_TOKEN_PASSWORD=$(vault kv get -field=value secret/PKI_TOKEN_PASSWORD)
-export PLACEMENT_PASS=$(vault kv get -field=value secret/PLACEMENT_PASS)
-export PLACEMENT_DBPASS=$(vault kv get -field=value secret/PLACEMENT_DBPASS)
-export RABBIT_PASS=$(vault kv get -field=value secret/RABBIT_PASS)
-export ROOT_DBPASS=$(vault kv get -field=value secret/ROOT_DBPASS)
-export VAULT_LOCAL_PASS=$(vault kv get -field=value secret/VAULT_LOCAL_PASS)
+vault login -method=userpass username=local password=$VAULT_OPENSTACK_PASS
+for secret in $(vault kv list -format yaml openstack/ | sed 's/^-\s//'); do
+	export eval $secret=$(vault kv get -field=value openstack/$secret)
+done
 
 ##############################################################################
 # Set OS infrastructure variables
@@ -352,11 +315,13 @@ etcdctl mk --endpoints "http://127.0.0.1" SSL_ROOT_CA_STRICT_NAME \$(echo $(etcd
 ##############################################################################
 # Setting up compute node
 ##############################################################################
-export VAULT_ADDR="http://${CONTROLLER_FQDN}:8200"
-export VAULT_LOCAL_PASS=<get it from controller>
-vault login -method=userpass username=local password=$VAULT_LOCAL_PASS
-for secret in $(vault kv list -format yaml secret/ | sed 's/^-\s//'); do
-	export eval $secret=$(vault kv get -field=value secret/$secret)
+export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
+export VAULT_OPENSTACK_PASS=<get it from controller>
+vault login -method=userpass username=local password=$VAULT_OPENSTACK_PASS
+for secret in $(vault kv list -format yaml openstack/ | sed 's/^-\s//'); do
+	export eval $secret="$(vault kv get -field=value openstack/$secret)"
+done
+
 done
 # Copy os_environment.env file to compute node
 source <(sudo cat /var/lib/openstack/os_environment.env)
