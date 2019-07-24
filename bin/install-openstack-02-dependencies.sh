@@ -1406,15 +1406,23 @@ sudo apt-get install --yes etcd
 sudo mv /etc/default/etcd /etc/default/etcd.orig
 cat << EOF | sudo tee /etc/default/etcd
 ETCD_NAME="${CONTROLLER_FQDN}"
-ETCD_DATA_DIR="/var/lib/etcd"
+ETCD_DATA_DIR="/var/lib/etcd/default"
 ETCD_INITIAL_CLUSTER_STATE="new"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
-ETCD_INITIAL_CLUSTER="${CONTROLLER_FQDN}=http://${CONTROLLER_IP_ADDRESS}:2380"
-ETCD_INITIAL_ADVERTISE_PEER_URLS="http://${CONTROLLER_IP_ADDRESS}:2380"
-ETCD_ADVERTISE_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
-ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380"
-ETCD_LISTEN_CLIENT_URLS="http://${CONTROLLER_IP_ADDRESS}:2379"
+ETCD_INITIAL_CLUSTER="default=http://${CONTROLLER_IP_ADDRESS}:2380"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://localhost:2380,https://localhost:7001,http://${CONTROLLER_IP_ADDRESS}:2380,https://${CONTROLLER_IP_ADDRESS}:7001"
+ETCD_ADVERTISE_CLIENT_URLS="http://localhost:2379,https://localhost:4001,http://${CONTROLLER_IP_ADDRESS}:2379,https://${CONTROLLER_IP_ADDRESS}:4001"
+ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380,https://0.0.0.0:7001"
+ETCD_LISTEN_CLIENT_URLS=="http://localhost:2379,https://localhost:4001,http://${CONTROLLER_IP_ADDRESS}:2379,https://${CONTROLLER_IP_ADDRESS}:4001"
+ETCD_CERT_FILE="/etc/ssl/certs/${CONTROLLER_FQDN}.crt"
+ETCD_KEY_FILE="/etc/ssl/private/${CONTROLLER_FQDN}.key"
+ETCD_PEER_CERT_FILE="/etc/ssl/certs/${CONTROLLER_FQDN}.crt"
+ETCD_PEER_KEY_FILE="/etc/ssl/private/${CONTROLLER_FQDN}.key"
 EOF
+
+# Make the apache runtime user a member of ssl-cert
+sudo usermod -a -G ssl-cert etcd
+
 sudo systemctl enable etcd
 sudo systemctl start etcd
 
