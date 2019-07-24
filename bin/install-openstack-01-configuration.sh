@@ -227,90 +227,62 @@ for secret in $(vault kv list -format yaml openstack/ | sed 's/^-\s//'); do
 done
 
 ##############################################################################
-# Set OS infrastructure variables
+# Install Etcd on Controller host
 ##############################################################################
-cat << EOF | sudo tee /var/lib/openstack/os_environment.env
-# Specified values
-export COMPUTE_HOST_NAME='jack'
-export COMPUTE_IP_ADDRESS='192.168.1.30'
-export CONTROLLER_HOST_NAME='jack'
-export CONTROLLER_IP_ADDRESS='192.168.1.30'
-export DNS_DOMAIN='se.lemche.net'
-export LVM_PREMIUM_PV_DEVICE='sdb'
-export LVM_STANDARD_PV_DEVICE='sde'
-export NETWORK_CIDR='192.168.1.0/24'
-export NETWORK_INTERFACE='eno1'
-export SIMPLE_CRYPTO_CA='OpenStack'
-export SSL_COUNTRY_NAME='SE'
-export SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME='Lemche.NET Intermediate AUDIT 2'
-export SSL_INTERMEDIATE_CA_ONE_COMMON_NAME='Lemche.NET Intermediate CA 1'
-export SSL_INTERMEDIATE_CA_TWO_COMMON_NAME='Lemche.NET Intermediate CA 2'
-export SSL_INTERMEDIATE_OCSP_ONE_HOSTNAME='ocsp1'
-export SSL_INTERMEDIATE_OCSP_TWO_HOSTNAME='ocsp2'
-export SSL_ORGANIZATION_NAME='Lemche.NET'
-export SSL_ORGANIZATIONAL_UNIT_NAME='Security Operation Center'
-export SSL_PKI_INSTANCE_NAME='pki-tomcat'
-export SSL_ROOT_CA_COMMON_NAME='Lemche.NET Root CA'
-export SSL_ROOT_CA_EMAIL_USER='ca'
-export SSL_ROOT_CA_HOST_NAME='ca'
-export SSL_STATE='Scania'
-
-# Calculated values
-export COMPUTE_FQDN="\${COMPUTE_HOST_NAME}.\${DNS_DOMAIN}"
-export CONTROLLER_FQDN="\${CONTROLLER_HOST_NAME}.\${DNS_DOMAIN}"
-export DNS_REVERSE_DOMAIN=\$(echo \${CONTROLLER_IP_ADDRESS} | awk -F'.' '{print \$3"."\$2"."\$1}').in-addr.arpa
-export DS_SUFFIX='dc='\$(echo \${DNS_DOMAIN} | sed 's|\.|,dc=|g')
-export SSL_BASE_DIR="/var/lib/ssl/\${SSL_ORGANIZATION_NAME}"
-export SSL_BASE_URL="http://\${SSL_ROOT_CA_HOST_NAME}.\${DNS_DOMAIN}"
-export SSL_CA_EMAIL="\${SSL_ROOT_CA_EMAIL_USER}@${DNS_DOMAIN}"
-export SSL_INTERMEDIATE_AUDIT_TWO_STRICT_NAME=\$(echo \${SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME} | sed 's/\s/_/g')
-export SSL_INTERMEDIATE_CA_ONE_STRICT_NAME=\$(echo \${SSL_INTERMEDIATE_CA_ONE_COMMON_NAME} | sed 's/\s/_/g')
-export SSL_INTERMEDIATE_CA_TWO_STRICT_NAME=\$(echo \${SSL_INTERMEDIATE_CA_TWO_COMMON_NAME} | sed 's/\s/_/g')
-export SSL_INTERMEDIATE_OCSP_ONE_FQDN="\${SSL_INTERMEDIATE_OCSP_ONE_HOSTNAME}.\${DNS_DOMAIN}"
-export SSL_INTERMEDIATE_OCSP_TWO_FQDN="\${SSL_INTERMEDIATE_OCSP_TWO_HOSTNAME}.\${DNS_DOMAIN}"
-export SSL_ROOT_CA_STRICT_NAME=\$(echo \${SSL_ROOT_CA_COMMON_NAME} | sed 's/\s/_/g')
-EOF
-source <(sudo cat /var/lib/openstack/os_environment.env)
+sudo apt-get install --yes etcd
+sudo systemctl enable etcd
+sudo systemctl start etcd
 
 ##############################################################################
 # Set OS infrastructure variables
 ##############################################################################
-etcdctl mk --endpoints "http://127.0.0.1" COMPUTE_HOST_NAME 'jack'
-etcdctl mk --endpoints "http://127.0.0.1" COMPUTE_IP_ADDRESS '192.168.1.30'
-etcdctl mk --endpoints "http://127.0.0.1" CONTROLLER_HOST_NAME 'jack'
-etcdctl mk --endpoints "http://127.0.0.1" CONTROLLER_IP_ADDRESS '192.168.1.30'
-etcdctl mk --endpoints "http://127.0.0.1" DNS_DOMAIN 'se.lemche.net'
-etcdctl mk --endpoints "http://127.0.0.1" LVM_PREMIUM_PV_DEVICE 'sdb'
-etcdctl mk --endpoints "http://127.0.0.1" LVM_STANDARD_PV_DEVICE 'sde'
-etcdctl mk --endpoints "http://127.0.0.1" NETWORK_CIDR '192.168.1.0/24'
-etcdctl mk --endpoints "http://127.0.0.1" NETWORK_INTERFACE 'eno1'
-etcdctl mk --endpoints "http://127.0.0.1" SIMPLE_CRYPTO_CA 'OpenStack'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_COUNTRY_NAME 'SE'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME 'Lemche.NET Intermediate AUDIT 2'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_CA_ONE_COMMON_NAME 'Lemche.NET Intermediate CA 1'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_CA_TWO_COMMON_NAME 'Lemche.NET Intermediate CA 2'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_OCSP_ONE_HOSTNAME 'ocsp1'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_OCSP_TWO_HOSTNAME 'ocsp2'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_ORGANIZATION_NAME 'Lemche.NET'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_ORGANIZATIONAL_UNIT_NAME 'Security Operation Center'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_PKI_INSTANCE_NAME 'pki-tomcat'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_ROOT_CA_COMMON_NAME 'Lemche.NET Root CA'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_ROOT_CA_EMAIL_USER 'ca'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_ROOT_CA_HOST_NAME 'ca'
-etcdctl mk --endpoints "http://127.0.0.1" SSL_STATE 'Scania'
-etcdctl mk --endpoints "http://127.0.0.1" COMPUTE_FQDN "$(etcdctl get --endpoints "http://127.0.0.1" COMPUTE_HOST_NAME).$(etcdctl get DNS_DOMAIN)"
-etcdctl mk --endpoints "http://127.0.0.1" CONTROLLER_FQDN "$(etcdctl get CONTROLLER_HOST_NAME).$(etcdctl get DNS_DOMAIN)"
-etcdctl mk --endpoints "http://127.0.0.1" DNS_REVERSE_DOMAIN \$(echo $(etcdctl get CONTROLLER_IP_ADDRESS) | awk -F'.' '{print \$3"."\$2"."\$1)').in-addr.arpa
-etcdctl mk --endpoints "http://127.0.0.1" DS_SUFFIX 'dc '\$(echo $(etcdctl get DNS_DOMAIN) | sed 's|\.|,dc |g')
-etcdctl mk --endpoints "http://127.0.0.1" SSL_BASE_DIR "/var/lib/ssl/$(etcdctl get SSL_ORGANIZATION_NAME)"
-etcdctl mk --endpoints "http://127.0.0.1" SSL_BASE_URL "http://$(etcdctl get SSL_ROOT_CA_HOST_NAME).$(etcdctl get DNS_DOMAIN)"
-etcdctl mk --endpoints "http://127.0.0.1" SSL_CA_EMAIL "$(etcdctl get SSL_ROOT_CA_EMAIL_USER)@$(etcdctl get DNS_DOMAIN)"
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_AUDIT_TWO_STRICT_NAME \$(echo $(etcdctl get SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME) | sed 's/\s/_/g')
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_CA_ONE_STRICT_NAME \$(echo $(etcdctl get SSL_INTERMEDIATE_CA_ONE_COMMON_NAME) | sed 's/\s/_/g')
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_CA_TWO_STRICT_NAME \$(echo $(etcdctl get SSL_INTERMEDIATE_CA_TWO_COMMON_NAME) | sed 's/\s/_/g')
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_OCSP_ONE_FQDN "$(etcdctl get SSL_INTERMEDIATE_OCSP_ONE_HOSTNAME).$(etcdctl get DNS_DOMAIN)"
-etcdctl mk --endpoints "http://127.0.0.1" SSL_INTERMEDIATE_OCSP_TWO_FQDN "$(etcdctl get SSL_INTERMEDIATE_OCSP_TWO_HOSTNAME).$(etcdctl get DNS_DOMAIN)"
-etcdctl mk --endpoints "http://127.0.0.1" SSL_ROOT_CA_STRICT_NAME \$(echo $(etcdctl get SSL_ROOT_CA_COMMON_NAME) | sed 's/\s/_/g')
+# Create a etcd directory to store keys under
+etcdctl mkdir openstack
+
+# Create hardcoded keys
+etcdctl mk openstack/COMPUTE_HOST_NAME 'jack'
+etcdctl mk openstack/COMPUTE_IP_ADDRESS '192.168.1.30'
+etcdctl mk openstack/CONTROLLER_HOST_NAME 'jack'
+etcdctl mk openstack/CONTROLLER_IP_ADDRESS '192.168.1.30'
+etcdctl mk openstack/DNS_DOMAIN 'se.lemche.net'
+etcdctl mk openstack/LVM_PREMIUM_PV_DEVICE 'sdb'
+etcdctl mk openstack/LVM_STANDARD_PV_DEVICE 'sde'
+etcdctl mk openstack/NETWORK_CIDR '192.168.1.0/24'
+etcdctl mk openstack/NETWORK_INTERFACE 'eno1'
+etcdctl mk openstack/SIMPLE_CRYPTO_CA 'OpenStack'
+etcdctl mk openstack/SSL_COUNTRY_NAME 'SE'
+etcdctl mk openstack/SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME 'Lemche.NET Intermediate AUDIT 2'
+etcdctl mk openstack/SSL_INTERMEDIATE_CA_ONE_COMMON_NAME 'Lemche.NET Intermediate CA 1'
+etcdctl mk openstack/SSL_INTERMEDIATE_CA_TWO_COMMON_NAME 'Lemche.NET Intermediate CA 2'
+etcdctl mk openstack/SSL_INTERMEDIATE_OCSP_ONE_HOSTNAME 'ocsp1'
+etcdctl mk openstack/SSL_INTERMEDIATE_OCSP_TWO_HOSTNAME 'ocsp2'
+etcdctl mk openstack/SSL_ORGANIZATION_NAME 'Lemche.NET'
+etcdctl mk openstack/SSL_ORGANIZATIONAL_UNIT_NAME 'Security Operation Center'
+etcdctl mk openstack/SSL_PKI_INSTANCE_NAME 'pki-tomcat'
+etcdctl mk openstack/SSL_ROOT_CA_COMMON_NAME 'Lemche.NET Root CA'
+etcdctl mk openstack/SSL_ROOT_CA_EMAIL_USER 'ca'
+etcdctl mk openstack/SSL_ROOT_CA_HOST_NAME 'ca'
+etcdctl mk openstack/SSL_STATE 'Scania'
+
+# Create calculated keys based of hardcoded keys
+etcdctl mk openstack/COMPUTE_FQDN "$(etcdctl get openstack/COMPUTE_HOST_NAME).$(etcdctl get openstack/DNS_DOMAIN)"
+etcdctl mk openstack/CONTROLLER_FQDN "$(etcdctl get openstack/CONTROLLER_HOST_NAME).$(etcdctl get openstack/DNS_DOMAIN)"
+etcdctl mk openstack/DNS_REVERSE_DOMAIN "$(echo $(etcdctl get openstack/CONTROLLER_IP_ADDRESS) | awk -F'.' '{print $3"."$2"."$1}').in-addr.arpa"
+etcdctl mk openstack/DS_SUFFIX "dc=$(echo $(etcdctl get openstack/DNS_DOMAIN) | sed 's|\.|,dc |g')"
+etcdctl mk openstack/SSL_BASE_DIR "/var/lib/ssl/$(etcdctl get openstack/SSL_ORGANIZATION_NAME)"
+etcdctl mk openstack/SSL_BASE_URL "http://$(etcdctl get openstack/SSL_ROOT_CA_HOST_NAME).$(etcdctl get openstack/DNS_DOMAIN)"
+etcdctl mk openstack/SSL_CA_EMAIL "$(etcdctl get openstack/SSL_ROOT_CA_EMAIL_USER)@$(etcdctl get openstack/DNS_DOMAIN)"
+etcdctl mk openstack/SSL_INTERMEDIATE_AUDIT_TWO_STRICT_NAME $(echo $(etcdctl get openstack/SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME) | sed 's/\s/_/g')
+etcdctl mk openstack/SSL_INTERMEDIATE_CA_ONE_STRICT_NAME $(echo $(etcdctl get openstack/SSL_INTERMEDIATE_CA_ONE_COMMON_NAME) | sed 's/\s/_/g')
+etcdctl mk openstack/SSL_INTERMEDIATE_CA_TWO_STRICT_NAME $(echo $(etcdctl get openstack/SSL_INTERMEDIATE_CA_TWO_COMMON_NAME) | sed 's/\s/_/g')
+etcdctl mk openstack/SSL_INTERMEDIATE_OCSP_ONE_FQDN "$(etcdctl get openstack/SSL_INTERMEDIATE_OCSP_ONE_HOSTNAME).$(etcdctl get openstack/DNS_DOMAIN)"
+etcdctl mk openstack/SSL_INTERMEDIATE_OCSP_TWO_FQDN "$(etcdctl get openstack/SSL_INTERMEDIATE_OCSP_TWO_HOSTNAME).$(etcdctl get openstack/DNS_DOMAIN)"
+etcdctl mk openstack/SSL_ROOT_CA_STRICT_NAME "$(echo $(etcdctl get openstack/SSL_ROOT_CA_COMMON_NAME) | sed 's/\s/_/g')"
+
+# Set environment variables
+for key in $(etcdctl ls openstack/ | sed 's|^/openstack/||'); do
+	export eval $key="$(etcdctl get openstack/$key)"
+done
 
 ##############################################################################
 # Setting up compute node
@@ -322,6 +294,7 @@ for secret in $(vault kv list -format yaml openstack/ | sed 's/^-\s//'); do
 	export eval $secret="$(vault kv get -field=value openstack/$secret)"
 done
 
+export ETCDCTL_ENDPOINTS="http://${CONTROLLER_FQDN}:2379"
+for key in $(etcdctl ls openstack/ | sed 's|^/openstack/||'); do
+	export eval $key="$(etcdctl get openstack/$key)"
 done
-# Copy os_environment.env file to compute node
-source <(sudo cat /var/lib/openstack/os_environment.env)
