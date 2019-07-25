@@ -139,6 +139,7 @@ vault operator init \
 | sudo tee /var/lib/openstack/vault_keys.txt
 
 # We have to unseal the vault using 3 key shards
+# !!! Remember you have to unseal vault each time its been restarted.
 vault operator unseal $(sudo grep "Unseal Key 1:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
 vault operator unseal $(sudo grep "Unseal Key 2:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
 vault operator unseal $(sudo grep "Unseal Key 3:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
