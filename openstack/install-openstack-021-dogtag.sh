@@ -52,3 +52,35 @@ pki_security_domain_user = caadmin
 EOF
 sudo pkispawn -s CA -f /var/lib/openstack/dogtag-ca.cfg -vv
 
+cat << EOF | sudo tee /var/lib/openstack/dogtag-kra.cfg
+
+[KRA]
+pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
+pki_admin_email=kraadmin@${DNS_DOMAIN}
+pki_admin_name=kraadmin
+pki_admin_nickname=PKI KRA Administrator
+pki_admin_password = ${PKI_ADMIN_PASSWORD}
+pki_admin_uid=kraadmin
+pki_backup_password = ${PKI_BACKUP_PASSWORD}
+pki_client_database_password = ${PKI_CLIENT_DATABASE_PASSWORD}
+pki_client_database_purge=False
+pki_client_pkcs12_password = ${PKI_CLIENT_PKCS12_PASSWORD}
+pki_clone_pkcs12_password = ${PKI_CLONE_PKCS12_PASSWORD}
+pki_ds_bind_dn = cn=Directory Manager
+pki_ds_base_dn = dc=kra,${DS_SUFFIX}
+pki_ds_database = kra
+pki_ds_password = ${DS_ROOT_PASS}
+pki_security_domain_name = ${SSL_ORGANIZATION_NAME}
+pki_security_domain_user = caadmin
+pki_security_domain_password = ${PKI_SECURITY_DOMAIN_PASSWORD}
+pki_token_password = ${PKI_TOKEN_PASSWORD}
+pki_https_port=8443
+pki_http_port=8080
+pki_ajp_port=8009
+pki_tomcat_server_port=8005
+pki_security_domain_hostname = ${CONTROLLER_FQDN}
+#pki_security_domain_https_port=8373
+EOF
+
+sudo pkispawn -s KRA -f /var/lib/openstack/dogtag-kra.cfg
+https://jack.se.lemche.net:8443/ca
