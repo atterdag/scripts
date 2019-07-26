@@ -37,7 +37,8 @@ etcdctl mk openstack/CONTROLLER_FQDN "$(etcdctl get openstack/CONTROLLER_HOST_NA
 etcdctl mk openstack/DNS_REVERSE_DOMAIN "$(echo $(etcdctl get openstack/CONTROLLER_IP_ADDRESS) | awk -F'.' '{print $3"."$2"."$1}').in-addr.arpa"
 etcdctl mk openstack/DS_SUFFIX "dc=$(echo $(etcdctl get openstack/DNS_DOMAIN) | sed 's|\.|,dc |g')"
 etcdctl mk openstack/SSL_BASE_DIR "/var/lib/ssl/$(etcdctl get openstack/SSL_ORGANIZATION_NAME)"
-etcdctl mk openstack/SSL_BASE_URL "http://$(etcdctl get openstack/SSL_ROOT_CA_HOST_NAME).$(etcdctl get openstack/DNS_DOMAIN)"
+etcdctl mk openstack/SSL_ROOT_CA_FQDN "$(etcdctl get openstack/SSL_ROOT_CA_HOST_NAME).$(etcdctl get openstack/DNS_DOMAIN)"
+etcdctl mk openstack/SSL_BASE_URL "http://${SSL_ROOT_CA_FQDN}"
 etcdctl mk openstack/SSL_CA_EMAIL "$(etcdctl get openstack/SSL_ROOT_CA_EMAIL_USER)@$(etcdctl get openstack/DNS_DOMAIN)"
 etcdctl mk openstack/SSL_INTERMEDIATE_AUDIT_TWO_STRICT_NAME $(echo $(etcdctl get openstack/SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME) | sed 's/\s/_/g')
 etcdctl mk openstack/SSL_INTERMEDIATE_CA_ONE_STRICT_NAME $(echo $(etcdctl get openstack/SSL_INTERMEDIATE_CA_ONE_COMMON_NAME) | sed 's/\s/_/g')

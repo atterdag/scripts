@@ -6,9 +6,7 @@ sudo apt-get --yes install mariadb-server python-pymysql
 
 cat << EOF | sudo tee /etc/mysql/mariadb.conf.d/99-openstack.cnf
 [mysqld]
-# bind-address = ${CONTROLLER_IP_ADDRESS}
 bind-address = 0.0.0.0
-
 default-storage-engine = innodb
 innodb_file_per_table = on
 max_connections = 4096

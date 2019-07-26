@@ -75,7 +75,7 @@ vault kv put openstack/ROOT_DBPASS value=$(genpasswd 16)
 unset VAULT_TOKEN
 
 # Set OS password variables
-vault login -method=userpass username=local password=$VAULT_OPENSTACK_PASS
+vault login -method=userpass username=openstack password=$VAULT_OPENSTACK_PASS
 for secret in $(vault kv list -format yaml openstack/ | sed 's/^-\s//'); do
 	export eval $secret=$(vault kv get -field=value openstack/$secret)
 done
