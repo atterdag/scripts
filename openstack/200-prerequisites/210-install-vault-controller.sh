@@ -6,6 +6,7 @@
 #    OS, and other core component secrets.
 ##############################################################################
 sudo apt-get install html2text
+
 VAULT_VERSION=$(curl \
   --silent https://releases.hashicorp.com/vault/ \
 | html2text \
