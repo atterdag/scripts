@@ -1,6 +1,10 @@
 #!/bin/sh
 
 ##############################################################################
-# Install FreeIPA
+# Install DogTag
 ##############################################################################
-sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install freeipa-server
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install \
+  pki-ca \
+  pki-kra \
+  liboscache-java \
+  libstax-java

@@ -35,3 +35,13 @@ sudo rm -fr \
   /var/log/apache2/ \
   /var/log/bind/ \
   /var/lib/ssl/
+
+sudo systemctl stop vault
+sudo systemctl disable vault
+sudo systemctl daemon-reload
+sudo userdel -r vault
+sudo rm -fr \
+  /etc/vault.d \
+  /var/lib/vault \
+  /etc/systemd/system/vault.service \
+  /usr/local/bin/vault

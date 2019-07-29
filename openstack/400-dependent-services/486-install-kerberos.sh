@@ -3,10 +3,13 @@
 ##############################################################################
 # Install Kerberos Master
 ##############################################################################
-sudo DEBIAN_FRONTEND=noninteractive apt --yes install krb5-kdc krb5-admin-server
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install \
+  krb5-kdc \
+  krb5-admin-server
+
 cat << EOF | sudo tee /etc/krb5.conf
 [libdefaults]
-        default_realm = SE.LEMCHE.NET
+        default_realm = ${KERBEROS_REALM}
         kdc_timesync = 1
         ccache_type = 4
         forwardable = true
@@ -14,20 +17,25 @@ cat << EOF | sudo tee /etc/krb5.conf
         fcc-mit-ticketflags = true
 
 [realms]
-        SE.LEMCHE.NET = {
-                kdc = jack.se.lemche.net
-                admin_server = jack.se.lemche.net
+        ${KERBEROS_REALM} = {
+                kdc = ${IDM_ONE_FQDN}
+                admin_server = ${IDM_ONE_FQDN}
         }
 
 [domain_realm]
-        .se.lemche.net = SE.LEMCHE.NET
-        se.lemche.net = SE.LEMCHE.NET
+        .${DNS_DOMAIN}t = ${KERBEROS_REALM}
+        ${DNS_DOMAIN}t = ${KERBEROS_REALM}
 EOF
 
-sudo kdb5_util -P ${KERBEROS_MASTER_SECRET} create -s
+sudo kdb5_util \
+  -P ${KERBEROS_MASTER_SECRET} \
+  create \
+  -s
+
 sudo systemctl restart \
   krb5-kdc \
   krb5-admin-server
+
 cat << EOF | sudo tee /etc/krb5kdc/kadm5.acl
 # This file Is the access control list for krb5 administration.
 # When this file is edited run service krb5-admin-server restart to activate

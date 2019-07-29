@@ -5,8 +5,13 @@
 ##############################################################################
 # You have to set these by hand
 export CONTROLLER_FQDN=
-export SSL_ROOT_CA_FQDN=
-export VAULT_OPENSTACK_PASS=
+ export VAULT_USER_PASS=
+
+# Create variables with infrastructure configuration
+export ETCDCTL_ENDPOINTS="http://${CONTROLLER_FQDN}:2379"
+for key in $(etcdctl ls variables/ | sed 's|^/variables/||'); do
+	export eval $key="$(etcdctl get variables/$key)"
+done
 
 # Get list of CA certifiates
 CA_CERTIFICATES=$(curl \
@@ -29,13 +34,7 @@ sudo update-ca-certificates
 
 # Create variables with secrets
 export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=openstack password=$VAULT_OPENSTACK_PASS
-for secret in $(vault kv list -format yaml openstack/ | sed 's/^-\s//'); do
-	export eval $secret="$(vault kv get -field=value openstack/$secret)"
-done
-
-# Create variables with infrastructure configuration
-export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:2379"
-for key in $(etcdctl ls openstack/ | sed 's|^/openstack/||'); do
-	export eval $key="$(etcdctl get openstack/$key)"
+vault login -method=userpass username=user password=$VAULT_USER_PASS
+for secret in $(vault kv list -format yaml passwords/ | sed 's/^-\s//'); do
+	export eval $secret="$(vault kv get -field=value passwords/$secret)"
 done

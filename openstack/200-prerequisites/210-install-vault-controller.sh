@@ -12,6 +12,7 @@ VAULT_VERSION=$(curl \
 | html2text \
 | grep vault \
 | grep -v beta \
+| grep -v rc \
 | head -1 \
 | sed 's/^.*\*\svault_//')
 
@@ -103,33 +104,3 @@ EOF
 sudo systemctl enable vault
 sudo systemctl start vault
 sudo systemctl status vault
-
-# We have to change the default address because we have not enabled HTTPS yet
-export VAULT_ADDR='http://127.0.0.1:8200'
-
-# Initialize Vault - Obviously its a bad idea to store the keys, and tokens
-# on the same server as HashiCorp Vault. So please ensure to split up the keys
-# in /var/lib/openstack/vault_keys.txt, and move them to seperate locations.
-# As putting the root token in a secure location ... and delete of course
-# /var/lib/openstack/vault_keys.txt.
-vault operator init \
-| sudo tee /var/lib/openstack/vault_keys.txt
-
-# We have to unseal the vault using 3 key shards
-# !!! Remember you have to unseal vault each time its been restarted.
-vault operator unseal $(sudo grep "Unseal Key 1:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault operator unseal $(sudo grep "Unseal Key 2:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault operator unseal $(sudo grep "Unseal Key 3:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault status | grep Sealed
-
-# Set the root token so we can add some root data
-export VAULT_TOKEN=$(sudo grep "Initial Root Token:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-
-# Enable user authentication
-vault auth enable -local userpass
-
-# Enable key vault version 2 in secret path for local users
-vault secrets enable -path=secret/ kv-v2
-
-# Unset VAULT_TOKEN
-unset VAULT_TOKEN

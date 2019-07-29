@@ -1,9 +1,7 @@
 #!/bin/sh
 
 ##############################################################################
-# Install Etcd on Controller host
+# Install FreeIPA
 ##############################################################################
-sudo apt-get install --yes \
-  etcd
-sudo systemctl enable etcd
-sudo systemctl start etcd
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install \
+  freeipa-server

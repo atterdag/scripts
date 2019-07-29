@@ -5,7 +5,7 @@
 ##############################################################################
 sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install 389-ds
 
-sudo ds_removal -s default -w ${DS_ADMIN_PASS}
+# sudo ds_removal -s default -w ${DS_ADMIN_PASS}
 
 cat << EOF | sudo tee /etc/sysctl.d/99-389-ds.conf
 net.ipv4.tcp_keepalive_time = 300
@@ -20,13 +20,13 @@ EOF
 
 cat << EOF | sudo tee /var/lib/openstack/389-ds-setup.inf
 [General]
-FullMachineName=${CONTROLLER_FQDN}
+FullMachineName=${IDM_ONE_FQDN}
 SuiteSpotUserID=dirsrv
 SuiteSpotGroup=dirsrv
 AdminDomain=${DNS_DOMAIN}
 ConfigDirectoryAdminID=admin
 ConfigDirectoryAdminPwd=${DS_ADMIN_PASS}
-ConfigDirectoryLdapURL=ldap://${CONTROLLER_FQDN}:389/o=NetscapeRoot
+ConfigDirectoryLdapURL=ldap://${IDM_ONE_FQDN}:389/o=NetscapeRoot
 
 [slapd]
 SlapdConfigForMC=Yes
@@ -40,13 +40,21 @@ AddSampleEntries=Yes
 
 [admin]
 Port=9830
-ServerIpAddress=${CONTROLLER_IP_ADDRESS}
+ServerIpAddress=${IDM_ONE_IP_ADDRESS}
 ServerAdminID=admin
 ServerAdminPwd=${DS_ADMIN_PASS}
 EOF
 sudo setup-ds-admin \
   --silent \
   --file=/var/lib/openstack/389-ds-setup.inf
+
+export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
+vault login -method=userpass username=user password=$VAULT_USER_PASS
+vault kv get --field=data keystores/${IDM_ONE_FQDN}.p12 \
+| tr -d '\n' \
+| base64 --decode \
+> ${IDM_ONE_FQDN}.p12
+sudo mv ${IDM_ONE_FQDN}.p12 /var/lib/openstack/${IDM_ONE_FQDN}.p12
 
 sudo certutil \
   -A \
@@ -61,16 +69,16 @@ sudo certutil \
   -t "C,," \
   -i /usr/local/share/ca-certificates/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.crt
 sudo pk12util \
-  -i ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.p12 \
+  -i /var/lib/openstack/${IDM_ONE_FQDN}.p12 \
   -d /etc/dirsrv/slapd-default/ \
-  -n ${CONTROLLER_FQDN} \
-  -K ${CONTROLLER_KEYSTORE_PASS} \
-  -W ${CONTROLLER_KEYSTORE_PASS}
+  -n ${IDM_ONE_FQDN} \
+  -K ${IDM_ONE_KEYSTORE_PASS} \
+  -W ${IDM_ONE_KEYSTORE_PASS}
 sudo certutil \
   -d /etc/dirsrv/slapd-default/ \
   -L
 
-echo "Internal (Software) Token:${CONTROLLER_KEYSTORE_PASS}" \
+echo "Internal (Software) Token:${IDM_ONE_KEYSTORE_PASS}" \
 | sudo tee /etc/dirsrv/slapd-default/pin.txt
 
 cat << EOF | sudo tee /var/lib/openstack/389-ds-enable-security.ldif
@@ -81,7 +89,7 @@ nsslapd-security: on
 EOF
 
 sudo ldapmodify \
-  -H ldap://${CONTROLLER_FQDN}:389 \
+  -H ldap://${IDM_ONE_FQDN}:389 \
   -D 'cn=Directory Manager' \
   -w "${DS_ROOT_PASS}" \
   -x \
@@ -104,7 +112,7 @@ nsSSL2: off
 EOF
 
 sudo ldapmodify \
-  -H ldap://${CONTROLLER_FQDN}:389 \
+  -H ldap://${IDM_ONE_FQDN}:389 \
   -D 'cn=Directory Manager' \
   -w "${DS_ROOT_PASS}" \
   -x \
@@ -117,12 +125,12 @@ objectClass: nsEncryptionModule
 objectClass: top
 nsSSLActivation: on
 nsSSLToken: internal (software)
-nsSSLPersonalitySSL: ${CONTROLLER_FQDN}
+nsSSLPersonalitySSL: ${IDM_ONE_FQDN}
 cn: RSA
 EOF
 
 sudo ldapmodify \
-  -H ldap://${CONTROLLER_FQDN}:389 \
+  -H ldap://${IDM_ONE_FQDN}:389 \
   -D 'cn=Directory Manager' \
   -w "${DS_ROOT_PASS}" \
   -x \
@@ -133,7 +141,7 @@ sudo systemctl restart dirsrv@default.service
 
 # Check encryption configuration
 ldapsearch \
-  -H ldap://${CONTROLLER_FQDN}:389 \
+  -H ldap://${IDM_ONE_FQDN}:389 \
   -D 'cn=Directory Manager' \
   -w "${DS_ROOT_PASS}" \
   -Z \
