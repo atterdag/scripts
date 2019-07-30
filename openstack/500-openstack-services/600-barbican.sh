@@ -139,3 +139,5 @@ sudo systemctl restart \
   barbican-api \
   barbican-worker \
   barbican-keystone-listener
+
+openssl pkcs12 -in ~/.dogtag/pki-tomcat/ca_admin_cert.p12 -out ~/admin_cert.pem -nodes -password pass:$PKI_CLIENT_PKCS12_PASSWORD
