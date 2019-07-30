@@ -9,6 +9,8 @@ cat << EOF | sudo tee /etc/cinder/cinder.conf
 auth_strategy = keystone
 transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
 my_ip = ${CONTROLLER_IP_ADDRESS}
+# backup_driver = cinder.backup.drivers.swift
+# backup_swift_url = SWIFT_URL
 
 [BACKEND]
 
@@ -82,5 +84,6 @@ sudo usermod -a -G ssl-cert cinder
 sudo su -s /bin/sh -c "cinder-manage db sync" cinder
 
 sudo systemctl restart \
+  apache2 \
   nova-api \
   cinder-scheduler
