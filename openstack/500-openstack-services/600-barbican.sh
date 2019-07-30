@@ -7,7 +7,8 @@
 sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
   barbican-api \
   barbican-keystone-listener \
-  barbican-worker
+  barbican-worker \
+  pki-base
 
 cat << EOF | sudo tee /var/lib/openstack/barbican.sql
 CREATE DATABASE barbican;
