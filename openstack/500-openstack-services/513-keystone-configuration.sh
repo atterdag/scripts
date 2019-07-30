@@ -43,6 +43,11 @@ Distribution = Ubuntu
 [fernet_tokens]
 
 [identity]
+driver = sql
+domain_specific_drivers_enabled = True
+domain_config_dir = /etc/keystone/domains
+domain_specific_drivers_enabled = True
+domain_configurations_from_database = True
 
 [identity_mapping]
 
@@ -101,6 +106,51 @@ EOF
 sudo chmod 0640 /etc/keystone/keystone.conf
 sudo chown keystone:keystone /etc/keystone/keystone.conf
 
+sudo mkdir --parents /etc/keystone/domains
+cat << EOF | sudo tee /etc/keystone/domains/keystone_ldap.conf
+[identity]
+driver = ldap
+
+[ldap]
+url = ldap://${IDM_ONE_FQDN}:389
+user = cn=Directory Manager
+password = ${DS_ROOT_PASS}
+suffix = ${DS_SUFFIX}
+query_scope = one
+page_size = 0
+alias_dereferencing = default
+debug_level = 0
+user_tree_dn = ou=People,${DS_SUFFIX}
+user_objectclass = inetOrgPerson
+user_id_attribute = uid
+user_name_attribute = sn
+user_description_attribute = description
+user_mail_attribute = mail
+user_pass_attribute = userPassword
+group_tree_dn = ou=Groups,${DS_SUFFIX}
+group_objectclass = groupOfNames
+group_id_attribute = cn
+group_name_attribute = cn
+group_member_attribute = member
+group_desc_attribute = description
+tls_cacertfile = /etc/ssl/certs/ca-certificates.crt
+use_tls = true
+tls_req_cert = demand
+connection_timeout = -1
+use_pool = true
+pool_size = 10
+pool_retry_max = 3
+pool_retry_delay = 0.1
+pool_connection_timeout = -1
+pool_connection_lifetime = 600
+use_auth_pool = true
+auth_pool_size = 100
+auth_pool_connection_lifetime = 60
+EOF
+sudo chmod 0640 /etc/keystone/domains/keystone_ldap.conf
+sudo chown keystone:keystone /etc/keystone/domains/keystone_ldap.conf
+
+sudo su -s /bin/sh -c "keystone-manage domain_config_upload --all" keystone
 sudo su -s /bin/sh -c "keystone-manage db_sync" keystone
 sudo keystone-manage fernet_setup \
   --keystone-user keystone \
