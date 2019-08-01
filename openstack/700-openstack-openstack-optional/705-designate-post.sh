@@ -27,8 +27,20 @@ openstack zone create \
 openstack recordset create \
   --record "${CONTROLLER_IP_ADDRESS}" \
   --type A ${DNS_DOMAIN}. \
-  $(echo $CONTROLLER_FQDN | awk -F'.' '{print $1}')
+  ${CONTROLLER_HOST_NAME}
 openstack recordset create \
   --record "${CONTROLLER_FQDN}." \
   --type PTR ${DNS_REVERSE_DOMAIN}. \
   $(echo $CONTROLLER_IP_ADDRESS | awk -F'.' '{print $4}')
+
+##############################################################################
+# Create DNZ records for ns
+##############################################################################
+openstack recordset create \
+  --record ${NS_IP_ADDRESS} \
+  --type A ${DNS_DOMAIN}. \
+  ${NS_HOST_NAME}
+openstack recordset create \
+  --record "${NS_FQDN}." \
+  --type PTR ${DNS_REVERSE_DOMAIN}. \
+  $(echo $NS_IP_ADDRESS | awk -F'.' '{print $4}')

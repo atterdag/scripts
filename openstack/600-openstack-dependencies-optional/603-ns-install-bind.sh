@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ##############################################################################
-# Install Bind on Controller host
+# Install Bind on ns host
 ##############################################################################
 sudo apt-get install --yes --quiet bind9 bind9utils bind9-doc
 

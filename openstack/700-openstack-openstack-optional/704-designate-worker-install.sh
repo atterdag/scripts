@@ -22,7 +22,7 @@ cat << EOF | sudo tee /etc/designate/pools.yaml
   # List out the nameservers for this pool. These are the actual BIND servers.
   # We use these to verify changes have propagated to all nameservers.
   nameservers:
-    - host: $(host ${CONTROLLER_FQDN} | sed "s|${CONTROLLER_FQDN} has address ||")
+    - host: ${NS_IP_ADDRESS}
       port: 53
 
   # List out the targets for this pool. For BIND there will be one
@@ -37,14 +37,14 @@ cat << EOF | sudo tee /etc/designate/pools.yaml
       # If you have multiple controllers you can add multiple masters
       # by running designate-mdns on them, and adding them here.
       masters:
-        - host: $(host ${CONTROLLER_FQDN} | sed "s|${CONTROLLER_FQDN} has address ||")
+        - host: ${NS_IP_ADDRESS}
           port: 5354
 
       # BIND Configuration options
       options:
-        host: $(host ${CONTROLLER_FQDN} | sed "s|${CONTROLLER_FQDN} has address ||")
+        host: ${NS_IP_ADDRESS}
         port: 53
-        rndc_host: $(host ${CONTROLLER_FQDN} | sed "s|${CONTROLLER_FQDN} has address ||")
+        rndc_host: ${NS_IP_ADDRESS}
         rndc_port: 953
         rndc_key_file: /etc/bind/designate.key
 EOF

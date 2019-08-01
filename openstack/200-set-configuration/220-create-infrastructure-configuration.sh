@@ -24,6 +24,12 @@ etcdctl mk variables/LVM_STANDARD_PV_DEVICE 'sde'
 # Will probably be deleted later ...
 etcdctl mk variables/SIMPLE_CRYPTO_CA 'OpenStack'
 
+# Set DNS server details
+etcdctl mk variables/NS_HOST_NAME 'ns'
+etcdctl mk variables/NS_IP_ADDRESS '192.168.1.31'
+etcdctl mk variables/NSS_HOST_NAME 'nss'
+etcdctl mk variables/NSS_IP_ADDRESS '192.168.1.32'
+
 # Set FreeIPA details
 etcdctl mk variables/IDM_ONE_HOST_NAME 'aku'
 etcdctl mk variables/IDM_ONE_IP_ADDRESS '192.168.1.40'
@@ -62,6 +68,8 @@ etcdctl mk variables/COMPUTE_FQDN "$(etcdctl get variables/COMPUTE_HOST_NAME).$(
 etcdctl mk variables/CONTROLLER_FQDN "$(etcdctl get variables/CONTROLLER_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
 etcdctl mk variables/DNS_REVERSE_DOMAIN "$(echo $(etcdctl get variables/CONTROLLER_IP_ADDRESS) | awk -F'.' '{print $3"."$2"."$1}').in-addr.arpa"
 etcdctl mk variables/DS_SUFFIX "dc=$(echo $(etcdctl get variables/DNS_DOMAIN) | sed 's|\.|,dc=|g')"
+etcdctl mk variables/NS_FQDN "$(etcdctl get variables/NS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl mk variables/NSS_FQDN "$(etcdctl get variables/NSS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
 etcdctl mk variables/IDM_ONE_FQDN "$(etcdctl get variables/IDM_ONE_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
 etcdctl mk variables/IDM_TWO_FQDN "$(etcdctl get variables/IDM_TWO_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
 etcdctl mk variables/KERBEROS_REALM "$(etcdctl get variables/DNS_DOMAIN | tr a-z A-Z)"
