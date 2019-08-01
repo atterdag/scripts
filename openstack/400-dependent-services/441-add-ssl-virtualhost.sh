@@ -12,8 +12,8 @@ cat << EOF | sudo tee /etc/apache2/sites-available/${SSL_ROOT_CA_FQDN}.conf
         AllowOverride None
         Require all granted
     </Directory>
-    ErrorLog ${APACHE_LOG_DIR}/${SSL_ROOT_CA_FQDN}-error.log
-    CustomLog ${APACHE_LOG_DIR}/${SSL_ROOT_CA_FQDN}-access.log combined
+    ErrorLog \${APACHE_LOG_DIR}/${SSL_ROOT_CA_FQDN}-error.log
+    CustomLog \${APACHE_LOG_DIR}/${SSL_ROOT_CA_FQDN}-access.log combined
 </VirtualHost>
 # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
 EOF
