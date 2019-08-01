@@ -7,6 +7,6 @@ openstack server create \
   --flavor m1.medium \
   --image debian-10-openstack-amd64 \
   --key-name default \
-  --nic port-id=ns \
+  --nic port-id=${NS_HOST_NAME} \
   --security-group default \
-  ns
+  ${NS_HOST_NAME}
