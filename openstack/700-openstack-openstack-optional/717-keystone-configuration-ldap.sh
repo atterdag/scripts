@@ -5,7 +5,6 @@
 ##############################################################################
 sudo crudini --set /etc/keystone/keystone.conf identity domain_specific_drivers_enabled True
 sudo crudini --set /etc/keystone/keystone.conf identity domain_config_dir /etc/keystone/domains
-#sudo crudini --set /etc/keystone/keystone.conf identity domain_configurations_from_database True
 
 sudo systemctl restart \
   apache2
@@ -62,8 +61,3 @@ sudo chown keystone:keystone /etc/keystone/domains/keystone.ldap.conf
 openstack domain create \
   --description "Domain for users, and groups from LDAP" \
   ldap
-
-# sudo su \
-#   --shell /bin/sh \
-#   --command "keystone-manage domain_config_upload --domain-name ldap" \
-#   keystone
