@@ -4,6 +4,6 @@
 # Create a fixed IP ports
 ##############################################################################
 openstack port create \
-  --fixed-ip ip-address=${NS_IP_ADDRESS} \
+  --fixed-ip ip-address=${IDM_ONE_IP_ADDRESS} \
   --network default \
-  ${NS_HOST_NAME}
+  ${IDM_ONE_HOST_NAME}
