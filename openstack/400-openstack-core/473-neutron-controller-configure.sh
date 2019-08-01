@@ -97,7 +97,7 @@ cat << EOF | sudo tee /etc/neutron/plugins/ml2/ml2_conf.ini
 type_drivers = vlan
 tenant_network_types = vlan
 mechanism_drivers = linuxbridge
-extension_drivers = port_security,dns
+extension_drivers = port_security
 external_network_type = vlan
 
 [ml2_type_flat]
