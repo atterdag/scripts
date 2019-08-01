@@ -5,7 +5,7 @@
 ##############################################################################
 # You have to set these by hand
 export CONTROLLER_FQDN=jack.se.lemche.net
- export VAULT_USER_PASS=2VTDJQYhs2RadMGQWe6fSWGqeF8h9E7w
+ export VAULT_USER_PASS=$(cat $(dirname $0)/.VAULT_USER_PASS)
 
 # Create variables with infrastructure configuration
 export ETCDCTL_ENDPOINTS="http://${CONTROLLER_FQDN}:2379"
