@@ -43,6 +43,7 @@ Distribution = Ubuntu
 [fernet_tokens]
 
 [identity]
+driver = sql
 
 [identity_mapping]
 

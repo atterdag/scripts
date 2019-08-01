@@ -19,4 +19,26 @@ sudo su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
 
 openstack compute service list
 openstack catalog list
+
+# You might have to restart all OS services before this works
+sudo systemctl restart \
+  nova-compute \
+  nova-novncproxy \
+  nova-conductor \
+  nova-scheduler \
+  nova-consoleauth \
+  nova-console \
+  nova-xvpvncproxy \
+  nova-api \
+  qemu-kvm \
+  glance-api \
+  glance-registry \
+  apache2 \
+  etcd \
+  memcached \
+  rabbitmq-server \
+  mysql \
+  bind9 \
+  chrony
+
 sudo -E nova-status upgrade check

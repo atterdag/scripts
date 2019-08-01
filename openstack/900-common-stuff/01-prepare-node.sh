@@ -4,8 +4,8 @@
 # Getting the environment up for a node
 ##############################################################################
 # You have to set these by hand
-export CONTROLLER_FQDN=
- export VAULT_USER_PASS=
+export CONTROLLER_FQDN=jack.se.lemche.net
+ export VAULT_USER_PASS=2VTDJQYhs2RadMGQWe6fSWGqeF8h9E7w
 
 # Create variables with infrastructure configuration
 export ETCDCTL_ENDPOINTS="http://${CONTROLLER_FQDN}:2379"
@@ -19,3 +19,5 @@ vault login -method=userpass username=user password=$VAULT_USER_PASS
 for secret in $(vault kv list -format yaml passwords/ | sed 's/^-\s//'); do
 	export eval $secret="$(vault kv get -field=value passwords/$secret)"
 done
+
+source <(sudo cat /var/lib/openstack/admin-openrc)

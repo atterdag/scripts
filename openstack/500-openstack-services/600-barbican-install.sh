@@ -1,7 +1,11 @@
 #!/bin/sh
 
 ##############################################################################
-# Install Nova on Compute host
+# Install Barbican on Controller host
 ##############################################################################
+
 sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
-  nova-compute
+  barbican-api \
+  barbican-keystone-listener \
+  barbican-worker \
+  pki-base
