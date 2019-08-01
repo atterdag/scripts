@@ -50,24 +50,3 @@ vault login -method=userpass username=admin password=$VAULT_ADMIN_PASS
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${IDM_TWO_FQDN}.p12 \
 | base64 \
 | vault kv put keystores/${IDM_TWO_FQDN}.p12 data=-
-
-# # Ensure that the ssl-cert group owns the keypair
-# sudo su -c "chown root:ssl-cert \
-#   /etc/ssl/certs/*.crt \
-#   /etc/ssl/private/*.key"
-#
-# # Restrict access to the keypair
-# sudo chmod 644 /etc/ssl/certs/*.crt
-# sudo su -c "chmod 640 /etc/ssl/private/*.key"
-#
-# # Convert PKCS#12 database with the controller keypair
-# sudo openssl pkcs12 \
-#   -caname "${SSL_INTERMEDIATE_CA_ONE_COMMON_NAME}" \
-#   -caname "${SSL_ROOT_CA_COMMON_NAME}" \
-#   -certfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt \
-#   -export \
-#   -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${IDM_TWO_FQDN}.crt \
-#   -inkey ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${IDM_TWO_FQDN}.key \
-#   -name ${IDM_TWO_FQDN} \
-#   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${IDM_TWO_FQDN}.p12 \
-#   -passout "pass:${IDM_TWO_KEYSTORE_PASS}"

@@ -54,20 +54,3 @@ vault login -method=userpass username=admin password=$VAULT_ADMIN_PASS
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${IDM_ONE_FQDN}.p12 \
 | base64 \
 | vault kv put keystores/${IDM_ONE_FQDN}.p12 data=-
-
-# # Copy controller certificate, and key to OS keystore
-# sudo openssl x509 \
-#   -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${IDM_ONE_FQDN}.crt \
-#   -out /etc/ssl/certs/${IDM_ONE_FQDN}.crt
-# sudo openssl rsa \
-#   -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${IDM_ONE_FQDN}.key \
-#   -out /etc/ssl/private/${IDM_ONE_FQDN}.key
-#
-# # Ensure that the ssl-cert group owns the keypair
-# sudo su -c "chown root:ssl-cert \
-#   /etc/ssl/certs/*.crt \
-#   /etc/ssl/private/*.key"
-#
-# # Restrict access to the keypair
-# sudo chmod 644 /etc/ssl/certs/*.crt
-# sudo su -c "chmod 640 /etc/ssl/private/*.key"
