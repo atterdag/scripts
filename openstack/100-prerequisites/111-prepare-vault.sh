@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source /etc/profile.d/genpasswd.sh
 
 # We have to change the default address because we have not enabled HTTPS yet
 export VAULT_ADDR='http://127.0.0.1:8200'
