@@ -7,7 +7,7 @@ export CONTROLLER_FQDN=
  export VAULT_USER_PASS=
 
 # Create variables with secrets
-vault login -method=userpass username=local password=$VAULT_USER_PASS
+vault login -method=userpass username=local password=$(cat ~/.VAULT_USER_PASS)
 for secret in $(vault kv list -format yaml openstack/ | sed 's/^-\s//'); do
 	export eval $secret="$(vault kv get -field=value openstack/$secret)"
 done

@@ -5,7 +5,7 @@
 ##############################################################################
 
 export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=user password=$VAULT_USER_PASS
+vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
 
 vault kv get --field=data keystores/${CONTROLLER_FQDN}.p12 \
 | tr -d '\n' \

@@ -100,3 +100,7 @@ vault write \
 
 # Unset VAULT_TOKEN
 unset VAULT_TOKEN
+
+# This is prolly not a good idea
+echo $VAULT_ADMIN_PASS > ~/.VAULT_ADMIN_PASS
+echo $VAULT_USER_PASS > ~/.VAULT_USER_PASS

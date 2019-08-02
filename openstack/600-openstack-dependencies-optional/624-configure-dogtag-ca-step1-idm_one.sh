@@ -82,7 +82,7 @@ sudo pkispawn \
   -f /var/lib/openstack/dogtag-step1.cfg
 
 export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=user password=$VAULT_USER_PASS
+vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
 sudo cat /root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca_signing.csr \
 | base64 \
 | tr -d '\n' \

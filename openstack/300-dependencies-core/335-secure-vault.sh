@@ -4,9 +4,8 @@
 # Configure HashiCorp Vault to use HTTPS
 ##############################################################################
 # Add CA chain to controller certificate
-
 export VAULT_ADDR='http://127.0.0.1:8200'
-vault login -method=userpass username=user password=$VAULT_USER_PASS
+vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
 
 vault kv get --field=data keystores/${CONTROLLER_FQDN}.p12 \
 | tr -d '\n' \
