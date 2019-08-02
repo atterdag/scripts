@@ -54,6 +54,7 @@ sudo chmod 0750 \
 # Enable systemd service, and start it
 sudo systemctl restart vault
 sudo systemctl status vault
+sleep 5
 
 # Unseal vault
 export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
