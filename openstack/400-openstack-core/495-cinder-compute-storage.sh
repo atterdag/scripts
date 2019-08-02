@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Create premium (SDD) storage on Compute host

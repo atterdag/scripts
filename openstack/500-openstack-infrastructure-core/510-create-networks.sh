@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Create VLAN network on Controller host

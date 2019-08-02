@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Install HashiCorp Vault on Controller node, so we can store secrets securely

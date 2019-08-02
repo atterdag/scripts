@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Configure HashiCorp Vault to use HTTPS

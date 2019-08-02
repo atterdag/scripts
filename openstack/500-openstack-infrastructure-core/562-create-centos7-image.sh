@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Create CentOS-7-x86_64-GenericCloud image on Controller host

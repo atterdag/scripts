@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Configure  Keystone virtual host to use HTTPS on Controller host

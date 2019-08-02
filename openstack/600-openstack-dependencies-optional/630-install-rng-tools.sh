@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Install rng-tools to improve the quality (entropy) of the randomness

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Attach ports with fixed IP to existing server instance on Controller host

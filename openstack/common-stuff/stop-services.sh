@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 sudo systemctl stop \
   designate-mdns \

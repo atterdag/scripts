@@ -1,4 +1,4 @@
-#!/bin/#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Install OpenStack command line tool on Controller host

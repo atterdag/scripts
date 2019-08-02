@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #############################################################################
 # Include keystone commands in bash completion on Controller host

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 
 # We have to change the default address because we have not enabled HTTPS yet

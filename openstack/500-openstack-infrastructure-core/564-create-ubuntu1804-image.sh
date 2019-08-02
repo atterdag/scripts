@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Create ubuntu-18.04-server-cloudimg-amd64 images on Controller host
