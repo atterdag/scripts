@@ -4,8 +4,8 @@
 # Create volume template on Controller host
 ##############################################################################
 openstack volume create \
-  --description 'debian-10-openstack-amd64 template volume' \
-  --image debian-10-openstack-amd64 \
+  --description 'CentOS-7-x86_64-GenericCloud template volume' \
+  --image CentOS-7-x86_64-GenericCloud \
   --size 10 \
   --type standard \
-  debian-10-openstack-amd64
+  CentOS-7-x86_64-GenericCloud

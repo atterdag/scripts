@@ -3,4 +3,5 @@
 ##############################################################################
 # Install Etcd on Controller host
 ##############################################################################
-sudo apt-get install --yes etcd-client
+sudo apt-get --yes --quiet install \
+  etcd-client

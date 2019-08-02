@@ -3,7 +3,8 @@
 ##############################################################################
 # Install NTP on Compute host
 ##############################################################################
-sudo apt-get --yes install chrony
+sudo apt-get --yes --quiet install \
+  chrony
 
 sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
 

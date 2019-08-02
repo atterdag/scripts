@@ -15,9 +15,12 @@ vault operator init \
 
 # We have to unseal the vault using 3 key shards
 # !!! Remember you have to unseal vault each time its been restarted.
-vault operator unseal $(sudo grep "Unseal Key 1:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault operator unseal $(sudo grep "Unseal Key 2:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault operator unseal $(sudo grep "Unseal Key 3:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+vault operator unseal \
+  $(sudo grep "Unseal Key 1:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+vault operator unseal \
+  $(sudo grep "Unseal Key 2:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+vault operator unseal \
+  $(sudo grep "Unseal Key 3:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
 vault status | grep Sealed
 
 # Set the root token so we can add some root data
@@ -78,7 +81,9 @@ EOF
 export VAULT_USER_PASS=$(genpasswd 32)
 
 # Put the local user secret in the root data for later retrieval
-vault write secret/VAULT_USER_PASS value=$VAULT_USER_PASS
+vault write \
+  secret/VAULT_USER_PASS \
+  value=$VAULT_USER_PASS
 
 # Create local user in vault, that we can use for future authentication
 vault write \
@@ -90,7 +95,9 @@ vault write \
 export VAULT_ADMIN_PASS=$(genpasswd 32)
 
 # Put the local user secret in the root data for later retrieval
-vault write secret/VAULT_ADMIN_PASS value=$VAULT_ADMIN_PASS
+vault write \
+  secret/VAULT_ADMIN_PASS \
+  value=$VAULT_ADMIN_PASS
 
 # Create local user in vault, that we can use for future authentication
 vault write \

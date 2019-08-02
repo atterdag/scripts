@@ -3,7 +3,7 @@
 ##############################################################################
 # Remove OpenStack, and immediate dependencies
 ##############################################################################
-sudo apt-get --yes --purge remove \
+sudo apt-get --yes --quiet --purge remove \
   barbican-* \
   chrony \
   cinder* \
@@ -33,7 +33,7 @@ sudo apt-get --yes --purge remove \
   sphinx-common \
   tgt \
   ubuntu-cloud-keyring
-sudo apt-get --yes --purge autoremove
+sudo apt-get --yes --quiet --purge autoremove
 sudo rm -fr \
   /etc/barbican/ \
   /etc/cinder/ \

@@ -3,7 +3,8 @@
 ##############################################################################
 # Install Apache on Controller host
 ##############################################################################
-sudo apt-get --yes install apache2
+sudo apt-get --yes --quiet install \
+  apache2
 
 export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
 vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)

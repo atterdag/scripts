@@ -3,7 +3,7 @@
 ##############################################################################
 # Install packages prequisite to installing prequisites
 ##############################################################################
-sudo apt-get install \
+sudo apt-get --yes --quiet install \
   crudini \
   openssl \
   ca-certificates \

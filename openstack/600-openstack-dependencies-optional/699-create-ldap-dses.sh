@@ -3,7 +3,7 @@
 ##############################################################################
 # Create DC
 ##############################################################################
-sudo apt-get install --yes \
+sudo apt-get --yes --quiet install \
   ldap-utils
 
 cat << EOF | sudo tee /var/lib/openstack/389-ds-create-os-dses.ldif

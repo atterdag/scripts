@@ -4,8 +4,8 @@
 # Create volume template on Controller host
 ##############################################################################
 openstack volume create \
-  --description 'debian-10-openstack-amd64 template volume' \
-  --image debian-10-openstack-amd64 \
+  --description 'ubuntu-18.04-server-cloudimg-amd64 template volume' \
+  --image ubuntu-18.04-server-cloudimg-amd64 \
   --size 10 \
   --type standard \
-  debian-10-openstack-amd64
+  ubuntu-18.04-server-cloudimg-amd64

@@ -3,4 +3,7 @@
 ##############################################################################
 # Get package listing
 ##############################################################################
-dpkg -l | grep ^ii | awk '{print $2}' > baseline_packages.txt
+dpkg --list \
+| grep ^ii \
+| awk '{print $2}' \
+> baseline_packages.txt

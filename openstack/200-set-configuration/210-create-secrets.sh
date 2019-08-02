@@ -3,6 +3,7 @@
 ##############################################################################
 # Set passwords in Vault on controller node
 ##############################################################################
+export VAULT_ADDR="http://localhost:8200"
 source /etc/profile.d/genpasswd.sh
 vault login -method=userpass username=admin password=$(cat ~/.VAULT_ADMIN_PASS)
 vault kv put passwords/ADMIN_PASS value=$(genpasswd 16)

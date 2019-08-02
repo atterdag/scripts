@@ -13,8 +13,7 @@ sudo openssl ca \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/ca.crl \
   -passin pass:${CA_PASSWORD}
 
-# Take note of the CA_PASSWORD
-echo ${CA_PASSWORD}
+echo "Take note of the CA_PASSWORD: ${CA_PASSWORD}"
 
 # Test OCSP
 sudo openssl ocsp \

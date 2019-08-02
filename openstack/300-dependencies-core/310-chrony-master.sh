@@ -3,7 +3,8 @@
 ##############################################################################
 # Install NTP on Controller host
 ##############################################################################
-sudo apt-get --yes install chrony
+sudo apt-get --yes --quiet install \
+  chrony
 
 sudo mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
 

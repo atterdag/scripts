@@ -22,6 +22,7 @@ openstack catalog list
 
 # You might have to restart all OS services before this works
 sudo systemctl restart \
+  apache2 \
   nova-compute \
   nova-novncproxy \
   nova-conductor \
@@ -30,15 +31,6 @@ sudo systemctl restart \
   nova-console \
   nova-xvpvncproxy \
   nova-api \
-  qemu-kvm \
-  glance-api \
-  glance-registry \
-  apache2 \
-  etcd \
-  memcached \
-  rabbitmq-server \
-  mysql \
-  bind9 \
-  chrony
+  qemu-kvm
 
 sudo -E nova-status upgrade check

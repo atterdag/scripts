@@ -3,7 +3,7 @@
 ##############################################################################
 # Install Bind on ns host
 ##############################################################################
-sudo apt-get install --yes --quiet bind9 bind9utils bind9-doc
+sudo apt-get --yes --quiet install bind9 bind9utils bind9-doc
 
 sudo rndc-confgen -a -k designate -c /etc/bind/designate.key
 sudo chmod 0640 /etc/bind/designate.key

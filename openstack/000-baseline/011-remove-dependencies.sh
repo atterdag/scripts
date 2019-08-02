@@ -3,7 +3,7 @@
 ##############################################################################
 # Remove packages on all base packages
 ##############################################################################
-sudo apt-get --yes --purge remove \
+sudo apt-get --yes --quiet --purge remove \
   389-ds \
   apache2 \
   arptables \
@@ -23,7 +23,7 @@ sudo apt-get --yes --purge remove \
   make \
   python \
   thin-provisioning-tools
-sudo apt-get --yes --purge autoremove
+sudo apt-get --yes --quiet --purge autoremove
 sudo rm -fr \
   /etc/apache2/ \
   /etc/bind/ \

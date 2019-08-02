@@ -3,7 +3,9 @@
 ##############################################################################
 # Install Database on Controller host
 ##############################################################################
-sudo apt-get --yes install mariadb-server python-pymysql
+sudo apt-get --yes --quiet install \
+  mariadb-server \
+  python-pymysql
 
 cat << EOF | sudo tee /etc/mysql/mariadb.conf.d/99-openstack.cnf
 [mysqld]

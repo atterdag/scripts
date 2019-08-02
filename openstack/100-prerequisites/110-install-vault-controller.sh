@@ -5,7 +5,8 @@
 # NB We install Dogtag KRA later, so we only use HashiCorp Vault to store
 #    OS, and other core component secrets.
 ##############################################################################
-sudo apt-get install html2text
+sudo apt-get --yes --quiet install \
+  html2text
 
 VAULT_VERSION=$(curl \
   --silent https://releases.hashicorp.com/vault/ \

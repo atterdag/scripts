@@ -53,7 +53,7 @@ sudo chown designate:designate /etc/designate/designate.conf
 
 sudo su -s /bin/sh -c "designate-manage pool update" designate
 
-sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --quiet install \
   designate-worker \
   designate-producer \
   designate-mdns

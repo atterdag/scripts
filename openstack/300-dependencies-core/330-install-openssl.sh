@@ -3,7 +3,7 @@
 ##############################################################################
 # Install OpenSSL on Controller host
 ##############################################################################
-sudo apt-get install --yes --quiet \
+sudo apt-get --yes --quiet install \
   ca-certificates \
   openssl \
   ssl-cert

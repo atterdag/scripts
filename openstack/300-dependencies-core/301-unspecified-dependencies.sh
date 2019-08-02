@@ -3,7 +3,7 @@
 ##############################################################################
 # Install dependencies that are not automatically installed
 ##############################################################################
-sudo apt-get --yes install \
+sudo apt-get --yes --quiet install \
   arptables \
   ebtables \
   lvm2 \
