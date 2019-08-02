@@ -22,13 +22,11 @@ sudo apt-get --yes --purge remove \
   libsasl2-modules-gssapi-mit \
   make \
   python \
-  ssl-cert \
   thin-provisioning-tools
 sudo apt-get --yes --purge autoremove
 sudo rm -fr \
   /etc/apache2/ \
   /etc/bind/ \
-  /etc/ssl/ \
   /var/cache/bind \
   /usr/lib/x86_64-linux-gnu/dirsrv \
   /var/lib/apache2 \
