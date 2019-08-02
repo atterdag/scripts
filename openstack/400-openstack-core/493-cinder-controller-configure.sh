@@ -3,81 +3,31 @@
 ##############################################################################
 # Configure Cinder on Controller host
 ##############################################################################
-sudo mv /etc/cinder/cinder.conf /etc/cinder/cinder.conf.org
-cat << EOF | sudo tee /etc/cinder/cinder.conf
-[DEFAULT]
-auth_strategy = keystone
-transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
-my_ip = ${CONTROLLER_IP_ADDRESS}
-# backup_driver = cinder.backup.drivers.swift
-# backup_swift_url = SWIFT_URL
+sudo crudini --set /etc/cinder/cinder.conf DEFAULT auth_strategy keystone
+sudo crudini --set /etc/cinder/cinder.conf DEFAULT transport_url rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
+sudo crudini --set /etc/cinder/cinder.conf DEFAULT my_ip ${CONTROLLER_IP_ADDRESS}
+# sudo crudini --set /etc/cinder/cinder.conf DEFAULT backup_driver cinder.backup.drivers.swift
+# sudo crudini --set /etc/cinder/cinder.conf DEFAULT backup_swift_url SWIFT_URL
+sudo crudini --set /etc/cinder/cinder.conf database connection mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken www_authenticate_uri https://${CONTROLLER_FQDN}:5000
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken auth_url https://${CONTROLLER_FQDN}:5000
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken certfile /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken keyfile /etc/ssl/private/${CONTROLLER_FQDN}.key
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken cafile /etc/ssl/certs/ca-certificates.crt
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken region_name RegionOne
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken memcached_servers ${CONTROLLER_FQDN}:11211
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken project_domain_name Default
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken user_domain_name Default
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken project_name service
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken username cinder
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken password $CINDER_PASS
+sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken auth_type password
+sudo crudini --set /etc/cinder/cinder.conf oslo_concurrency lock_path /var/lib/cinder/tmp
 
-[BACKEND]
-
-[BRCD_FABRIC_EXAMPLE]
-
-[CISCO_FABRIC_EXAMPLE]
-
-[COORDINATION]
-
-[FC-ZONE-MANAGER]
-
-[KEY_MANAGER]
-
-[barbican]
-
-[cors]
-
-[cors.subdomain]
-
-[database]
-connection = mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder
-
-[key_manager]
-
-[keystone_authtoken]
-www_authenticate_uri = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:5000
-certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
-cafile = /etc/ssl/certs/ca-certificates.crt
-region_name = RegionOne
-memcached_servers = ${CONTROLLER_FQDN}:11211
-project_domain_name = Default
-user_domain_name = Default
-project_name = service
-username = cinder
-password = $CINDER_PASS
-auth_type = password
-
-[matchmaker_redis]
-
-[oslo_concurrency]
-lock_path = /var/lib/cinder/tmp
-
-[oslo_messaging_amqp]
-
-[oslo_messaging_notifications]
-
-[oslo_messaging_rabbit]
-
-[oslo_messaging_zmq]
-
-[oslo_middleware]
-
-[oslo_policy]
-
-[oslo_reports]
-
-[oslo_versionedobjects]
-
-[ssl]
-
-[lvm]
-
-EOF
-sudo chmod 0660 /etc/cinder/cinder.conf
-sudo chown cinder:cinder /etc/cinder/cinder.conf
+sudo chmod 0660 \
+  /etc/cinder/cinder.conf
+sudo chown cinder:cinder \
+  /etc/cinder/cinder.conf
 
 sudo usermod -a -G ssl-cert cinder
 

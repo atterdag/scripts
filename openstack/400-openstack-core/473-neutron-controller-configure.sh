@@ -3,164 +3,86 @@
 ##############################################################################
 # Configure Neutron on Controller host
 ##############################################################################
-sudo mv /etc/neutron/neutron.conf /etc/neutron/neutron.conf.org
-cat << EOF | sudo tee /etc/neutron/neutron.conf
-[DEFAULT]
-nova_metadata_ip = ${CONTROLLER_FQDN}
-METADATA_SECRET = ${METADATA_SECRET}
-auth_strategy = keystone
-core_plugin = ml2
-service_plugins = router
-dhcp_agents_per_network = 2
-allow_overlapping_ips = True
-notify_nova_on_port_status_changes = True
-rpc_backend = rabbit
-transport_url = rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}
-auth_strategy = keystone
-notify_nova_on_port_status_changes = True
-notify_nova_on_port_data_changes = True
-dns_domain = ${DNS_DOMAIN}.
-
-[agent]
-root_helper = sudo neutron-rootwrap /etc/neutron/rootwrap.conf
-
-[cors]
-
-[cors.subdomain]
-
-[database]
-connection = mysql+pymysql://neutron:${NEUTRON_DBPASS}@${CONTROLLER_FQDN}/neutron
-
-[keystone_authtoken]
-www_authenticate_uri  = https://${CONTROLLER_FQDN}:5000
-auth_url = https://${CONTROLLER_FQDN}:5000
-certfile = /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-keyfile = /etc/ssl/private/${CONTROLLER_FQDN}.key
-cafile = /etc/ssl/certs/ca-certificates.crt
-region_name = RegionOne
-memcached_servers = ${CONTROLLER_FQDN}:11211
-project_domain_name = Default
-user_domain_name = Default
-project_name = service
-username = neutron
-password = $NEUTRON_PASS
-auth_type = password
-
-[matchmaker_redis]
-
-[nova]
-auth_url = https://${CONTROLLER_FQDN}:5000
-region_name = RegionOne
-project_domain_name = Default
-project_name = service
-user_domain_name = Default
-username = nova
-password = $NOVA_PASS
-auth_type = password
-
-[oslo_concurrency]
-lock_path = /var/lib/neutron/tmp
-
-[oslo_messaging_amqp]
-
-[oslo_messaging_notifications]
-
-[oslo_messaging_rabbit]
-
-[oslo_messaging_zmq]
-
-[oslo_policy]
-
-[qos]
-
-[quotas]
-
-[ssl]
-EOF
-sudo chmod 0660 /etc/neutron/neutron.conf
-sudo chown neutron:neutron /etc/neutron/neutron.conf
-
-sudo mv /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugins/ml2/ml2_conf.ini.org
-cat << EOF | sudo tee /etc/neutron/plugins/ml2/ml2_conf.ini
-[DEFAULT]
-
-[ml2]
 # If you don't want to let openstack manage which VLANs the neutron networks
 # can connect to then uncomment below to change to flat networks, and map all
 # openstack networks to specific vlan interfaces in the linuxbridge
 # configuration file.
-; type_drivers = flat
-; tenant_network_types = flat
-; mechanism_drivers = linuxbridge
-; extension_drivers = port_security,dns
-; external_network_type = flat
-type_drivers = vlan
-tenant_network_types = vlan
-mechanism_drivers = linuxbridge
-extension_drivers = port_security
-external_network_type = vlan
+# Run these commands if you want to use flat network
+# sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 type_drivers flat
+# sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 tenant_network_types flat
+# sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 mechanism_drivers linuxbridge
+# sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 extension_drivers port_security
+# sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 external_network_type flat
+# sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_flat flat_networks "*"
+# sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini physical_interface_mappings inside:${NETWORK_INTERFACE}.1,servers:${NETWORK_INTERFACE}.2,dmz:${NETWORK_INTERFACE}.3,outside:${NETWORK_INTERFACE}.4
+# sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini physical_interface_mappings physical_interface_mappings inside:${NETWORK_INTERFACE}.1,servers:${NETWORK_INTERFACE}.2,dmz:${NETWORK_INTERFACE}.3,outside:${NETWORK_INTERFACE}.4
+# sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini physical_interface_mappings bridge_mappings outside:${NETWORK_INTERFACE}
 
-[ml2_type_flat]
-# Remember to uncomment if using flat networks
-; flat_networks = *
+# Or run these if you want to let neutorn manage which vlans to connect to
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 type_drivers vlan
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 tenant_network_types vlan
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 mechanism_drivers linuxbridge
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 extension_drivers port_security
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 external_network_type vlan
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${NETWORK_INTERFACE}:1:4094"
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge physical_interface_mappings "${NETWORK_INTERFACE}:${NETWORK_INTERFACE}"
 
-[ml2_type_geneve]
+# Run this for either
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT nova_metadata_ip ${CONTROLLER_FQDN}
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT METADATA_SECRET ${METADATA_SECRET}
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT auth_strategy keystone
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT core_plugin ml2
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT service_plugins router
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT dhcp_agents_per_network 2
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT allow_overlapping_ips True
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_status_changes True
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT rpc_backend rabbit
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}"
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT auth_strategy keystone
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_status_changes True
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_data_changes True
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT dns_domain ${DNS_DOMAIN}.
+sudo crudini --set /etc/neutron/neutron.conf agent root_helper sudo neutron-rootwrap /etc/neutron/rootwrap.conf
+sudo crudini --set /etc/neutron/neutron.conf database connection "mysql+pymysql://neutron:${NEUTRON_DBPASS}@${CONTROLLER_FQDN}/neutron"
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken www_authenticate_uri "https://${CONTROLLER_FQDN}:5000"
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_url "https://${CONTROLLER_FQDN}:5000"
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken certfile /etc/ssl/certs/${CONTROLLER_FQDN}.crt
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken keyfile /etc/ssl/private/${CONTROLLER_FQDN}.key
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken cafile /etc/ssl/certs/ca-certificates.crt
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken region_name RegionOne
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken memcached_servers "${CONTROLLER_FQDN}:11211"
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken project_domain_name Default
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken user_domain_name Default
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken project_name service
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken username neutron
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken password $NEUTRON_PASS
+sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_type password
+sudo crudini --set /etc/neutron/neutron.conf nova auth_url "https://${CONTROLLER_FQDN}:5000"
+sudo crudini --set /etc/neutron/neutron.conf nova region_name RegionOne
+sudo crudini --set /etc/neutron/neutron.conf nova project_domain_name Default
+sudo crudini --set /etc/neutron/neutron.conf nova project_name service
+sudo crudini --set /etc/neutron/neutron.conf nova user_domain_name Default
+sudo crudini --set /etc/neutron/neutron.conf nova username nova
+sudo crudini --set /etc/neutron/neutron.conf nova password $NOVA_PASS
+sudo crudini --set /etc/neutron/neutron.conf nova auth_type password
+sudo crudini --set /etc/neutron/neutron.conf oslo_concurrency lock_path /var/lib/neutron/tmp
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_security_group True
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_ipset True
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini securitygroup enable_security_group True
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini securitygroup firewall_driver neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan enable_vxlan False
+sudo crudini --set /etc/neutron/dhcp_agent.ini DEFAULT interface_driver neutron.agent.linux.interface.BridgeInterfaceDriver
+sudo crudini --set /etc/neutron/dhcp_agent.ini DEFAULT dhcp_driver neutron.agent.linux.dhcp.Dnsmasq
+sudo crudini --set /etc/neutron/dhcp_agent.ini DEFAULT enable_isolated_metadata True
+sudo crudini --set /etc/neutron/metadata_agent.ini DEFAULT ova_metadata_ip $CONTROLLER_FQDN
+sudo crudini --set /etc/neutron/metadata_agent.ini DEFAULT METADATA_SECRET $METADATA_SECRET
 
-[ml2_type_gre]
-
-[ml2_type_vlan]
-# Remember to comment if using flat networks
-network_vlan_ranges = ${NETWORK_INTERFACE}:1:4094
-
-[ml2_type_vxlan]
-
-[securitygroup]
-enable_security_group = True
-enable_ipset = True
-EOF
-
-sudo mv /etc/neutron/plugins/ml2/linuxbridge_agent.ini /etc/neutron/plugins/ml2/linuxbridge_agent.ini.org
-cat << EOF | sudo tee /etc/neutron/plugins/ml2/linuxbridge_agent.ini
-[DEFAULT]
-
-[agent]
-
-[linux_bridge]
-# Remember to uncomment if using flat networks
-; physical_interface_mappings = inside:${NETWORK_INTERFACE}.1,servers:${NETWORK_INTERFACE}.2,dmz:${NETWORK_INTERFACE}.3,outside:${NETWORK_INTERFACE}.4
-physical_interface_mappings = ${NETWORK_INTERFACE}:${NETWORK_INTERFACE}
-# Remember to uncomment if using flat networks
-; bridge_mappings = outside:${NETWORK_INTERFACE}
-
-[securitygroup]
-enable_security_group = True
-firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
-
-[vxlan]
-enable_vxlan = False
-EOF
-
-sudo mv /etc/neutron/dhcp_agent.ini /etc/neutron/dhcp_agent.ini.org
-cat << EOF | sudo tee /etc/neutron/dhcp_agent.ini
-[DEFAULT]
-interface_driver = neutron.agent.linux.interface.BridgeInterfaceDriver
-dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
-enable_isolated_metadata = True
-
-[AGENT]
-EOF
-
-sudo mv /etc/neutron/metadata_agent.ini /etc/neutron/metadata_agent.ini.org
-cat << EOF | sudo tee /etc/neutron/metadata_agent.ini
-[DEFAULT]
-ova_metadata_ip = $CONTROLLER_FQDN
-METADATA_SECRET = $METADATA_SECRET
-[AGENT]
-
-[cache]
-EOF
-sudo chmod 0640 /etc/neutron/metadata_agent.ini
-sudo chown neutron:neutron /etc/neutron/metadata_agent.ini
+sudo chmod 0660 \
+  /etc/neutron/neutron.conf \
+  /etc/neutron/metadata_agent.ini
+sudo chown neutron:neutron \
+  /etc/neutron/neutron.conf \
+  /etc/neutron/metadata_agent.ini
 
 sudo usermod -a -G ssl-cert neutron
 

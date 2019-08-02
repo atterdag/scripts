@@ -18,32 +18,26 @@ cat << EOF | sudo tee /etc/security/limits.d/389-ds.conf
 *             -       nofile          8192
 EOF
 
-cat << EOF | sudo tee /var/lib/openstack/389-ds-setup.inf
-[General]
-FullMachineName=${IDM_ONE_FQDN}
-SuiteSpotUserID=dirsrv
-SuiteSpotGroup=dirsrv
-AdminDomain=${DNS_DOMAIN}
-ConfigDirectoryAdminID=admin
-ConfigDirectoryAdminPwd=${DS_ADMIN_PASS}
-ConfigDirectoryLdapURL=ldap://${IDM_ONE_FQDN}:389/o=NetscapeRoot
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf General FullMachineName ${IDM_ONE_FQDN}
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf General SuiteSpotUserID dirsrv
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf General SuiteSpotGroup dirsrv
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf General AdminDomain ${DNS_DOMAIN}
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf General ConfigDirectoryAdminID admin
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf General ConfigDirectoryAdminPwd ${DS_ADMIN_PASS}
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf General ConfigDirectoryLdapURL "ldap://${IDM_ONE_FQDN}:389/o=NetscapeRoot"
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf slapd SlapdConfigForMC Yes
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf slapd UseExistingMC 0
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf slapd ServerPort 389
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf slapd ServerIdentifier default
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf slapd Suffix "${DS_SUFFIX}"
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf slapd RootDN "cn=Directory Manager"
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf slapd RootDNPwd ${DS_ROOT_PASS}
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf slapd AddSampleEntries Yes
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf admin Port 9830
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf admin ServerIpAddress ${IDM_ONE_IP_ADDRESS}
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf admin ServerAdminID admin
+sudo crudini --set /var/lib/openstack/389-ds-setup.inf admin ServerAdminPwd ${DS_ADMIN_PASS}
 
-[slapd]
-SlapdConfigForMC=Yes
-UseExistingMC=0
-ServerPort=389
-ServerIdentifier=default
-Suffix=${DS_SUFFIX}
-RootDN=cn=Directory Manager
-RootDNPwd=${DS_ROOT_PASS}
-AddSampleEntries=Yes
-
-[admin]
-Port=9830
-ServerIpAddress=${IDM_ONE_IP_ADDRESS}
-ServerAdminID=admin
-ServerAdminPwd=${DS_ADMIN_PASS}
-EOF
 sudo setup-ds-admin \
   --silent \
   --file=/var/lib/openstack/389-ds-setup.inf
