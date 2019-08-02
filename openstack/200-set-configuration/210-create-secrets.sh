@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 ##############################################################################
 # Set passwords in Vault on controller node
 ##############################################################################
-vault login -method=userpass username=admin password=$VAULT_ADMIN_PASS
-
+source /etc/profile.d/genpasswd.sh
+vault login -method=userpass username=admin password=$(cat ~/.VAULT_ADMIN_PASS)
 vault kv put passwords/ADMIN_PASS value=$(genpasswd 16)
 vault kv put passwords/BARBICAN_DBPASS value=$(genpasswd 16)
 vault kv put passwords/BARBICAN_KEK value=$(echo $(genpasswd 32) | base64)
@@ -44,9 +44,3 @@ vault kv put passwords/PKI_SERVER_DATABASE_PASSWORD value=$(genpasswd 16)
 vault kv put passwords/PKI_TOKEN_PASSWORD value=$(genpasswd 16)
 vault kv put passwords/IDM_ONE_KEYSTORE_PASS value=$(genpasswd 16)
 vault kv put passwords/IDM_TWO_KEYSTORE_PASS value=$(genpasswd 16)
-
-# Set OS password variables
-vault login -method=userpass username=user password=$VAULT_USER_PASS
-for secret in $(vault kv list -format yaml passwords/ | sed 's/^-\s//'); do
-	export eval $secret=$(vault kv get -field=value passwords/$secret)
-done
