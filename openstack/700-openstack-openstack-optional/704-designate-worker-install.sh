@@ -3,7 +3,23 @@
 ##############################################################################
 # Install Designate Worker on Controller host
 ##############################################################################
-cat << EOF | sudo tee /etc/designate/pools.yaml
+# export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
+# vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
+#
+# vault kv get --field=data keystores/designate.key \
+# | tr -d '\n' \
+# | base64 --decode \
+# > designate.key
+# sudo mv designate.key /etc/designate/bind.key
+# sudo chown designate:designate /etc/designate/bind.key
+# sudo chmod 0640 /etc/designate/bind.key
+
+if [[ $CONTROLLER_FQDN != $NS_FQDN ]]; then
+  ssh_cmd="ssh -o StrictHostKeyChecking=no ubuntu@${NS_IP_ADDRESS}"
+else
+  ssh_cmd=""
+fi
+cat << EOF | $ssh_cmd sudo tee /etc/designate/pools.yaml
 - name: default
   # The name is immutable. There will be no option to change the name after
   # creation and the only way will to change it will be to delete it
@@ -16,7 +32,7 @@ cat << EOF | sudo tee /etc/designate/pools.yaml
   # This should be a record that is created outside of designate, that
   # points to the public IP of the controller node.
   ns_records:
-    - hostname: ${CONTROLLER_FQDN}.
+    - hostname: ${NS_FQDN}.
       priority: 1
 
   # List out the nameservers for this pool. These are the actual BIND servers.
@@ -48,17 +64,19 @@ cat << EOF | sudo tee /etc/designate/pools.yaml
         rndc_port: 953
         rndc_key_file: /etc/bind/designate.key
 EOF
-sudo chmod 0660 /etc/designate/designate.conf
-sudo chown designate:designate /etc/designate/designate.conf
+$ssh_cmd sudo chmod 0660 /etc/designate/designate.conf
+$ssh_cmd sudo chown designate:designate /etc/designate/designate.conf
 
-sudo su -s /bin/sh -c "designate-manage pool update" designate
+$ssh_cmd sudo usermod -a -G bind designate
 
-sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --quiet install \
+$ssh_cmd sudo su -s /bin/sh -c "designate-manage pool update" designate
+
+$ssh_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --quiet install \
   designate-worker \
   designate-producer \
   designate-mdns
 
-sudo systemctl restart \
+$ssh_cmd sudo systemctl restart \
   designate-worker \
   designate-producer \
   designate-mdns

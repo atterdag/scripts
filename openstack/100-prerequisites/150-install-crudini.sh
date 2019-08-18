@@ -1,9 +1,7 @@
 #!/bin/bash
 
 ##############################################################################
-# Create a fixed IP ports
+# Install Etcd on Controller host
 ##############################################################################
-openstack port create \
-  --fixed-ip ip-address=${NS_IP_ADDRESS} \
-  --network default \
-  ${NS_HOST_NAME}
+sudo apt-get --yes --quiet install \
+  crudini

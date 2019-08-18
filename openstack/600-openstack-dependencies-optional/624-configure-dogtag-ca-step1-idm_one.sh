@@ -3,6 +3,12 @@
 ##############################################################################
 # Install DogTag
 ##############################################################################
+if [[ $CONTROLLER_FQDN != $IDM_ONE_FQDN ]]; then
+  export IDM_ONE_FQDN=$CONTROLLER_FQDN
+  export IDM_ONE_IP_ADDRESS=$CONTROLLER_IP_ADDRESS
+  export IDM_ONE_KEYSTORE_PASS=$CONTROLLER_KEYSTORE_PASS
+fi
+
 # sudo rm -fr /root/.dogtag
 # sudo pkidestroy \
 #   -s CA \

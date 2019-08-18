@@ -62,6 +62,9 @@ sudo crudini --set /etc/nova/nova.conf placement_database connection "mysql+pymy
 sudo crudini --set /etc/nova/nova.conf scheduler discover_hosts_in_cells_interval "300"
 sudo crudini --set /etc/nova/nova.conf vnc vncserver_listen "\$my_ip"
 sudo crudini --set /etc/nova/nova.conf vnc vncserver_proxyclient_address "\$my_ip"
+sudo crudini --set /etc/nova/nova.conf DEFAULT debug "false"
+sudo crudini --set /etc/nova/nova.conf DEFAULT syslog_log_facility "LOG_LOCAL0"
+sudo crudini --set /etc/nova/nova.conf DEFAULT use_syslog "true"
 
 sudo chmod 0640 \
   /etc/nova/nova.conf

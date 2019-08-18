@@ -3,10 +3,6 @@
 ##############################################################################
 # Install DogTag
 ##############################################################################
-sudo pkispawn \
-  -s CA \
-  -f /var/lib/openstack/dogtag-step2.cfg
-
 sudo certutil \
   -L \
   -d /etc/pki/${SSL_PKI_INSTANCE_NAME}/alias
@@ -27,6 +23,10 @@ sudo pki \
   client-cert-import \
   --pkcs12 /root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca_admin_cert.p12 \
   --pkcs12-password-file /root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca/pkcs12_password.conf
+# This doesn't work
 sudo pki \
   -c $PKI_CLIENT_DATABASE_PASSWORD \
-  -n caadmin ca-user-show caadmin
+  -d /root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca_admin_cert.p12 \
+  -n caadmin \
+  ca-user-show \
+  caadmin

@@ -3,7 +3,7 @@
 ##############################################################################
 # Create controller key pair on Controller host
 ##############################################################################
-if [[ $CONTROLLER_FQDN != $IDM_ONE_FQDN ]]; then
+if [[ $CONTROLLER_FQDN != $NS_FQDN ]]; then
   # Generate controller node key, and certifiate
   sudo openssl ca \
     -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
@@ -13,7 +13,7 @@ if [[ $CONTROLLER_FQDN != $IDM_ONE_FQDN ]]; then
   sudo su -c "openssl req \
     -batch \
     -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
-      printf \"[SAN]\nsubjectAltName=DNS:${IDM_ONE_FQDN}\") \
+      printf \"[SAN]\nsubjectAltName=DNS:${NS_FQDN}\") \
     -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${IDM_ONE_FQDN}.key \
     -new \
     -newkey rsa:2048 \

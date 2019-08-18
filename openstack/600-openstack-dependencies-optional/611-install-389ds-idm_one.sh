@@ -3,7 +3,14 @@
 ##############################################################################
 # Install 389 Directory Server
 ##############################################################################
-sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install 389-ds
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install \
+    389-ds
+
+if [[ $CONTROLLER_FQDN != $IDM_ONE_FQDN ]]; then
+  export IDM_ONE_FQDN=$CONTROLLER_FQDN
+  export IDM_ONE_IP_ADDRESS=$CONTROLLER_IP_ADDRESS
+  export IDM_ONE_KEYSTORE_PASS=$CONTROLLER_KEYSTORE_PASS
+fi
 
 # sudo ds_removal -s default -w ${DS_ADMIN_PASS}
 
@@ -17,7 +24,6 @@ sudo sysctl --load=/etc/sysctl.d/99-389-ds.conf
 cat << EOF | sudo tee /etc/security/limits.d/389-ds.conf
 *             -       nofile          8192
 EOF
-
 sudo crudini --set /var/lib/openstack/389-ds-setup.inf General FullMachineName "${IDM_ONE_FQDN}"
 sudo crudini --set /var/lib/openstack/389-ds-setup.inf General SuiteSpotUserID "dirsrv"
 sudo crudini --set /var/lib/openstack/389-ds-setup.inf General SuiteSpotGroup "dirsrv"
