@@ -41,6 +41,7 @@ sudo crudini --set /etc/neutron/neutron.conf database connection "mysql+pymysql:
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT allow_overlapping_ips "true"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT auth_strategy "keystone"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT core_plugin "ml2"
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT debug "false"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT dhcp_agents_per_network "2"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT METADATA_SECRET "${METADATA_SECRET}"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_data_changes "true"
@@ -48,7 +49,9 @@ sudo crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_status_
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT nova_metadata_ip "${CONTROLLER_FQDN}"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT rpc_backend "rabbit"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT service_plugins "router"
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT syslog_log_facility "LOG_LOCAL0"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}"
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT use_syslog "true"
 sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_type "password"
 sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_url "https://${CONTROLLER_FQDN}:5000"
 sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken cafile "/etc/ssl/certs/ca-certificates.crt"
@@ -78,9 +81,6 @@ sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan l2_popul
 sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan local_ip "${CONTROLLER_IP_ADDRESS}"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_ipset "true"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_security_group "true"
-sudo crudini --set /etc/neutron/neutron.conf DEFAULT debug "false"
-sudo crudini --set /etc/neutron/neutron.conf DEFAULT syslog_log_facility "LOG_LOCAL0"
-sudo crudini --set /etc/neutron/neutron.conf DEFAULT use_syslog "true"
 
 sudo chmod 0660 \
   /etc/neutron/neutron.conf \
