@@ -8,6 +8,7 @@ sudo apt-get install -y \
   gcc \
   git \
   python-dev \
+  python-pip \
   python-virtualenv \
   virtualenv-clone \
   virtualenvwrapper
