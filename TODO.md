@@ -31,6 +31,7 @@
 - [BOSH]
 - [Nexus Repository OSS]
 - [Istio]
+- [Harbor]
 
 ## Evaluate if ...
 
@@ -48,6 +49,7 @@
 [gogs]: https://github.com/gogits/gogs
 [grafana]: https://grafana.com/
 [graphite]: https://graphiteapp.org/
+[harbor]: https://goharbor.io/
 [hashicorp vault]: https://www.vaultproject.io/
 [helm]: https://helm.sh/
 [influxdb]: https://www.influxdata.com/
