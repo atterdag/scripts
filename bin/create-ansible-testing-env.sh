@@ -43,8 +43,15 @@ pip install -U \
   docker-compose \
   jmespath \
   molecule \
+  pip \
+  pytest \
   requests \
-  shade
+  setuptools \
+  shade \
+  tox \
+  tqdm \
+  twine \
+  wheel
 
 echo '***'
 echo '*** install Docker Compose bash completion'
