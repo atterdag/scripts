@@ -83,7 +83,7 @@ $HOSTNAME:
     DIRSRV_SAMPLE_ENTRIES: Sets whether to load an LDIF file with entries for the user directory during configuration (default = no).
   image: registry:2
   ports:
-    - 192.168.1.50:5001:5001
+    - 192.168.0.50:5001:5001
   restart: unless-stopped
   volumes:
     - /var/lib/${HOSTNAME}/data:/var/lib/registry

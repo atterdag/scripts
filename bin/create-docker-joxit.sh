@@ -36,7 +36,7 @@ $HOSTNAME:
     URL: https://registry.se.lemche.net:5001
   image: joxit/docker-registry-ui:static
   ports:
-    - 192.168.1.52:80:80
+    - 192.168.0.52:80:80
   restart: unless-stopped
 EOF
 (cd /var/lib/${HOSTNAME}/; docker-compose up -d)

@@ -86,7 +86,7 @@ $HOSTNAME:
     REGISTRY_STORAGE_DELETE_ENABLED: "true"
   image: registry:2
   ports:
-    - 192.168.1.50:5001:5001
+    - 192.168.0.50:5001:5001
   restart: unless-stopped
   volumes:
     - /var/lib/${HOSTNAME}/data:/var/lib/registry

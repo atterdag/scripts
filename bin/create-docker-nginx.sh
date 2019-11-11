@@ -85,7 +85,7 @@ server {
   access_log /var/log/nginx/aws.se.lemche.net.access.log;
 	error_log /var/log/nginx/aws.se.lemche.net.error.log warn;
   location / {
-    proxy_pass http://192.168.1.53:8080;
+    proxy_pass http://192.168.0.53:8080;
     proxy_set_header Host \$host;
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -117,8 +117,8 @@ $HOSTNAME:
   hostname: $HOSTNAME
   image: nginx:stable
   ports:
-    - 192.168.1.42:80:80
-    - 192.168.1.42:443:443
+    - 192.168.0.42:80:80
+    - 192.168.0.42:443:443
   restart: unless-stopped
   volumes:
     - /var/lib/$HOSTNAME/conf.d:/etc/nginx/conf.d

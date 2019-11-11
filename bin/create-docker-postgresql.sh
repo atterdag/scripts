@@ -43,7 +43,7 @@ $HOSTNAME:
     PGDATA: /var/lib/postgresql/data/pgdata
   image: postgres
   ports:
-    - 192.168.1.53:5432:5432
+    - 192.168.0.53:5432:5432
   restart: always
   tmpfs:
     - /tmp

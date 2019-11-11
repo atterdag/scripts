@@ -35,8 +35,8 @@ $HOSTNAME:
     POSTGRES_PASSWORD: passw0rd
   image: gogs/gogs
   ports:
-    - 192.168.1.51:22:22
-    - 192.168.1.51:3000:3000
+    - 192.168.0.51:22:22
+    - 192.168.0.51:3000:3000
   restart: unless-stopped
   volumes:
     - /var/lib/${HOSTNAME}:/data
