@@ -2,7 +2,7 @@
 
 if [[ $1 == "" ]]; then
     echo '***'
-    echo '*** no hostname set as argument, so defaulting to "registry"'
+    echo '*** no hostname set as argument, so defaulting to "gogs"'
     echo '***'
     HOSTNAME='gogs'
 fi

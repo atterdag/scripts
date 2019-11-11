@@ -29,7 +29,7 @@ if [ ! -d /var/lib/${HOSTNAME}/data ]; then
 fi
 
 echo '***'
-echo -n '*** generate password for postgres user '
+echo -n '*** generate password for registry'
 PASSWORD=$(apg -m16 -x16 -n1 -MCNL)
 echo '***'
 
