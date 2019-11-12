@@ -2,7 +2,7 @@
 
 if [ "$1" = "" ]; then
     echo '***'
-    echo '*** no hostname set as argument, so defaulting to "nginx"'
+    echo '*** no hostname set as argument, so defaulting to "alm"'
     echo '***'
     HOSTNAME='alm'
 fi
@@ -66,26 +66,75 @@ resolver_timeout 2s;
 EOF
 echo '***'
 
-cat << EOF | sudo tee /var/lib/$HOSTNAME/conf.d/awx.se.lemche.net.conf
+cat << EOF | sudo tee /var/lib/$HOSTNAME/conf.d/gogs.se.lemche.net.conf
 server {
   listen 80;
-	listen [::]:80;
-	server_name .aws.se.lemche.net;
-	return 301 https://aws.se.lemche.net$request_uri;
+  server_name gogs.se.lemche.net;
+  return 301 https://gogs.se.lemche.net$request_uri;
 }
 
 server {
   listen 443 ssl http2;
-	listen [::]:443 ssl http2;
-  server_name awx.se.lemche.net;
-  ssl on;
+  server_name gogs.se.lemche.net;
   ssl_certificate /etc/nginx/ssl/${HOSTNAME}.se.lemche.net.crt;
   ssl_certificate_key /etc/nginx/ssl/${HOSTNAME}.se.lemche.net.key;
   ssl_trusted_certificate /etc/nginx/ssl/ca-certificates.crt;
-  access_log /var/log/nginx/aws.se.lemche.net.access.log;
-	error_log /var/log/nginx/aws.se.lemche.net.error.log warn;
+  access_log /var/log/nginx/gogs.se.lemche.net.access.log;
+  error_log /var/log/nginx/gogs.se.lemche.net.error.log warn;
+  location / {
+    proxy_pass http://192.168.0.51:3000;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+}
+EOF
+echo '***'
+
+cat << EOF | sudo tee /var/lib/$HOSTNAME/conf.d/awx.se.lemche.net.conf
+server {
+  listen 80;
+  server_name awx.se.lemche.net;
+  return 301 https://awx.se.lemche.net$request_uri;
+}
+
+server {
+  listen 443 ssl http2;
+  server_name awx.se.lemche.net;
+  ssl_certificate /etc/nginx/ssl/${HOSTNAME}.se.lemche.net.crt;
+  ssl_certificate_key /etc/nginx/ssl/${HOSTNAME}.se.lemche.net.key;
+  ssl_trusted_certificate /etc/nginx/ssl/ca-certificates.crt;
+  access_log /var/log/nginx/awx.se.lemche.net.access.log;
+  error_log /var/log/nginx/awx.se.lemche.net.error.log warn;
   location / {
     proxy_pass http://192.168.0.53:8080;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+}
+EOF
+echo '***'
+
+cat << EOF | sudo tee /var/lib/$HOSTNAME/conf.d/jenkins.se.lemche.net.conf
+server {
+  listen 80;
+  server_name jenkins.se.lemche.net;
+  return 301 https://jenkins.se.lemche.net$request_uri;
+}
+
+server {
+  listen 443 ssl http2;
+  server_name jenkins.se.lemche.net;
+  ssl_certificate /etc/nginx/ssl/${HOSTNAME}.se.lemche.net.crt;
+  ssl_certificate_key /etc/nginx/ssl/${HOSTNAME}.se.lemche.net.key;
+  ssl_trusted_certificate /etc/nginx/ssl/ca-certificates.crt;
+  access_log /var/log/nginx/jenkins.se.lemche.net.access.log;
+  error_log /var/log/nginx/jenkins.se.lemche.net.error.log warn;
+  location / {
+    proxy_pass http://192.168.0.54:8080;
     proxy_set_header Host \$host;
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -117,8 +166,12 @@ $HOSTNAME:
   hostname: $HOSTNAME
   image: nginx:stable
   ports:
-    - 192.168.0.42:80:80
-    - 192.168.0.42:443:443
+    - 192.168.0.51:80:80
+    - 192.168.0.51:443:443
+    - 192.168.0.53:80:80
+    - 192.168.0.53:443:443
+    - 192.168.0.54:80:80
+    - 192.168.0.54:443:443
   restart: unless-stopped
   volumes:
     - /var/lib/$HOSTNAME/conf.d:/etc/nginx/conf.d

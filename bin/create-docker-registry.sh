@@ -94,7 +94,6 @@ $HOSTNAME:
     - /var/lib/${HOSTNAME}/auth:/auth:ro
 EOF
 (cd /var/lib/${HOSTNAME}/; docker-compose up -d)
-(cd /var/lib/${HOSTNAME}/; docker-compose down)
 
 sleep 1
 
@@ -118,7 +117,7 @@ echo '*** checking that you can login'
 echo '***'
 docker login \
  --username docker \
- --password passw0rd \
+ --password $PASSWORD \
  ${HOSTNAME}.se.lemche.net:5001
 
 echo '***'
