@@ -27,7 +27,7 @@ openssl pkcs12 \
 
 cat << EOF | sudo tee /etc/vault.d/vault.hcl
 listener "tcp" {
-  address       = "0.0.0.0:8200"
+  address       = "${CONTROLLER_IP_ADDRESS}:8200"
   tls_cert_file = "/etc/vault.d/${CONTROLLER_FQDN}.crt"
   tls_key_file  = "/etc/vault.d/${CONTROLLER_FQDN}.key"
 }
@@ -36,8 +36,8 @@ storage "file" {
   path = "/var/lib/vault/data"
 }
 
-api_addr = "https://0.0.0.0:8200"
-cluster_addr = "https://0.0.0.0:8201"
+api_addr = "https://${CONTROLLER_IP_ADDRESS}:8200"
+cluster_addr = "https://${CONTROLLER_IP_ADDRESS}:8201"
 ui = true
 EOF
 
