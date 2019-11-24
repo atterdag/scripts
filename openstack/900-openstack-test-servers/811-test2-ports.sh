@@ -4,7 +4,7 @@
 # Create a fixed IP ports
 ##############################################################################
 openstack port create \
-  --fixed-ip ip-address=192.168.1.130 \
+  --fixed-ip ip-address=192.168.0.130 \
   --network default \
   test2_inside
 openstack port create \

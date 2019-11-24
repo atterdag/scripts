@@ -4,7 +4,7 @@
 # Create DNZ records for test2
 ##############################################################################
 openstack recordset create \
-  --record '192.168.1.130' \
+  --record '192.168.0.130' \
   --type A ${DNS_DOMAIN}. \
   test2
 openstack recordset create \

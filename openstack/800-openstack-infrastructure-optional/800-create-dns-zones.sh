@@ -22,12 +22,12 @@ openstack zone create \
 # ##############################################################################
 # openstack zone create \
 #   --email hostmaster@${DNS_DOMAIN} \
-#   --masters 192.168.1.40 \
+#   --masters 192.168.0.40 \
 #   --type secondary  \
 #   ${DNS_DOMAIN}.
 # openstack zone create \
 #   --email hostmaster@${DNS_DOMAIN} \
-#   --masters 192.168.1.40 \
+#   --masters 192.168.0.40 \
 #   --type secondary  \
 #   ${DNS_REVERSE_DOMAIN}.
 # openstack recordset create \

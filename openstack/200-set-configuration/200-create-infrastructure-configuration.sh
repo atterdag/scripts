@@ -8,13 +8,13 @@ etcdctl mkdir variables
 
 # Set keys with OpenStack servers
 etcdctl mk variables/CONTROLLER_HOST_NAME 'aku'
-etcdctl mk variables/CONTROLLER_IP_ADDRESS '192.168.1.40'
+etcdctl mk variables/CONTROLLER_IP_ADDRESS '192.168.0.40'
 etcdctl mk variables/COMPUTE_HOST_NAME 'jack'
-etcdctl mk variables/COMPUTE_IP_ADDRESS '192.168.1.30'
+etcdctl mk variables/COMPUTE_IP_ADDRESS '192.168.0.30'
 
 # Set keys with general DNS/Network used by OpenStack
 etcdctl mk variables/DNS_DOMAIN 'se.lemche.net'
-etcdctl mk variables/NETWORK_CIDR '192.168.1.0/24'
+etcdctl mk variables/NETWORK_CIDR '192.168.0.0/24'
 etcdctl mk variables/NETWORK_INTERFACE 'bond0'
 
 # Set keys with storage devices used by OpenStack
@@ -26,32 +26,32 @@ etcdctl mk variables/SIMPLE_CRYPTO_CA 'OpenStack'
 
 # Set NTP server details
 etcdctl mk variables/NTP_HOST_NAME 'aku'
-etcdctl mk variables/NTP_IP_ADDRESS '192.168.1.40'
+etcdctl mk variables/NTP_IP_ADDRESS '192.168.0.40'
 
 # External DNS servers
-etcdctl mk variables/DNS_ONE_IP_ADDRESS '192.168.1.40'
-etcdctl mk variables/DNS_TWO_IP_ADDRESS '192.168.1.30'
+etcdctl mk variables/DNS_ONE_IP_ADDRESS '192.168.0.40'
+etcdctl mk variables/DNS_TWO_IP_ADDRESS '192.168.0.30'
 
 # Set DNS server details
 etcdctl mk variables/NS_HOST_NAME 'aku'
-etcdctl mk variables/NS_IP_ADDRESS '192.168.1.40'
+etcdctl mk variables/NS_IP_ADDRESS '192.168.0.40'
 etcdctl mk variables/NSS_HOST_NAME 'jack'
-etcdctl mk variables/NSS_IP_ADDRESS '192.168.1.30'
+etcdctl mk variables/NSS_IP_ADDRESS '192.168.0.30'
 
 # Set FreeIPA details
 etcdctl mk variables/IDM_ONE_HOST_NAME 'aku'
-etcdctl mk variables/IDM_ONE_IP_ADDRESS '192.168.1.40'
+etcdctl mk variables/IDM_ONE_IP_ADDRESS '192.168.0.40'
 etcdctl mk variables/IDM_TWO_HOST_NAME 'jack'
-etcdctl mk variables/IDM_TWO_IP_ADDRESS '192.168.1.30'
+etcdctl mk variables/IDM_TWO_IP_ADDRESS '192.168.0.30'
 etcdctl mk variables/SSL_PKI_INSTANCE_NAME 'pki-tomcat'
 
 # Set keys with CA details
 etcdctl mk variables/SSL_ROOT_CA_HOST_NAME 'ca'
-etcdctl mk variables/SSL_ROOT_CA_IP_ADDRESS '192.168.1.30'
+etcdctl mk variables/SSL_ROOT_CA_IP_ADDRESS '192.168.0.30'
 etcdctl mk variables/SSL_INTERMEDIATE_CA_ONE_HOST_NAME 'ca'
-etcdctl mk variables/SSL_INTERMEDIATE_CA_ONE_IP_ADDRESS '192.168.1.30'
+etcdctl mk variables/SSL_INTERMEDIATE_CA_ONE_IP_ADDRESS '192.168.0.30'
 etcdctl mk variables/SSL_INTERMEDIATE_CA_TWO_HOST_NAME 'idm1'
-etcdctl mk variables/SSL_INTERMEDIATE_CA_TWO_IP_ADDRESS '192.168.1.33'
+etcdctl mk variables/SSL_INTERMEDIATE_CA_TWO_IP_ADDRESS '192.168.0.33'
 etcdctl mk variables/SSL_INTERMEDIATE_OCSP_ONE_HOST_NAME 'ocsp1'
 etcdctl mk variables/SSL_INTERMEDIATE_OCSP_TWO_HOST_NAME 'ocsp2'
 
