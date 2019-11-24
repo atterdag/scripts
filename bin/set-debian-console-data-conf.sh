@@ -1,10 +1,10 @@
 #!/bin/sh
 
-apt-get -y remove --purge consolekit keyboard-configuration console-common console-data console-setup
+sudo apt-get -y remove --purge consolekit keyboard-configuration console-common console-data console-setup
 #apt-get -y install console-common console-setup debconf-utils keyboard-configuration
-DEBIAN_FRONTEND=noninteractive apt-get -y install console-common console-setup debconf-utils 
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install console-common console-setup debconf-utils
 
-cat > /tmp/keyboard-configuration.debconf << EOF
+cat << EOF | sudo tee /tmp/keyboard-configuration.debconf
 keyboard-configuration  keyboard-configuration/altgr    select  The default for the keyboard layout
 keyboard-configuration  keyboard-configuration/compose  select  No compose key
 keyboard-configuration  keyboard-configuration/ctrl_alt_bksp    boolean false
@@ -24,9 +24,9 @@ keyboard-configuration  keyboard-configuration/variantcode      string
 keyboard-configuration  keyboard-configuration/variant  select  Danish
 keyboard-configuration  keyboard-configuration/xkb-keymap       select  dk
 EOF
-debconf-set-selections < /tmp/keyboard-configuration.debconf
+sudo debconf-set-selections < /tmp/keyboard-configuration.debconf
 
-cat > /tmp/console-setup.debconf << EOF
+cat << EOF | sudo tee /tmp/console-setup.debconf
 console-setup   console-setup/store_defaults_in_debconf_db      boolean true
 console-setup   console-setup/fontsize  string
 console-setup   console-setup/fontsize-text47   select  8x16
@@ -36,9 +36,9 @@ console-setup   console-setup/codesetcode       string  Lat15
 console-setup   console-setup/charmap47 select  UTF-8
 console-setup   console-setup/fontsize-fb47     select  8x16
 EOF
-debconf-set-selections < /tmp/console-setup.debconf
+sudo debconf-set-selections < /tmp/console-setup.debconf
 
-cat > /tmp/console-common.debconf << EOF
+cat << EOF | sudo tee /tmp/console-common.debconf
 console-common  console-data/bootmap-md5sum     string  d7eeab8322dc2529423844419f7388e8
 console-common  console-data/keymap/family      select  qwerty
 console-common  console-data/keymap/full        select
@@ -49,9 +49,9 @@ console-common  console-data/keymap/template/keymap     select
 console-common  console-data/keymap/template/layout     select
 console-common  console-data/keymap/template/variant    select
 EOF
-debconf-set-selections < /tmp/console-common.debconf
+sudo debconf-set-selections < /tmp/console-common.debconf
 
-cat > /tmp/console-data.debconf << EOF
+cat << EOF | sudo tee /tmp/console-data.debconf
 console-data    console-data/bootmap-md5sum     string  d7eeab8322dc2529423844419f7388e8
 console-data    console-data/keymap/azerty/belgian/apple_usb/keymap     select
 console-data    console-data/keymap/azerty/belgian/standard/keymap      select
@@ -188,11 +188,11 @@ console-data    console-keymaps-mac/keymap      select
 console-data    console-keymaps-sun/keymap      select
 console-data    console-keymaps-usb/keymap      select
 EOF
-debconf-set-selections < /tmp/console-data.debconf
+sudo debconf-set-selections < /tmp/console-data.debconf
 
-rm -f /etc/console/*
+sudo rm -f /etc/console/*
 
-dpkg-reconfigure console-setup console-data console-common keyboard-configuration initramfs-tools
-#dpkg-reconfigure console-data console-common initramfs-tools 
+sudo dpkg-reconfigure console-setup console-data console-common keyboard-configuration initramfs-tools
+#dpkg-reconfigure console-data console-common initramfs-tools
 
-update-grub
+sudo update-grub

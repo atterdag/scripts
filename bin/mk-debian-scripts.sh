@@ -20,8 +20,8 @@ set-debian-elevator-boot.sh \
 install-debian-open-vm.sh"
 
 echo "creating /var/www/html/debian-scripts.tar with $scripts"
-cd /srv/bin
-tar cf /var/www/html/debian-scripts.tar $scripts
+sudo cd /srv/bin
+sudo tar cf /var/www/html/debian-scripts.tar $scripts
 
 echo "creating run_all.sh script"
 echo "#!/bin/sh" > /tmp/run_all.sh
@@ -32,4 +32,4 @@ chmod +x /tmp/run_all.sh
 
 echo "adding run_all.sh to /var/www/html/debian-scripts.tar"
 cd /tmp
-tar rf /var/www/html/debian-scripts.tar run_all.sh
+sudo tar rf /var/www/html/debian-scripts.tar run_all.sh

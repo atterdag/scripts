@@ -2,11 +2,11 @@
 sync
 sync
 sync
-echo 3 > /proc/sys/vm/drop_caches
+sudo sysctl vm.drop_caches=3
 sync
 sync
 sync
-echo 0 > /proc/sys/vm/drop_caches
+sudo sysctl vm.drop_caches=0
 sync
 sync
 sync

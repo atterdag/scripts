@@ -1,14 +1,14 @@
 #!/bin/sh
 
 echo "installing packages"
-apt-get -y install procinfo nmon sysstat
+sudo apt-get -y install procinfo nmon sysstat
 
 echo "enabling sar"
-sed -i 's/ENABLED=.*/ENABLED="true"/' /etc/default/sysstat
-service sysstat restart
+sudo sed -i 's/ENABLED=.*/ENABLED="true"/' /etc/default/sysstat
+sudo service sysstat restart
 
 echo "creating default configuration for nmon"
-cat > /etc/profile.d/nmon.sh << EOF
+cat <<EOF | sudo tee /etc/profile.d/nmon.sh
 # This starts monitors:
 #  c = CPU by processor
 #  m = Memory & Swap stats

@@ -1,36 +1,36 @@
 #!/bin/sh
 
-killall -15 java
-killall -15 httpd
+sudo killall -15 java
+sudo killall -15 httpd
 sleep 15
-killall -12 java
-killall -12 httpd
+sudo killall -12 java
+sudo killall -12 httpd
 sleep 15
-killall -9 java
-killall -9 httpd
+sudo killall -9 java
+sudo killall -9 httpd
 sleep 15
-/net/main/srv/bin/slibclean
-sync
-rm -fr /opt/IBM
-rm -fr /opt/ibm
-rm -fr /opt/.ibm
-rm -fr /var/ibm/
-rm -fr /var/db2/
-rm -fr /root/*logs
-rm -fr /root/vpd.properties
-rm -fr /root/.ITLMRegistry
-rm -fr /root/.ibm
-rm -fr /root/inst-sys
-rm -fr /root/isus
-rm -fr /tmp/ismp*
-rm -fr /tmp/*install*.txt
-rm -fr /tmp/*.tmp
-rm -fr /tmp/*.log
-rm -fr /tmp/*.xml
-rm -fr /tmp/*.txt
-rm -fr /tmp/*.py
-rm -fr /opt/lost+found/*
-userdel -r ihs
-groupdel ihs
-userdel -r was
-groupdel was
+sudo /net/main/srv/bin/slibclean
+sudo sync
+sudo rm -fr /opt/IBM
+sudo rm -fr /opt/ibm
+sudo rm -fr /opt/.ibm
+sudo rm -fr /var/ibm/
+sudo rm -fr /var/db2/
+sudo rm -fr /root/*logs
+sudo rm -fr /root/vpd.properties
+sudo rm -fr /root/.ITLMRegistry
+sudo rm -fr /root/.ibm
+sudo rm -fr /root/inst-sys
+sudo rm -fr /root/isus
+sudo rm -fr /tmp/ismp*
+sudo rm -fr /tmp/*install*.txt
+sudo rm -fr /tmp/*.tmp
+sudo rm -fr /tmp/*.log
+sudo rm -fr /tmp/*.xml
+sudo rm -fr /tmp/*.txt
+sudo rm -fr /tmp/*.py
+sudo rm -fr /opt/lost+found/*
+sudo userdel -r ihs
+sudo groupdel ihs
+sudo userdel -r was
+sudo groupdel was

@@ -13,34 +13,34 @@ echo "**************************************************************************
 echo "* Adding SLES12 SLE-Module-Adv-Systems-Management repositories                                             *"
 echo "*******************************************************************************"
 echo
-zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Products/SLE-Module-Adv-Systems-Management/12/${ARCH}/product SLE-Module-Adv-Systems-Management-product-12
-zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Updates/SLE-Module-Adv-Systems-Management/12/${ARCH}/update SLE-Module-Adv-Systems-Management-update-12
+sudo zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Products/SLE-Module-Adv-Systems-Management/12/${ARCH}/product SLE-Module-Adv-Systems-Management-product-12
+sudo zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Updates/SLE-Module-Adv-Systems-Management/12/${ARCH}/update SLE-Module-Adv-Systems-Management-update-12
 
 echo
 echo "*******************************************************************************"
 echo "* Enabling all repositories                                                   *"
 echo "*******************************************************************************"
 echo
-zypper mr -r -a
+sudo zypper mr -r -a
 
 echo
 echo "*******************************************************************************"
 echo "* Listing repositories                                                        *"
 echo "*******************************************************************************"
 echo
-zypper lr -u
+sudo zypper lr -u
 
 echo
 echo "*******************************************************************************"
 echo "* Refreshing repositories                                                     *"
 echo "*******************************************************************************"
 echo
-zypper ref
+sudo zypper ref
 
 echo
 echo "*******************************************************************************"
 echo "*******************************************************************************"
 read -p "Update SLES? [y]: " UPDATE
 if [ ! "$UPDATE" = "n" ]; then
-    zypper update -y
+    sudo zypper update -y
 fi

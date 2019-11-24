@@ -1,13 +1,13 @@
 #!/bin/sh
 
-apt-get -y install autofs
+sudo apt-get -y install autofs
 
 if [ ! -d /etc/auto.master.d ]; then
-    mkdir /etc/auto.master.d
+    sudo mkdir /etc/auto.master.d
 fi
 
-cat > /etc/auto.master.d/net.autofs << EOF
+cat <<EOF | sudo tee /etc/auto.master.d/net.autofs
 /net    /etc/auto.net --timeout=60
 EOF
 
-service autofs restart
+sudo service autofs restart

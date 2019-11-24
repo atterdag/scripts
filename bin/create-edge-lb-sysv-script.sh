@@ -5,7 +5,7 @@ if [ "$1" = "" ]; then
 fi
 
 echo "create sysv script to set loopback address for edge"
-cat > /etc/init.d/edge-ulb-loopback-$1 << EOF
+cat <<EOF | sudo tee /etc/init.d/edge-ulb-loopback-$1
 #!/bin/sh
 #
 # Copyright (c) 2014 International Business Machines Corp.
@@ -76,7 +76,7 @@ exit 0
 EOF
 
 echo "make it executable"
-chmod +x  /etc/init.d/edge-ulb-loopback-$1
+sudo chmod +x  /etc/init.d/edge-ulb-loopback-$1
 
 echo "define that they should start at system boot"
-chkconfig edge-ulb-loopback-$1 on
+sudo chkconfig edge-ulb-loopback-$1 on

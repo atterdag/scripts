@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cat > /etc/profile.d/prompt_colors.sh << EOF
+cat << EOF | sudo sudo /etc/profile.d/prompt_colors.sh
 # Use individual settings for each type of TERM
 case "\$TERM" in
 # If this is an xterm set the title to user@host:dir

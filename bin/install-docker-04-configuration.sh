@@ -40,13 +40,13 @@ echo '***'
 cat << EOF | sudo tee /etc/docker/daemon.json
 {
     "iptables": true,
-    "insecure-registries": ["registry.example.com:5000"],
+    "insecure-registries": ["registry.se.lemche.net:5000"],
     "tls": true,
     "tlsverify": true,
     "tlscacert": "/etc/ssl/certs/ca-certificates.crt",
-    "tlscert": "/etc/ssl/${HOSTNAME}.example.com-cert.pem",
-    "tlskey": "/etc/ssl/private/${HOSTNAME}.example.com-key.pem",
-    "debug": false
+    "tlscert": "/etc/ssl/${HOSTNAME}.se.lemche.net-cert.pem",
+    "tlskey": "/etc/ssl/private/${HOSTNAME}.se.lemche.net-key.pem",
+    "debug": true
 }
 EOF
 

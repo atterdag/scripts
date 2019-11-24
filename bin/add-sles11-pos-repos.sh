@@ -13,9 +13,9 @@ echo "**************************************************************************
 echo "* Adding SLES11 POS repositories                                              *"
 echo "*******************************************************************************"
 echo
-for LEVEL in {"",-SP1,-SP2}; do 
+for LEVEL in {"",-SP1,-SP2}; do
   for REPOSITORY_NAME in {SLE11-POS${LEVEL}-Pool,SLE11-POS${LEVEL}-Updates}; do
-    zypper addrepo --no-keep-packages ftp://$username:$password@${server}/suse/catalogs/${REPOSITORY_NAME}/sle-11-${ARCH} ${REPOSITORY_NAME}
+    sudo zypper addrepo --no-keep-packages ftp://$username:$password@${server}/suse/catalogs/${REPOSITORY_NAME}/sle-11-${ARCH} ${REPOSITORY_NAME}
   done
 done
 
@@ -24,19 +24,19 @@ echo "**************************************************************************
 echo "* Enabling all repositories                                                   *"
 echo "*******************************************************************************"
 echo
-zypper mr -r -a
+sudo zypper mr -r -a
 
 echo
 echo "*******************************************************************************"
 echo "* Listing repositories                                                        *"
 echo "*******************************************************************************"
 echo
-zypper lr -u
+sudo zypper lr -u
 
 echo
 echo
 echo
 read -p "Update SLES? [y]: " UPDATE
 if [ ! "$UPDATE" = "n" ]; then
-    zypper update -y
+    sudo zypper update -y
 fi

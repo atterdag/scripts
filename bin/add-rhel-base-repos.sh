@@ -9,26 +9,26 @@ echo "**************************************************************************
 echo "* Downloading, and running bootstrap script from IBM RedHat Satelite server   *"
 echo "*******************************************************************************"
 echo
-wget -qO- --no-check-certificate https://${server}/pub/bootstrap/bootstrap.sh | /bin/bash
+wget -qO- --no-check-certificate https://${server}/pub/bootstrap/bootstrap.sh | sudo /bin/bash
 
 echo
 echo "*******************************************************************************"
 echo "* Registering RHEL to IBM RedHat Satelite server                              *"
 echo "*******************************************************************************"
 echo
-rhnreg_ks --force --username=$username --password=$password
+sudo rhnreg_ks --force --username=$username --password=$password
 
 echo
 echo "*******************************************************************************"
 echo "* Clean old repository data                                                   *"
 echo "*******************************************************************************"
 echo
-yum clean all
+sudo yum clean all
 
 echo
 echo
 echo
 read -p "Update RHEL? [y]: " UPDATE
 if [ ! "$UPDATE" = "n" ]; then
-    yum -y update
+    sudo yum -y update
 fi

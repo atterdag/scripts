@@ -1,8 +1,8 @@
 #!/bin/sh
 
-apt-get -y install fortune-mod fortunes-debian-hints linuxlogo
+sudo apt-get -y install fortune-mod fortunes-debian-hints linuxlogo
 
-cat > /usr/local/sbin/chmotd.sh << EOF
+cat <<EOF | sudo tee /usr/local/sbin/chmotd.sh
 #!/bin/sh
 
 OUTPUT="/etc/motd"
@@ -21,9 +21,9 @@ permitted by applicable law.
 OUTPUT
 EOF
 
-chmod +x /usr/local/sbin/chmotd.sh
+sudo chmod +x /usr/local/sbin/chmotd.sh
 
-cat > /etc/cron.d/chmotd << EOF
+cat <<EOF | sudo tee /etc/cron.d/chmotd
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
@@ -31,4 +31,4 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 0-59/5 * * * *  root    chmotd.sh
 EOF
 
-service cron restart
+sudo service cron restart

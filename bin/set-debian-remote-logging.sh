@@ -1,7 +1,7 @@
 #!/bin/sh
 
-cat > /etc/rsyslog.d/loghost.conf << EOF
+cat << EOF | sudo tee /etc/rsyslog.d/loghost.conf
 *.*                             @loghost.example.com
 EOF
 
-service rsyslog restart
+sudo service rsyslog restart

@@ -1,4 +1,4 @@
 #!/bin/sh
-apt-get -y install ufw
-ufw allow OpenSSH
-ufw enable
+sudo apt-get -y install ufw
+sudo ufw allow OpenSSH
+sudo ufw enable

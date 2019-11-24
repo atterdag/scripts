@@ -13,38 +13,38 @@ echo "**************************************************************************
 echo "* Adding SLES12 SLE-Module-Web-Scripting repositories                                             *"
 echo "*******************************************************************************"
 echo
-zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Products/SLE-SAP/12-SP1/${ARCH}/product SLE-SAP-product-12-SP1
-zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Updates/SLE-SAP/12-SP1/${ARCH}/update SLE-SAP-update-12-SP1
-zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Products/SLE-SAP/12-SP2/${ARCH}/product SLE-SAP-product-12-SP2
-zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Updates/SLE-SAP/12-SP2/${ARCH}/update SLE-SAP-update-12-SP2
-zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Products/SLE-SAP/12-SP2/${ARCH}/product SLE-SAP-product-12-SP3
-zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Updates/SLE-SAP/12-SP2/${ARCH}/update SLE-SAP-update-12-SP3
+sudo zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Products/SLE-SAP/12-SP1/${ARCH}/product SLE-SAP-product-12-SP1
+sudo zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Updates/SLE-SAP/12-SP1/${ARCH}/update SLE-SAP-update-12-SP1
+sudo zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Products/SLE-SAP/12-SP2/${ARCH}/product SLE-SAP-product-12-SP2
+sudo zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Updates/SLE-SAP/12-SP2/${ARCH}/update SLE-SAP-update-12-SP2
+sudo zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Products/SLE-SAP/12-SP2/${ARCH}/product SLE-SAP-product-12-SP3
+sudo zypper addrepo -K --no-keep-packages ftp://$username:$password@${server}/suse/scc/Updates/SLE-SAP/12-SP2/${ARCH}/update SLE-SAP-update-12-SP3
 
 echo
 echo "*******************************************************************************"
 echo "* Enabling all repositories                                                   *"
 echo "*******************************************************************************"
 echo
-zypper mr -r -a
+sudo zypper mr -r -a
 
 echo
 echo "*******************************************************************************"
 echo "* Listing repositories                                                        *"
 echo "*******************************************************************************"
 echo
-zypper lr -u
+sudo zypper lr -u
 
 echo
 echo "*******************************************************************************"
 echo "* Refreshing repositories                                                     *"
 echo "*******************************************************************************"
 echo
-zypper ref
+sudo zypper ref
 
 echo
 echo "*******************************************************************************"
 echo "*******************************************************************************"
 read -p "Update SLES? [y]: " UPDATE
 if [ ! "$UPDATE" = "n" ]; then
-    zypper update -y
+    sudo zypper update -y
 fi

@@ -1,5 +1,5 @@
 #!/bin/sh
-cat > /etc/auto.master << EOF
+cat <<EOF | sudo tee /etc/auto.master
 #
 # Sample auto.master file
 # This is an automounter map and it has the following format
@@ -26,7 +26,7 @@ cat > /etc/auto.master << EOF
 +auto.master
 EOF
 
-cat > /etc/auto.nfs4 << EOF
+cat <<EOF | sudo tee /etc/auto.nfs4
 main    -fstype=nfs4    main:/
 files   -fstype=nfs4    files:/
 EOF
