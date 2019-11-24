@@ -5,7 +5,7 @@ echo '*** reset previous installation of kubernetes'
 echo '***'
 sudo -i kubeadm reset -f
 for i in $(docker image ls | grep -v IMAGE | awk '{print $3}' | grep -v IMAGE); do docker image rm $i; done
-ip link delete flannel.1
+sudo ip link delete flannel.1
 
 echo '***'
 echo '*** download kubernetes docker images (THIS IS GOING TO TAKE A WHILE)'
