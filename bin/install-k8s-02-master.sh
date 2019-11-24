@@ -22,7 +22,7 @@ EOF
 echo '***'
 echo '*** initializing master (THIS IS ALSO GOING TO TAKE A WHILE)'
 echo '***'
-sudo -i kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.1.41 --ignore-preflight-errors=swap 2>&1 | sudo tee /etc/kubernetes/kubeadm_init_output
+sudo -i kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=$(hostname -i) --ignore-preflight-errors=swap 2>&1 | sudo tee /etc/kubernetes/kubeadm_init_output
 
 echo '***'
 echo '*** enabling user to run kubadm'
