@@ -48,6 +48,14 @@ perl -pe 's/.*swap.*sw.*\n//' < /etc/fstab | sudo tee /etc/fstab
 sudo lvremove --force --force system/swap
 
 echo '***'
+echo '*** ensure iptables tooling does not use the nftables backend'
+echo '***'
+sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
+sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+sudo update-alternatives --set arptables /usr/sbin/arptables-legacy
+sudo update-alternatives --set ebtables /usr/sbin/ebtables-legacy
+
+echo '***'
 echo '*** adding kubernetes repository GPG key'
 echo '***'
 wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
