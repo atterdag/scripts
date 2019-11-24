@@ -5,6 +5,7 @@
 ##############################################################################
 sudo apt-get --yes --quiet install \
   arptables \
+  crudini \
   ebtables \
   lvm2 \
   python-pip \
