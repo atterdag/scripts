@@ -10,7 +10,7 @@ export $(grep ID /etc/os-release)
 case "$ID" in
 	debian|ubuntu)
 		echo "creating /etc/profile.d/proxyenv"
-		cat > /etc/profile.d/proxyenv.sh << EOF
+		cat <<EOF | sudo tee /etc/profile.d/proxyenv.sh
 #!/bin/sh
 
 username=$username
@@ -43,16 +43,16 @@ EOF
 		;;
 	\"sles\")
 		echo "adding proxy configuration to yast"
-		yast proxy authentication clear
-		yast proxy authentication \
-		username=${username} \
-		password=${password}
-		yast proxy set \
-		http=http://${host}:${port} \
-		https=https://${host}:${port} \
-		ftp=ftp://${host}:${port} \
-		noproxy="localhost,127.0.0.1,LocalAddress,example.com,example.lan"
-		yast2 proxy enable
+		sudo yast proxy authentication clear
+		sudo yast proxy authentication \
+			username=${username} \
+			password=${password}
+		sudo yast proxy set \
+			http=http://${host}:${port} \
+			https=https://${host}:${port} \
+			ftp=ftp://${host}:${port} \
+			noproxy="localhost,127.0.0.1,LocalAddress,example.com,example.lan"
+		sudo yast2 proxy enable
 		echo "You need to restart to make the proxy settings take effect!"
 		;;
 esac
