@@ -1,2 +1,6 @@
 #!/bin/sh
-apt-get install -y mc gpm
+sudo apt-get \
+  install \
+  --yes \
+  mc \
+  gpm

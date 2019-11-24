@@ -24,7 +24,7 @@ function proxy_on (){
     https_proxy="https://\${username}:\${password}@\${host}:\${port}"
     ftp_proxy="ftp://\${username}:\${password}@\${host}:\${port}"
     rsync_proxy="rsync://\${username}:\${password}@\${host}:\${port}"
-    no_proxy="localhost,127.0.0.1,LocalAddress,example.com,example.lan"
+    no_proxy="localhost,127.0.0.1,LocalAddress,example.com,example.lan,$(hostname -i)"
     export http_proxy https_proxy ftp_proxy rsync_proxy no_proxy
 }
 
@@ -51,7 +51,7 @@ EOF
 			http=http://${host}:${port} \
 			https=https://${host}:${port} \
 			ftp=ftp://${host}:${port} \
-			noproxy="localhost,127.0.0.1,LocalAddress,example.com,example.lan"
+			noproxy="localhost,127.0.0.1,LocalAddress,example.com,example.lan,$(hostname -i)"
 		sudo yast2 proxy enable
 		echo "You need to restart to make the proxy settings take effect!"
 		;;
