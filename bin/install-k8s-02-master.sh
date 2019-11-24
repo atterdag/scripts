@@ -64,26 +64,24 @@ kubectl create -f https://raw.githubusercontent.com/kubernetes/heapster/master/d
 echo '***'
 echo '*** install kubernetes dashboard'
 echo '***'
-kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
 
 echo '***'
 echo '*** grant full admin privileges to Dashboards Service Account'
 echo '***'
 cat > dashboard-admin.yaml << EOF
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kubernetes-dashboard
-  labels:
-    k8s-app: kubernetes-dashboard
+  name: admin-user
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
 - kind: ServiceAccount
-  name: kubernetes-dashboard
-  namespace: kube-system
+  name: admin-user
+  namespace: kubernetes-dashboard
 EOF
 kubectl create -f dashboard-admin.yaml
 
