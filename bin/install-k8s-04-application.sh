@@ -26,8 +26,8 @@ echo '*** check if hello-world pod is running'
 echo '***'
 kubectl get pods
 kubectl describe pods
-kubectl exec hello-pod -it sh
-kubectl exec hello-pod ps faux
+kubectl exec hello-world -it sh
+kubectl exec hello-world ps faux
 
 echo '***'
 echo '*** delete hello-world pod'
@@ -186,5 +186,5 @@ kubectl create -f hello-world-deploy.yml
 echo '***'
 echo '*** Setup Ingress controller'
 echo '***'
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/baremetal/service-nodeport.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/service-nodeport.yaml
