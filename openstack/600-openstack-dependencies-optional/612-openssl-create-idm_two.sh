@@ -45,10 +45,10 @@ if [[ $CONTROLLER_FQDN != $NS_FQDN ]]; then
     -in ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${IDM_TWO_FQDN}.key \
     -out /etc/ssl/private/${IDM_TWO_FQDN}.key
 
-  # Upload PKCS#12 keystore to vault
-  export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-  vault login -method=userpass username=admin password=$VAULT_ADMIN_PASS
+  # Upload PKCS#12 keystore to etcd
+  export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
+  ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
   sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${IDM_TWO_FQDN}.p12 \
   | base64 \
-  | vault kv put keystores/${IDM_TWO_FQDN}.p12 data=-
+  | etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/${IDM_TWO_FQDN}.p12
 fi

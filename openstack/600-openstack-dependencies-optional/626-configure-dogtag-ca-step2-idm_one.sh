@@ -4,10 +4,11 @@
 # Install DogTag
 ##############################################################################
 # Back on PKI server retrieve the certificate, proceed to step 2
-vault kv get --field=data ephemeral/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
+ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+etcdctl --username user:$ETCD_USER_PASS get ephemeral/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
 | tr -d '\n' \
 | base64 --decode \
-| openssl x509 \
 | sudo tee /root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca_signing.crt
 
 sudo openssl x509 \

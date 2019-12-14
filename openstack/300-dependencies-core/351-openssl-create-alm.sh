@@ -8,34 +8,35 @@
 #   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
 #   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ALM_FQDN}.crt \
 #   -passin "pass:${CA_PASSWORD}"
-export ETCDCTL_ENDPOINTS="http://${CONTROLLER_FQDN}:2379"
-etcdctl mk variables/ALM_HOST_NAME 'alm'
-etcdctl mk variables/ALM_IP_ADDRESS '192.168.0.42'
-etcdctl mk variables/ALM_FQDN "$(etcdctl get variables/ALM_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl mk variables/AWX_HOST_NAME 'awx'
-etcdctl mk variables/AWX_FQDN "$(etcdctl get variables/AWX_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl mk variables/GOGS_HOST_NAME 'gogs'
-etcdctl mk variables/GOGS_FQDN "$(etcdctl get variables/GOGS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl mk variables/JENKINS_HOST_NAME 'jenkins'
-etcdctl mk variables/JENKINS_FQDN "$(etcdctl get variables/JENKINS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl mk variables/JOXIT_HOST_NAME 'joxit'
-etcdctl mk variables/JOXIT_FQDN "$(etcdctl get variables/JOXIT_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl mk variables/REGISTRY_HOST_NAME 'registry'
-etcdctl mk variables/REGISTRY_FQDN "$(etcdctl get variables/REGISTRY_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
 
-export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=admin password=$(cat ~/.VAULT_ADMIN_PASS)
-vault kv put passwords/ALM_KEYSTORE_PASS value=$(genpasswd 16)
+ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 
-echo "Set environment variables"
-for key in $(etcdctl ls variables/ | sed 's|^/variables/||'); do
-	export eval $key="$(etcdctl get variables/$key)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/ALM_HOST_NAME 'alm'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/ALM_IP_ADDRESS '192.168.0.42'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/ALM_FQDN "$(etcdctl get variables/ALM_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/AWX_HOST_NAME 'awx'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/AWX_FQDN "$(etcdctl get variables/AWX_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/GOGS_HOST_NAME 'gogs'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/GOGS_FQDN "$(etcdctl get variables/GOGS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/JENKINS_HOST_NAME 'jenkins'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/JENKINS_FQDN "$(etcdctl get variables/JENKINS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/JOXIT_HOST_NAME 'joxit'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/JOXIT_FQDN "$(etcdctl get variables/JOXIT_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/ALM_KEYSTORE_PASS $(genpasswd 16)
+
+# Set environment variables
+for key in $(etcdctl ls /variables/ | sed 's|^/variables/||'); do
+	export eval $key="$(etcdctl get /variables/$key)"
 done
 
-echo "Create variables with secrets"
-vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
-for secret in $(vault kv list -format yaml passwords/ | sed 's/^-\s//'); do
-	export eval $secret="$(vault kv get -field=value passwords/$secret)"
+# Get read privileges to etcd
+ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+
+# Create variables with secrets
+for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|^/passwords/||'); do
+	export eval $secret="$(etcdctl --username user:$ETCD_USER_PASS get /passwords/$secret)"
 done
 
 sudo su -c "openssl req \
@@ -77,8 +78,7 @@ sudo openssl pkcs12 \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ALM_FQDN}.p12 \
   -passout "pass:${ALM_KEYSTORE_PASS}"
 
-# Upload PKCS#12 keystore to vault
-vault login -method=userpass username=admin password=$(cat ~/.VAULT_ADMIN_PASS)
+# Upload PKCS#12 keystore to etcd
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ALM_FQDN}.p12 \
 | base64 \
-| vault kv put keystores/${ALM_FQDN}.p12 data=-
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/${ALM_FQDN}.p12

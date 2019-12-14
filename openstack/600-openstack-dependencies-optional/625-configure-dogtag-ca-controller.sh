@@ -8,9 +8,9 @@
 #   -revoke ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
 #   -passin "pass:${CA_PASSWORD}"
 
-export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
-vault kv get --field=data ephemeral/ca_signing.csr \
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
+ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+etcdctl --username user:$ETCD_USER_PASS get ephemeral/ca_signing.csr \
 | tr -d '\n' \
 | base64 --decode \
 | sudo tee ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/reqs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.csr
@@ -28,7 +28,8 @@ sudo openssl ca \
   -passin pass:${CA_PASSWORD} \
   -policy policy_anything
 
+ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 sudo cat ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
 | base64 \
 | tr -d '\n' \
-| vault kv put ephemeral/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt data=-
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk ephemeral/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt

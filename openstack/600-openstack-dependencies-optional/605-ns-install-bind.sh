@@ -45,8 +45,8 @@ EOF
 
 $ssh_cmd sudo systemctl restart bind9
 
-export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=admin password=$(cat ~/.VAULT_ADMIN_PASS)
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 $ssh_cmd sudo cat /etc/bind/designate.key \
 | base64 \
-| vault kv put keystores/designate.key data=-
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/designate.key

@@ -83,9 +83,9 @@ sudo pkispawn \
   -s CA \
   -f /var/lib/openstack/dogtag-step1.cfg
 
-export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
+ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 sudo cat /root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca_signing.csr \
 | base64 \
 | tr -d '\n' \
-| vault kv put ephemeral/ca_signing.csr data=-
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk ephemeral/ca_signing.csr

@@ -48,9 +48,9 @@ sudo setup-ds-admin \
   --silent \
   --file=/var/lib/openstack/389-ds-setup.inf
 
-export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
-vault kv get --field=data keystores/${IDM_ONE_FQDN}.p12 \
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS
+etcdctl --username user:$ETCD_USER_PASS get keystores/${IDM_ONE_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${IDM_ONE_FQDN}.p12

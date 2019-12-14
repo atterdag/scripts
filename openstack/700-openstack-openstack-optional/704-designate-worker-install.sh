@@ -3,10 +3,9 @@
 ##############################################################################
 # Install Designate Worker on Controller host
 ##############################################################################
-# export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-# vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
-#
-# vault kv get --field=data keystores/designate.key \
+# export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+# ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+# etcdctl --username user:$ETCD_USER_PASS get keystores/designate.key \
 # | tr -d '\n' \
 # | base64 --decode \
 # > designate.key

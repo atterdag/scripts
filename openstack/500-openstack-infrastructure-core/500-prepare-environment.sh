@@ -3,19 +3,18 @@
 ##############################################################################
 # Import environment variables, and passwords
 ##############################################################################
-export CONTROLLER_FQDN=
- export VAULT_USER_PASS=
-
-# Create variables with secrets
-vault login -method=userpass username=local password=$(cat ~/.VAULT_USER_PASS)
-for secret in $(vault kv list -format yaml openstack/ | sed 's/^-\s//'); do
-	export eval $secret="$(vault kv get -field=value openstack/$secret)"
-done
+export CONTROLLER_FQDN=aku.se.lemche.net
+ export ETCD_USER_PASS=
 
 # Create variables with infrastructure configuration
-export ETCDCTL_ENDPOINTS="http://${CONTROLLER_FQDN}:2379"
-for key in $(etcdctl ls openstack/ | sed 's|^/openstack/||'); do
-	export eval $key="$(etcdctl get openstack/$key)"
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+for key in $(etcdctl ls variables/ | sed 's|^/variables/||'); do
+	export eval $key="$(etcdctl get variables/$key)"
+done
+
+# Create variables with secrets
+for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|^/passwords/||'); do
+	export eval $secret="$(etcdctl --username user:$ETCD_USER_PASS get /passwords/$secret)"
 done
 
 source <(sudo cat /var/lib/openstack/admin-openrc)

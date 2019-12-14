@@ -49,9 +49,9 @@ sudo openssl pkcs12 \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${COMPUTE_FQDN}.p12 \
   -passout "pass:${COMPUTE_KEYSTORE_PASS}"
 
-# Upload PKCS#12 keystore to vault
-export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=admin password=$(cat ~/.VAULT_ADMIN_PASS)
+# Upload PKCS#12 keystore to etcd
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${COMPUTE_FQDN}.p12 \
 | base64 \
-| vault kv put keystores/${COMPUTE_FQDN}.p12 data=-
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/${COMPUTE_FQDN}.p12

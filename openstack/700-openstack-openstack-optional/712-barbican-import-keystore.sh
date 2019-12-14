@@ -3,10 +3,10 @@
 ##############################################################################
 # Install Barbican on Controller host
 ##############################################################################
-# Copy keystore from vault
-export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
-vault kv get --field=data ephemeral/ca_admin_cert.p12 \
+# Copy keystore from etcd
+export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
+ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+etcdctl --username user:$ETCD_USER_PASS get ephemeral/ca_admin_cert.p12 \
 | tr -d '\n' \
 | base64 --decode \
 | sudo tee /etc/barbican/ca_admin_cert.p12

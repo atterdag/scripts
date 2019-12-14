@@ -4,10 +4,13 @@
 # Enable SSL for etcd on Controller host
 ##############################################################################
 
-export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault login -method=userpass username=user password=$(cat ~/.VAULT_USER_PASS)
+export ETCDCTL_ENDPOINTS="http://localhost:2379"
 
-vault kv get --field=data keystores/${CONTROLLER_FQDN}.p12 \
+# Get read privileges to etcd
+ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+
+# Retrieve controller keystore from etcd
+etcdctl --username user:$ETCD_USER_PASS get keystores/${CONTROLLER_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${CONTROLLER_FQDN}.p12

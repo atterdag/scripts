@@ -9,7 +9,7 @@ sudo apt-get --yes --quiet install \
 
 cat << EOF | sudo tee /etc/mysql/mariadb.conf.d/99-openstack.cnf
 [mysqld]
-bind-address = 0.0.0.0
+bind-address = ${CONTROLLER_IP_ADDRESS}
 default-storage-engine = innodb
 innodb_file_per_table = on
 max_connections = 4096
