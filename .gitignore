@@ -1,0 +1,10 @@
+.project
+.ftpconfig*
+wsadminlib.py
+_config.yml
+.ropeproject/*
+ansible/logs/*
+*.pyc
+.VAULT_USER_PASS
+.vscode-upload.json
+.vscode
