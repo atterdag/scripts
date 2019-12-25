@@ -29,8 +29,7 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/LVM_STANDARD_PV_DEVICE
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/SIMPLE_CRYPTO_CA 'OpenStack'
 
 # Set NTP server details
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/NTP_HOST_NAME 'aku'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/NTP_IP_ADDRESS '192.168.0.40'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/NTP_HOST_NAME 'ntp'
 
 # External DNS servers
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/DNS_ONE_IP_ADDRESS '192.168.0.40'

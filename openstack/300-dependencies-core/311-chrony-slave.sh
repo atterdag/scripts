@@ -11,7 +11,7 @@ sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
 sudo sed --in-place 's|^pool|#pool|g' /etc/chrony/chrony.conf
 
 cat << EOT | sudo tee -a /etc/chrony/chrony.conf
-server ${CONTROLLER_IP_ADDRESS}
+server ${NTP_FQDN}
 EOT
 
 sudo chmod 0644 /etc/chrony/chrony.conf

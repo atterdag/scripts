@@ -6,7 +6,7 @@
 sudo apt-get --yes --quiet install \
   chrony
 
-sudo mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
+sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
 
 cat << EOT | sudo tee -a /etc/chrony/chrony.conf
 allow ${NETWORK_CIDR}
