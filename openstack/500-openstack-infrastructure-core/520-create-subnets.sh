@@ -4,14 +4,14 @@
 # Create subnets for VLANs on Controller host
 ##############################################################################
 openstack subnet create \
-  --allocation-pool start=192.168.0.129,end=192.168.0.196 \
+  --allocation-pool start=192.168.1.129,end=192.168.1.196 \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
-  --gateway 192.168.0.254 \
+  --gateway 192.168.1.254 \
   --ip-version 4 \
   --network inside \
-  --no-dhcp \
-  --subnet-range 192.168.0.0/24 \
+  --dhcp \
+  --subnet-range 192.168.1.0/24 \
   inside
 openstack subnet create \
   --allocation-pool start=192.168.2.2,end=192.168.2.253 \
@@ -35,12 +35,12 @@ openstack subnet create \
   autovideo
 openstack subnet create \
   --allocation-pool start=172.16.0.2,end=172.16.0.253 \
-  --dhcp \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
   --gateway 172.16.0.254 \
   --ip-version 4 \
   --network servers \
+  --no-dhcp \
   --subnet-range 172.16.0.0/24 \
   servers
 openstack subnet create \
