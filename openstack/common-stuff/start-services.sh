@@ -13,8 +13,25 @@ sudo systemctl start \
   apache2 \
   ipvsadm \
   haproxy \
+
+sudo systemctl start \
   glance-registry \
   glance-api \
+
+sudo systemctl start \
+  neutron-server \
+  neutron-l3-agent \
+  neutron-linuxbridge-agent \
+  neutron-dhcp-agent \
+  neutron-metadata-agent \
+  neutron-linuxbridge-agent \
+
+sudo systemctl start \
+  cinder-scheduler \
+  tgt \
+  cinder-volume \
+
+sudo systemctl start \
   qemu-kvm \
   nova-api \
   nova-xvpvncproxy \
@@ -24,15 +41,8 @@ sudo systemctl start \
   nova-conductor \
   nova-novncproxy \
   nova-compute \
-  neutron-server \
-  neutron-l3-agent \
-  neutron-linuxbridge-agent \
-  neutron-dhcp-agent \
-  neutron-metadata-agent \
-  neutron-linuxbridge-agent \
-  cinder-scheduler \
-  tgt \
-  cinder-volume \
+
+sudo systemctl start \
   designate-worker \
   designate-producer \
   designate-central \
