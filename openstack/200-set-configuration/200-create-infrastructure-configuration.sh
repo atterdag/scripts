@@ -23,7 +23,7 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/NETWORK_INTERFACE 'bon
 
 # Set keys with storage devices used by OpenStack
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/LVM_PREMIUM_PV_DEVICE 'sdb'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/LVM_STANDARD_PV_DEVICE 'sde'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/LVM_STANDARD_PV_DEVICE 'sda'
 
 # Will probably be deleted later ...
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/SIMPLE_CRYPTO_CA 'OpenStack'
