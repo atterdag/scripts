@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##############################################################################
-# Remove OpenStack, and immediate dependencies
+# Remove OpenStack core packages
 ##############################################################################
 sudo apt-get --yes --quiet --purge remove \
   barbican-* \
@@ -34,7 +34,6 @@ sudo rm -fr \
   /var/lib/designate/ \
   /var/lib/glance/ \
   /var/lib/nova/ \
-  /var/lib/openstack/ \
   /var/log/nova/
 
 for user in barbican cinder designate glance keystone neutron nova; do

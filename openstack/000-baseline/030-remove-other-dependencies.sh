@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##############################################################################
-# Remove packages on all base packages
+# Remove packages on all additional dependencies
 ##############################################################################
 sudo apt-get --yes --quiet --purge remove \
   389-ds \
@@ -31,5 +31,4 @@ sudo rm -fr \
   /usr/lib/x86_64-linux-gnu/dirsrv \
   /var/lib/apache2 \
   /var/log/apache2/ \
-  /var/log/bind/ \
-  /var/lib/ssl/
+  /var/log/bind/

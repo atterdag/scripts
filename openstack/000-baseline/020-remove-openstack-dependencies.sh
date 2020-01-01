@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##############################################################################
-# Remove OpenStack, and immediate dependencies
+# Remove OpenStack immediate dependencies
 ##############################################################################
 sudo apt-get --yes --quiet --purge remove \
   chrony \
