@@ -12,11 +12,11 @@ sudo systemctl start \
   pki-tomcatd \
   apache2 \
   ipvsadm \
-  haproxy \
+  haproxy
 
 sudo systemctl start \
   glance-registry \
-  glance-api \
+  glance-api
 
 sudo systemctl start \
   neutron-server \
@@ -24,12 +24,12 @@ sudo systemctl start \
   neutron-linuxbridge-agent \
   neutron-dhcp-agent \
   neutron-metadata-agent \
-  neutron-linuxbridge-agent \
+  neutron-linuxbridge-agent
 
 sudo systemctl start \
   cinder-scheduler \
   tgt \
-  cinder-volume \
+  cinder-volume
 
 sudo systemctl start \
   qemu-kvm \
@@ -40,7 +40,7 @@ sudo systemctl start \
   nova-scheduler \
   nova-conductor \
   nova-novncproxy \
-  nova-compute \
+  nova-compute
 
 sudo systemctl start \
   designate-worker \
