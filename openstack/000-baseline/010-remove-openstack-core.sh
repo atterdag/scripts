@@ -37,5 +37,7 @@ sudo rm -fr \
   /var/log/nova/
 
 for user in barbican cinder designate glance keystone neutron nova; do
-  sudo userdel -r $user
+  if getent passwd $user; then
+    sudo userdel -r $user
+  fi
 done

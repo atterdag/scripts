@@ -32,5 +32,7 @@ sudo rm -fr \
   /var/log/trafficserver/
 
 for user in radvd rabbitmq; do
-  sudo userdel -r $user
+  if getent passwd $user; then
+    sudo userdel -r $user
+  fi
 done
