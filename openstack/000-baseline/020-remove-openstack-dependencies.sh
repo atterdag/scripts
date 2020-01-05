@@ -26,8 +26,10 @@ sudo rm -fr \
   /etc/openvswitch/ \
   /etc/trafficserver/\
   /var/cache/trafficserver/ \
+  /var/lib/haproxy/ \
   /var/lib/libvirt/ \
   /var/lib/openvswitch/ \
+  /var/log/haproxy.log* \
   /var/log/openvswitch/ \
   /var/log/trafficserver/
 

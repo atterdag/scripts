@@ -33,7 +33,17 @@ sudo rm -fr \
   /var/lib/barbican/ \
   /var/lib/designate/ \
   /var/lib/glance/ \
+  /var/lib/openstack-dashboard/ \
   /var/lib/nova/ \
+  /var/log/apache2/cinder*.log* \
+  /var/log/apache2/keystone*.log* \
+  /var/log/apache2/nova_placement*.log* \
+  /var/log/barbican/ \
+  /var/log/cinder/ \
+  /var/log/designate/ \
+  /var/log/glance/ \
+  /var/log/keystone/ \
+  /var/log/neutron/ \
   /var/log/nova/
 
 for user in barbican cinder designate glance keystone neutron nova; do
