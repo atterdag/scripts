@@ -8,3 +8,6 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --quiet install \
   tgt \
   lvm2 \
   thin-provisioning-tools
+
+# sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --quiet install \
+#   cinder-backup
