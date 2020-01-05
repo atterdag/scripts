@@ -50,13 +50,6 @@ if [[ $CONTROLLER_FQDN != $COMPUTE_FQDN ]]; then
   sudo chown neutron:neutron \
     /etc/neutron/neutron.conf
 
-  # Remember to uncomment if using flat networks
-  # sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge physical_interface_mappings "inside:${NETWORK_INTERFACE}.1,servers:${NETWORK_INTERFACE}.2,dmz:${NETWORK_INTERFACE}.3,outside:${NETWORK_INTERFACE}.4"
-  # sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge bridge_mappings "outside:${NETWORK_INTERFACE}"
-
-  # or if VLANs are managed by neutron
-  # sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge physical_interface_mappings "${NETWORK_INTERFACE}:${NETWORK_INTERFACE}"
-
   sudo usermod -a -G ssl-cert neutron
 
   cat <<EOF | sudo tee /etc/sysctl.d/99-neutron.conf
@@ -64,7 +57,6 @@ net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
   sudo sysctl -p /etc/sysctl.d/99-neutron.conf
-
 fi
 
 sudo systemctl restart \
