@@ -12,3 +12,5 @@ openstack volume type create \
 openstack volume type create \
   --property volume_backend_name='standard' \
   standard
+
+# openstack catalog show object-store
