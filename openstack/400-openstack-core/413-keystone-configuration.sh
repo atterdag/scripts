@@ -3,16 +3,18 @@
 ##############################################################################
 # Configure Keystone on Controller host
 ##############################################################################
-sudo crudini --set /etc/keystone/keystone.conf DEFAULT log_file "keystone.log"
-sudo crudini --set /etc/keystone/keystone.conf DEFAULT log_dir "/var/log/keystone"
-sudo crudini --set /etc/keystone/keystone.conf DEFAULT debug "false"
-sudo crudini --set /etc/keystone/keystone.conf DEFAULT use_syslog "true"
-sudo crudini --set /etc/keystone/keystone.conf DEFAULT syslog_log_facility "LOG_LOCAL0"
-sudo crudini --set /etc/keystone/keystone.conf catalog template_file "/etc/keystone/default_catalog.templates"
 sudo crudini --set /etc/keystone/keystone.conf database connection "mysql+pymysql://keystone:${KEYSTONE_DBPASS}@${CONTROLLER_FQDN}/keystone"
+sudo crudini --set /etc/keystone/keystone.conf token provider "fernet"
+
+# Own additions
+sudo crudini --set /etc/keystone/keystone.conf catalog template_file "/etc/keystone/default_catalog.templates"
+sudo crudini --set /etc/keystone/keystone.conf DEFAULT debug "false"
+sudo crudini --set /etc/keystone/keystone.conf DEFAULT log_dir "/var/log/keystone"
+sudo crudini --set /etc/keystone/keystone.conf DEFAULT log_file "keystone.log"
+sudo crudini --set /etc/keystone/keystone.conf DEFAULT syslog_log_facility "LOG_LOCAL0"
+sudo crudini --set /etc/keystone/keystone.conf DEFAULT use_syslog "true"
 sudo crudini --set /etc/keystone/keystone.conf extra_headers Distribution "Ubuntu"
 sudo crudini --set /etc/keystone/keystone.conf identity driver "sql"
-sudo crudini --set /etc/keystone/keystone.conf token provider "fernet"
 
 sudo chmod 0640 \
   /etc/keystone/keystone.conf
