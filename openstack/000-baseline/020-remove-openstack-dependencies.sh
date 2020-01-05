@@ -4,9 +4,6 @@
 # Remove OpenStack immediate dependencies
 ##############################################################################
 sudo apt-get --yes --quiet --purge remove \
-  chrony \
-  etcd \
-  krb5-* \
   libapache2-mod-wsgi* \
   libvirt0 \
   memcached \
