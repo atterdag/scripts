@@ -10,20 +10,25 @@ export ETCDCTL_ENDPOINTS="http://localhost:2379"
 # Get the admin password
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 
+# Set keys with Management server
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/MANAGEMENT_HOST_NAME 'aku'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/MANAGEMENT_IP_ADDRESS '192.168.0.40'
+
 # Set keys with OpenStack servers
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/CONTROLLER_HOST_NAME 'aku'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/CONTROLLER_IP_ADDRESS '192.168.0.40'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/CONTROLLER_HOST_NAME 'jack'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/CONTROLLER_IP_ADDRESS '192.168.0.30'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/COMPUTE_HOST_NAME 'jack'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/COMPUTE_IP_ADDRESS '192.168.0.30'
 
 # Set keys with general DNS/Network used by OpenStack
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/DNS_DOMAIN 'se.lemche.net'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/NETWORK_CIDR '192.168.0.0/24'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/NETWORK_INTERFACE 'bond0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/CONTROLLER_PROVIDER_NIC 'bond0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/COMPUTE_PROVIDER_NIC 'bond0'
 
 # Set keys with storage devices used by OpenStack
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/LVM_PREMIUM_PV_DEVICE 'sdb'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/LVM_STANDARD_PV_DEVICE 'sda'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/LVM_PREMIUM_PV_DEVICE 'sdb'
 
 # Will probably be deleted later ...
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/SIMPLE_CRYPTO_CA 'OpenStack'
@@ -75,6 +80,7 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/SSL_ROOT_CA_EMAIL_USER
 ##############################################################################
 # Create calculated keys based of hardcoded keys
 ##############################################################################
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/MANAGEMENT_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/MANAGEMENT_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/COMPUTE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/COMPUTE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/CONTROLLER_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/CONTROLLER_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /variables/DNS_REVERSE_DOMAIN "$(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/CONTROLLER_IP_ADDRESS) | awk -F'.' '{print $3"."$2"."$1}').in-addr.arpa"

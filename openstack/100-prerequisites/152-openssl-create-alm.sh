@@ -8,7 +8,7 @@
 #   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
 #   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ALM_FQDN}.crt \
 #   -passin "pass:${CA_PASSWORD}"
-export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 

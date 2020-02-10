@@ -49,7 +49,7 @@ sudo openssl pkcs12 \
   -passout "pass:${CONTROLLER_KEYSTORE_PASS}"
 
 # Upload PKCS#12 keystore to etcd
-export ETCDCTL_ENDPOINTS="http://localhost:2379"
+export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.p12 \
 | base64 \

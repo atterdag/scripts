@@ -5,7 +5,7 @@
 ##############################################################################
 sudo apt-get --yes --quiet install \
   memcached \
-  python-memcache
+  python3-memcache
 
 sudo sed -i "s/^-l\s.*$/-l ${CONTROLLER_IP_ADDRESS}/" /etc/memcached.conf
 sudo systemctl restart memcached

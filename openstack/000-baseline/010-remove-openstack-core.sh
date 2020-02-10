@@ -11,8 +11,9 @@ sudo apt-get --yes --quiet --purge remove \
   keystone* \
   neutron* \
   nova* \
-  python-openstack* \
-  python-oslo* \
+  placement* \
+  python3-openstack* \
+  python3-oslo* \
   qemu-kvm \
   qemu-slof \
   qemu-system-common \
@@ -33,8 +34,9 @@ sudo rm -fr \
   /var/lib/barbican/ \
   /var/lib/designate/ \
   /var/lib/glance/ \
-  /var/lib/openstack-dashboard/ \
   /var/lib/nova/ \
+  /var/lib/openstack-dashboard/ \
+  /var/lib/placement/ \
   /var/log/apache2/cinder*.log* \
   /var/log/apache2/keystone*.log* \
   /var/log/apache2/nova_placement*.log* \
@@ -44,9 +46,10 @@ sudo rm -fr \
   /var/log/glance/ \
   /var/log/keystone/ \
   /var/log/neutron/ \
-  /var/log/nova/
+  /var/log/nova/ \
+  /var/log/placement/
 
-for user in barbican cinder designate glance keystone neutron nova; do
+for user in barbican cinder designate glance keystone neutron nova placement; do
   if getent passwd $user; then
     sudo userdel -r $user
   fi

@@ -1,43 +1,13 @@
 #!/bin/bash
 
 ##############################################################################
-# Enable SSL for etcd on Controller host
+# Install Etcd on Controller host
 ##############################################################################
-
-export ETCDCTL_ENDPOINTS="http://localhost:2379"
-
-# Get read privileges to etcd
-ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
-
-# Retrieve controller keystore from etcd
-etcdctl --username user:$ETCD_USER_PASS get keystores/${CONTROLLER_FQDN}.p12 \
-| tr -d '\n' \
-| base64 --decode \
-> ${CONTROLLER_FQDN}.p12
-
-openssl pkcs12 \
-  -in ${CONTROLLER_FQDN}.p12 \
-  -passin pass:${CONTROLLER_KEYSTORE_PASS} \
-  -nokeys \
-  -clcerts \
-| openssl x509 \
-| sudo tee /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-
-openssl pkcs12 \
-  -in ${CONTROLLER_FQDN}.p12 \
-  -passin pass:${CONTROLLER_KEYSTORE_PASS} \
-  -nocerts \
-  -nodes \
-| sudo tee /etc/ssl/private/${CONTROLLER_FQDN}.key
-
-# Ensure that the ssl-cert group owns the keypair
-sudo chown root:ssl-cert \
-  /etc/ssl/certs/${CONTROLLER_FQDN}.crt \
-  /etc/ssl/private/${CONTROLLER_FQDN}.key
+sudo apt-get --yes --quiet install \
+  etcd
 
 # Restrict access to the keypair
-sudo chmod 644 /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-sudo chmod 640 /etc/ssl/private/${CONTROLLER_FQDN}.key
+sudo usermod -a -G ssl-cert etcd
 
 cat  <<EOF | sudo sed --file - --in-place /etc/default/etcd
 s|^.*ETCD_NAME=.*|ETCD_NAME=\"${CONTROLLER_FQDN}\"|
@@ -53,6 +23,5 @@ s|^.*ETCD_PEER_CERT_FILE.*|ETCD_PEER_CERT_FILE=\"/etc/ssl/certs/${CONTROLLER_FQD
 s|^.*ETCD_PEER_KEY_FILE.*|ETCD_PEER_KEY_FILE=\"/etc/ssl/private/${CONTROLLER_FQDN}.key\"|
 EOF
 
-sudo usermod -a -G ssl-cert etcd
-
-sudo systemctl restart etcd
+sudo systemctl enable etcd
+sudo systemctl start etcd

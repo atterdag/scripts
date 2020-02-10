@@ -8,7 +8,7 @@ openstack network create \
   --enable-port-security \
   --internal \
   --provider-network-type vlan \
-  --provider-physical-network ${NETWORK_INTERFACE} \
+  --provider-physical-network ${COMPUTE_PROVIDER_NIC} \
   --provider-segment 2 \
   --share \
   autovoip
@@ -17,7 +17,7 @@ openstack network create \
   --enable-port-security \
   --internal \
   --provider-network-type vlan \
-  --provider-physical-network ${NETWORK_INTERFACE} \
+  --provider-physical-network ${COMPUTE_PROVIDER_NIC} \
   --provider-segment 3 \
   --share \
   autovideo
@@ -26,7 +26,7 @@ openstack network create \
   --enable-port-security \
   --external \
   --provider-network-type vlan \
-  --provider-physical-network ${NETWORK_INTERFACE} \
+  --provider-physical-network ${COMPUTE_PROVIDER_NIC} \
   --provider-segment 4 \
   --share \
   inside
@@ -35,7 +35,7 @@ openstack network create \
   --enable-port-security \
   --internal \
   --provider-network-type vlan \
-  --provider-physical-network ${NETWORK_INTERFACE} \
+  --provider-physical-network ${COMPUTE_PROVIDER_NIC} \
   --provider-segment 5 \
   --share \
   servers
@@ -44,7 +44,7 @@ openstack network create \
   --enable-port-security \
   --internal \
   --provider-network-type vlan \
-  --provider-physical-network ${NETWORK_INTERFACE} \
+  --provider-physical-network ${COMPUTE_PROVIDER_NIC} \
   --provider-segment 6 \
   --share \
   dmz
@@ -53,7 +53,7 @@ openstack network create \
   --enable-port-security \
   --external \
   --provider-network-type vlan \
-  --provider-physical-network ${NETWORK_INTERFACE} \
+  --provider-physical-network ${COMPUTE_PROVIDER_NIC} \
   --provider-segment 7 \
   --share \
   outside

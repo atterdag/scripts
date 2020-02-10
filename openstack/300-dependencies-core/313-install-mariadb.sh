@@ -5,7 +5,7 @@
 ##############################################################################
 sudo apt-get --yes --quiet install \
   mariadb-server \
-  python-pymysql
+  python3-pymysql
 
 cat << EOF | sudo tee /etc/mysql/mariadb.conf.d/99-openstack.cnf
 [mysqld]

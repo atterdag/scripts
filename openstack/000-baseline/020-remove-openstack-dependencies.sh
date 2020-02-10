@@ -8,9 +8,9 @@ sudo apt-get --yes --quiet --purge remove \
   libvirt0 \
   memcached \
   mysql-common \
-  python-castellan \
-  python-memcache \
-  python-pymysql \
+  python3-castellan \
+  python3-memcache \
+  python3-pymysql \
   rabbitmq-server \
   radvd \
   sphinx-common \

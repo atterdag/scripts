@@ -7,7 +7,7 @@ export CONTROLLER_FQDN=aku.se.lemche.net
  export ETCD_USER_PASS=
 
 # Create variables with infrastructure configuration
-export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 for key in $(etcdctl ls variables/ | sed 's|^/variables/||'); do
 	export eval $key="$(etcdctl get variables/$key)"
 done

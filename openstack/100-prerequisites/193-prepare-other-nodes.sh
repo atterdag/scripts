@@ -4,7 +4,7 @@
 # Setting up other nodes
 ##############################################################################
 # You have to set these by hand
-export CONTROLLER_FQDN=aku.se.lemche.net
+export MANAGEMENT_FQDN=aku.se.lemche.net
 export SSL_ROOT_CA_FQDN=ca.se.lemche.net
  export ETCD_USER_PASS=
 
@@ -30,7 +30,7 @@ sudo update-ca-certificates \
   --fresh
 
 # Create variables with infrastructure configuration
-export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 for key in $(etcdctl ls variables/ | sed 's|^/variables/||'); do
 	export eval $key="$(etcdctl get variables/$key)"
 done

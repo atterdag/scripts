@@ -45,7 +45,7 @@ EOF
 
 $ssh_cmd sudo systemctl restart bind9
 
-export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
+export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 $ssh_cmd sudo cat /etc/bind/designate.key \
 | base64 \

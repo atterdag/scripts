@@ -6,41 +6,6 @@
 sudo apt-get --yes --quiet install \
   apache2
 
-export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4001"
-
-# Get read privileges to etcd
-ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
-
-# Retrieve controller keystore from etcd
-etcdctl --username user:$ETCD_USER_PASS get keystores/${CONTROLLER_FQDN}.p12 \
-| tr -d '\n' \
-| base64 --decode \
-> ${CONTROLLER_FQDN}.p12
-
-openssl pkcs12 \
-  -in ${CONTROLLER_FQDN}.p12 \
-  -passin pass:${CONTROLLER_KEYSTORE_PASS} \
-  -nokeys \
-  -clcerts \
-| openssl x509 \
-| sudo tee /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-
-openssl pkcs12 \
-  -in ${CONTROLLER_FQDN}.p12 \
-  -passin pass:${CONTROLLER_KEYSTORE_PASS} \
-  -nocerts \
-  -nodes \
-| sudo tee /etc/ssl/private/${CONTROLLER_FQDN}.key
-
-# Ensure that the ssl-cert group owns the keypair
-sudo chown root:ssl-cert \
-  /etc/ssl/certs/${CONTROLLER_FQDN}.crt \
-  /etc/ssl/private/${CONTROLLER_FQDN}.key
-
-# Restrict access to the keypair
-sudo chmod 644 /etc/ssl/certs/${CONTROLLER_FQDN}.crt
-sudo chmod 640 /etc/ssl/private/${CONTROLLER_FQDN}.key
-
 cat  <<EOF | sudo sed --file - --in-place /etc/apache2/ports.conf
 s|Listen\s80|Listen ${CONTROLLER_IP_ADDRESS}:80|
 s|Listen\s443|Listen ${CONTROLLER_IP_ADDRESS}:443|g

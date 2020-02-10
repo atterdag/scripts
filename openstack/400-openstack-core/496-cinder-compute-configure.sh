@@ -19,8 +19,6 @@ sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken password "$CINDER_
 sudo crudini --set /etc/cinder/cinder.conf DEFAULT my_ip "${CONTROLLER_IP_ADDRESS}"
 sudo crudini --set /etc/cinder/cinder.conf DEFAULT glance_api_servers "http://${CONTROLLER_FQDN}:9292"
 sudo crudini --set /etc/cinder/cinder.conf oslo_concurrency lock_path "/var/lib/cinder/tmp"
-# sudo crudini --set /etc/cinder/cinder.conf DEFAULT backup_driver "cinder.backup.drivers.swift"
-# sudo crudini --set /etc/cinder/cinder.conf DEFAULT backup_swift_url "SWIFT_URL"
 
 # My own storage backend configuration
 sudo crudini --set /etc/cinder/cinder.conf DEFAULT enabled_backends "premium,standard"
@@ -40,6 +38,10 @@ sudo crudini --set /etc/cinder/cinder.conf standard target_protocol "iscsi"
 sudo crudini --set /etc/cinder/cinder.conf standard volume_backend_name "standard"
 sudo crudini --set /etc/cinder/cinder.conf standard volume_driver "cinder.volume.drivers.lvm.LVMVolumeDriver"
 sudo crudini --set /etc/cinder/cinder.conf standard volume_group "cinder-standard-vg"
+
+# cinder backup
+# sudo crudini --set /etc/cinder/cinder.conf DEFAULT backup_driver "cinder.backup.drivers.swift"
+# sudo crudini --set /etc/cinder/cinder.conf DEFAULT backup_swift_url "SWIFT_URL"
 
 # Own additions
 sudo crudini --set /etc/cinder/cinder.conf DEFAULT debug "false"
