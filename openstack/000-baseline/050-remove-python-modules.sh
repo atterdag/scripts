@@ -6,7 +6,7 @@
 sudo apt-get --yes --quiet install \
   python3-pip
 
-for i in $(pip3 list | awk '{print $1}'); do
+for i in $(pip3 list | awk '{print $1}' | grep -v ^Package | grep -v ^---------------------); do
   sudo --login pip3 uninstall --yes $i
 done
 
