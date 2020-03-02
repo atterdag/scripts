@@ -25,6 +25,7 @@ sudo rm -fr \
   /var/cache/trafficserver/ \
   /var/lib/haproxy/ \
   /var/lib/libvirt/ \
+  /var/lib/mysql/ \
   /var/lib/openvswitch/ \
   /var/log/haproxy.log* \
   /var/log/openvswitch/ \
@@ -35,3 +36,8 @@ for user in radvd rabbitmq; do
     sudo userdel -r $user
   fi
 done
+
+sudo add-apt-repository --yes --remove \
+  'deb [arch=amd64,arm64,ppc64el] http://mirror.jaleco.com/mariadb/repo/10.3/ubuntu bionic main'
+
+sudo rm -f /etc/apt/sources.list.d/bintray.rabbitmq.list
