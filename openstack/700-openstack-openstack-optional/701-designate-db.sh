@@ -9,5 +9,5 @@ GRANT ALL PRIVILEGES ON designate.* TO 'designate'@'localhost' IDENTIFIED BY '${
 GRANT ALL PRIVILEGES ON designate.* TO 'designate'@'%' IDENTIFIED BY '${DESIGNATE_DBPASS}';
 EOF
 sudo chmod 0600 /var/lib/openstack/designate.sql
-sudo cat /var/lib/openstack/designate.sql | sudo mysql --host=localhost --user=root
+sudo cat /var/lib/openstack/designate.sql | sudo mysql --host=localhost --user=root --password="${ROOT_DBPASS}"
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=designate --password=$DESIGNATE_DBPASS designate

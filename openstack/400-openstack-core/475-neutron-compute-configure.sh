@@ -56,8 +56,8 @@ net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
   sudo sysctl -p /etc/sysctl.d/99-neutron.conf
-fi
 
-sudo systemctl restart \
-  nova-compute \
-  neutron-linuxbridge-agent
+  sudo systemctl restart \
+    nova-compute \
+    neutron-linuxbridge-agent
+fi

@@ -99,3 +99,33 @@ sudo chmod 644 /etc/ssl/certs/${REGISTRY_FQDN}.crt
 sudo chmod 640 /etc/ssl/private/${REGISTRY_FQDN}.key
 
 rm -f ${REGISTRY_FQDN}.p12
+
+# Get coreswitch keystore
+etcdctl --username user:$ETCD_USER_PASS get keystores/${CORESWITCH_FQDN}.p12 \
+| tr -d '\n' \
+| base64 --decode \
+> ${CORESWITCH_FQDN}.p12
+
+openssl pkcs12 \
+  -in ${CORESWITCH_FQDN}.p12 \
+  -passin pass:${CORESWITCH_KEYSTORE_PASS} \
+  -nokeys \
+  -clcerts \
+| openssl x509 \
+| sudo tee /etc/ssl/certs/${CORESWITCH_FQDN}.crt
+
+openssl pkcs12 \
+  -in ${CORESWITCH_FQDN}.p12 \
+  -passin pass:${CORESWITCH_KEYSTORE_PASS} \
+  -nocerts \
+  -nodes \
+| sudo tee /etc/ssl/private/${CORESWITCH_FQDN}.key
+
+sudo chown root:ssl-cert \
+  /etc/ssl/certs/${CORESWITCH_FQDN}.crt \
+  /etc/ssl/private/${CORESWITCH_FQDN}.key
+
+sudo chmod 644 /etc/ssl/certs/${CORESWITCH_FQDN}.crt
+sudo chmod 640 /etc/ssl/private/${CORESWITCH_FQDN}.key
+
+rm -f ${CORESWITCH_FQDN}.p12

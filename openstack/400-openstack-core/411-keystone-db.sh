@@ -10,5 +10,6 @@ GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${KEYSTONE_D
 EXIT
 EOF
 sudo chmod 0600 /var/lib/openstack/keystone.sql
-sudo cat /var/lib/openstack/keystone.sql | sudo mysql --host=localhost --user=root
+sudo cat /var/lib/openstack/keystone.sql \
+  | sudo mysql --host=localhost --user=root --password="${ROOT_DBPASS}"
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=keystone --password=$KEYSTONE_DBPASS keystone

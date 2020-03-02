@@ -1,5 +1,5 @@
-#!/bin/bash
 
+#!/bin/bash
 ##############################################################################
 # Create subnets for VLANs on Controller host
 ##############################################################################
@@ -47,9 +47,19 @@ openstack subnet create \
   --allocation-pool start=10.0.0.2,end=10.0.0.253 \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
-  --gateway 10.0.0.254 \
+  --gateway 10.0.0.1 \
   --ip-version 4 \
   --network dmz \
   --no-dhcp \
   --subnet-range 10.0.0.0/24 \
   dmz
+openstack subnet create \
+  --allocation-pool start=192.168.254.2,end=192.168.254.253 \
+  --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
+  --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
+  --gateway 192.168.254.1 \
+  --ip-version 4 \
+  --network routing \
+  --no-dhcp \
+  --subnet-range 192.168.254.0/24 \
+  routing

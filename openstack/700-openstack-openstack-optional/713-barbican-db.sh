@@ -9,5 +9,5 @@ GRANT ALL PRIVILEGES ON barbican.* TO 'barbican'@'localhost' IDENTIFIED BY '${BA
 GRANT ALL PRIVILEGES ON barbican.* TO 'barbican'@'%' IDENTIFIED BY '${BARBICAN_DBPASS}';
 EOF
 sudo chmod 0600 /var/lib/openstack/barbican.sql
-sudo cat /var/lib/openstack/barbican.sql | sudo mysql --host=localhost --user=root
+sudo cat /var/lib/openstack/barbican.sql | sudo mysql --host=localhost --user=root --password="${ROOT_DBPASS}"
 mysqldump --host=${CONTROLLER_FQDN} --port=3306 --user=barbican --password=$BARBICAN_DBPASS barbican

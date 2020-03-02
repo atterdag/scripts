@@ -5,7 +5,10 @@
 ##############################################################################
 sudo crudini --set /etc/placement/placement.conf placement_database connection "mysql+pymysql://placement:${PLACEMENT_DBPASS}@${CONTROLLER_FQDN}/placement"
 sudo crudini --set /etc/placement/placement.conf api auth_strategy keystone
+sudo crudini --set /etc/placement/placement.conf keystone_authtoken www_authenticate_uri "https://${CONTROLLER_FQDN}:5000"
+# sudo crudini --set /etc/placement/placement.conf keystone_authtoken www_authenticate_uri "http://${CONTROLLER_FQDN}:5000"
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken auth_url "https://${CONTROLLER_FQDN}:5000/v3"
+# sudo crudini --set /etc/placement/placement.conf keystone_authtoken auth_url "http://${CONTROLLER_FQDN}:5000/v3"
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken memcached_servers "${CONTROLLER_FQDN}:11211"
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken auth_type "password"
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken project_domain_name "Default"
@@ -33,6 +36,20 @@ sudo chown placement:placement \
 sudo usermod -a -G ssl-cert placement
 
 sudo su -s /bin/sh -c "placement-manage db sync" placement
+
+cat <<EOF | sudo tee /etc/apache2/conf-available/00-placement-api.conf
+<Directory /usr/bin>
+   <IfVersion >= 2.4>
+      Require all granted
+   </IfVersion>
+   <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+   </IfVersion>
+</Directory>
+EOF
+
+sudo a2enconf 00-placement-api
 
 sudo systemctl restart \
   apache2

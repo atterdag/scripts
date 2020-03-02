@@ -8,5 +8,7 @@ sudo apt-get --yes --quiet install \
   crudini \
   ebtables \
   lvm2 \
-  python-pip \
   thin-provisioning-tools
+
+# sudo apt-get --yes --quiet install \
+#   python-pip \

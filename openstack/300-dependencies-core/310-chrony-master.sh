@@ -8,7 +8,7 @@ sudo apt-get --yes --quiet install \
 
 sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.org
 
-cat << EOT | sudo tee -a /etc/chrony/chrony.conf
+cat <<EOT | sudo tee -a /etc/chrony/chrony.conf
 allow ${NETWORK_CIDR}
 EOT
 

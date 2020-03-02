@@ -9,11 +9,13 @@ openstack compute service list \
 # On controller node restart all nova services
 sudo systemctl restart \
   nova-api \
-  nova-consoleauth \
   nova-scheduler \
   nova-conductor \
   nova-novncproxy \
   nova-compute
+
+# sudo systemctl restart \
+#   nova-consoleauth \
 
 sudo su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
 
@@ -21,21 +23,21 @@ openstack compute service list
 openstack catalog list
 
 # You might have to restart all OS services before this works
-sudo systemctl restart \
-  apache2 \
-  nova-compute \
-  nova-novncproxy \
-  nova-conductor \
-  nova-scheduler \
-  nova-consoleauth \
-  nova-console \
-  nova-xvpvncproxy \
-  nova-api \
-  qemu-kvm
+# sudo systemctl restart \
+#   apache2 \
+#   nova-compute \
+#   nova-novncproxy \
+#   nova-conductor \
+#   nova-scheduler \
+#   nova-consoleauth \
+#   nova-console \
+#   nova-xvpvncproxy \
+#   nova-api \
+#   qemu-kvm
 
 # You might have to wait a few minutes before the compute provider is
 # registered with the placement service.
-sudo -E nova-status upgrade check
+sudo --preserve-env nova-status upgrade check
 
 # Not registered yet:
 # +-------------------------------------------------------------------+

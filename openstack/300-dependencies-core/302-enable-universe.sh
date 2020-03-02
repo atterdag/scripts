@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ##############################################################################
-# Check Neutron on Controller host
+# Install dependencies that are not automatically installed
 ##############################################################################
-sudo --preserve-env neutron ext-list
-openstack network agent list
+sudo add-apt-repository universe

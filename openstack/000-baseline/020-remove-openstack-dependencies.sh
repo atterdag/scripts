@@ -3,7 +3,7 @@
 ##############################################################################
 # Remove OpenStack immediate dependencies
 ##############################################################################
-sudo apt-get --yes --quiet --purge remove \
+sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --quiet --purge remove \
   libapache2-mod-wsgi* \
   libvirt0 \
   memcached \
@@ -16,7 +16,9 @@ sudo apt-get --yes --quiet --purge remove \
   sphinx-common \
   tgt \
   ubuntu-cloud-keyring
+
 sudo apt-get --yes --quiet --purge autoremove
+
 sudo rm -fr \
   /etc/libvirt/ \
   /etc/mysql/ \

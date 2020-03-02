@@ -4,4 +4,5 @@
 # Install Etcd on Controller host
 ##############################################################################
 sudo apt-get --yes --quiet install \
-  etcd-client
+  etcd-client \
+  html2text

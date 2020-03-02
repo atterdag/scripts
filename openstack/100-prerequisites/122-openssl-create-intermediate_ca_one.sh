@@ -195,7 +195,7 @@ sudo openssl genrsa \
   4096
 
 # Generate new intermediate CA request
-sudo -E openssl req \
+sudo --preserve-env openssl req \
   -batch \
   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
   -key ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}.key \
@@ -284,3 +284,13 @@ openssl x509 \
 openssl x509 \
   -in ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_ROOT_CA_STRICT_NAME}.crt \
 | sudo tee -a ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt
+
+# Create DH parameter files
+sudo openssl dhparam \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/dhparams-weak.pem \
+  -outform PEM \
+ 1024
+sudo openssl dhparam \
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/dhparams-strong.pem \
+  -outform PEM \
+ 2048

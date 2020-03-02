@@ -9,7 +9,7 @@ sudo wget \
   --output-document=/var/lib/openstack/CentOS-7-x86_64-GenericCloud.qcow2 \
   https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
 
-sudo -E openstack image create \
+sudo --preserve-env openstack image create \
   --container-format bare \
   --disk-format qcow2 \
   --file /var/lib/openstack/CentOS-7-x86_64-GenericCloud.qcow2 \

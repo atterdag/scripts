@@ -3,5 +3,7 @@
 ##############################################################################
 # Install Neutron on Compute host
 ##############################################################################
-sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --quiet install \
-  neutron-linuxbridge-agent
+if [[ $CONTROLLER_FQDN != $COMPUTE_FQDN ]]; then
+  sudo DEBIAN_FRONTEND=noninteractive apt-get --yes --quiet install \
+    neutron-linuxbridge-agent
+fi

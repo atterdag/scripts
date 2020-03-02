@@ -19,7 +19,7 @@ s|^#ServerSignature Off|ServerSignature Off|
 EOF
 
 echo "ServerName ${CONTROLLER_FQDN}" \
-| sudo tee /etc/apache2/conf-available/servername.conf
+  | sudo tee /etc/apache2/conf-available/servername.conf
 
 cat  <<EOF | sudo sed --file - --in-place /etc/apache2/sites-available/default-ssl.conf
 s|SSLCertificateFile\s*/etc/ssl/certs/ssl-cert-snakeoil.pem|SSLCertificateFile /etc/ssl/certs/${CONTROLLER_FQDN}.crt|g

@@ -51,9 +51,18 @@ openstack network create \
 openstack network create \
   --enable \
   --enable-port-security \
+  --internal \
+  --provider-network-type vlan \
+  --provider-physical-network ${COMPUTE_PROVIDER_NIC} \
+  --provider-segment 1000 \
+  --share \
+  routing
+openstack network create \
+  --enable \
+  --enable-port-security \
   --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_NIC} \
-  --provider-segment 7 \
+  --provider-segment 4000 \
   --share \
   outside
