@@ -26,7 +26,9 @@ sudo apt-get --yes --quiet --purge remove \
   make \
   python \
   thin-provisioning-tools
+
 sudo apt-get --yes --quiet --purge autoremove
+
 sudo rm -fr \
   /etc/apache2/ \
   /etc/bind/ \
@@ -39,3 +41,6 @@ sudo rm -fr \
   /var/log/apache2/ \
   /var/log/chrony/ \
   /var/log/bind/
+
+sudo systemctl enable apparmor
+sudo systemctl start apparmor
