@@ -3,6 +3,8 @@
 ##############################################################################
 # Remove OpenStack core packages
 ##############################################################################
+sudo rm -f /var/lib/dpkg/info/glance-common.postrm
+
 sudo apt-get --yes --quiet --purge remove \
   barbican-* \
   cinder* \
@@ -19,7 +21,9 @@ sudo apt-get --yes --quiet --purge remove \
   qemu-system-common \
   qemu-system-x86 \
   qemu-utils
+
 sudo apt-get --yes --quiet --purge autoremove
+
 sudo rm -fr \
   /etc/barbican/ \
   /etc/cinder/ \
@@ -54,3 +58,6 @@ for user in barbican cinder designate glance keystone neutron nova placement; do
     sudo userdel -r $user
   fi
 done
+
+sudo add-apt-repository --remove --yes --update cloud-archive:train
+sudo rm -f /etc/apt/sources.list.d/cloudarchive-train.list.*
