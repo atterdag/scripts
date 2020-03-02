@@ -10,7 +10,7 @@ else
 fi
 $ssh_cmd sudo crudini --set /etc/designate/designate.conf DEFAULT verbose "True"
 $ssh_cmd sudo crudini --set /etc/designate/designate.conf DEFAULT debug "False"
-$ssh_cmd sudo crudini --set /etc/designate/designate.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}"
+$ssh_cmd sudo crudini --set /etc/designate/designate.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5671/?ssl=1"
 $ssh_cmd sudo crudini --set /etc/designate/designate.conf keystone_authtoken www_authenticate_uri "https://${CONTROLLER_FQDN}:5000"
 $ssh_cmd sudo crudini --set /etc/designate/designate.conf keystone_authtoken auth_url "https://${CONTROLLER_FQDN}:5000"
 $ssh_cmd sudo crudini --set /etc/designate/designate.conf keystone_authtoken certfile "/etc/ssl/certs/${CONTROLLER_FQDN}.crt"

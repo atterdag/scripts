@@ -5,7 +5,7 @@
 ##############################################################################
 sudo crudini --set /etc/nova/nova.conf api_database connection "mysql+pymysql://nova:${NOVA_DBPASS}@${CONTROLLER_FQDN}/nova_api"
 sudo crudini --set /etc/nova/nova.conf database connection "mysql+pymysql://nova:${NOVA_DBPASS}@${CONTROLLER_FQDN}/nova"
-sudo crudini --set /etc/nova/nova.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5672"
+sudo crudini --set /etc/nova/nova.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5671/?ssl=1"
 sudo crudini --set /etc/nova/nova.conf api auth_strategy "keystone"
 sudo crudini --set /etc/nova/nova.conf keystone_authtoken www_authenticate_uri "https://${CONTROLLER_FQDN}:5000"
 sudo crudini --set /etc/nova/nova.conf keystone_authtoken auth_url "https://${CONTROLLER_FQDN}:5000"

@@ -7,7 +7,7 @@ sudo crudini --set /etc/neutron/neutron.conf database connection "mysql+pymysql:
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT core_plugin "ml2"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT service_plugins "router"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT allow_overlapping_ips "true"
-sudo crudini --set /etc/neutron/neutron.conf DEFAULT transport_url "rabbit://openstack/:${RABBIT_PASS}@${CONTROLLER_FQDN}:5672"
+sudo crudini --set /etc/neutron/neutron.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5671/?ssl=1"
 sudo crudini --set /etc/neutron/neutron.conf DEFAULT auth_strategy "keystone"
 sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken www_authenticate_uri "https://${CONTROLLER_FQDN}:5000"
 sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_url "https://${CONTROLLER_FQDN}:5000"

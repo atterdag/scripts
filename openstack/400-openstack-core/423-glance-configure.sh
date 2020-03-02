@@ -22,6 +22,7 @@ sudo crudini --set /etc/glance/glance-api.conf glance_store filesystem_store_dat
 sudo crudini --set /etc/glance/glance-api.conf DEFAULT debug "false"
 sudo crudini --set /etc/glance/glance-api.conf DEFAULT syslog_log_facility "LOG_LOCAL0"
 sudo crudini --set /etc/glance/glance-api.conf DEFAULT use_syslog "true"
+sudo crudini --set /etc/glance/glance-api.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5671/?ssl=1"
 sudo crudini --set /etc/glance/glance-api.conf image_format disk_formats "ami,ari,aki,vhd,vhdx,vmdk,raw,qcow2,vdi,iso,ploop.root-tar"
 sudo crudini --set /etc/glance/glance-api.conf keystone_authtoken cafile "/etc/ssl/certs/ca-certificates.crt"
 sudo crudini --set /etc/glance/glance-api.conf keystone_authtoken certfile "/etc/ssl/certs/${CONTROLLER_FQDN}.crt"

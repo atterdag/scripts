@@ -26,6 +26,7 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/NOVA_DBPASS $(genpassw
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/NOVA_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/PLACEMENT_DBPASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/PLACEMENT_PASS $(genpasswd 16)
+etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/RABBIT_ADMIN_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/RABBIT_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/ROOT_DBPASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/CA_PASSWORD $(genpasswd 32)

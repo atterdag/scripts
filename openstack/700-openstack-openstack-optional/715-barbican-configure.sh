@@ -4,7 +4,7 @@
 # Install Barbican on Controller host
 ##############################################################################
 sudo crudini --set /etc/barbican/barbican.conf DEFAULT sql_connection "mysql+pymysql://barbican:${BARBICAN_DBPASS}@${CONTROLLER_FQDN}/barbican"
-sudo crudini --set /etc/barbican/barbican.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}"
+sudo crudini --set /etc/barbican/barbican.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5671/?ssl=1"
 sudo crudini --set /etc/barbican/barbican.conf certificate namespace "barbican.certificate.plugin"
 sudo crudini --set /etc/barbican/barbican.conf certificate enabled_certificate_plugins "dogtag"
 sudo crudini --set /etc/barbican/barbican.conf dogtag_plugin pem_path "/etc/barbican/kra-agent.pem"

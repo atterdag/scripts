@@ -13,6 +13,7 @@ sudo crudini --set /etc/keystone/keystone.conf DEFAULT log_dir "/var/log/keyston
 sudo crudini --set /etc/keystone/keystone.conf DEFAULT log_file "keystone.log"
 sudo crudini --set /etc/keystone/keystone.conf DEFAULT syslog_log_facility "LOG_LOCAL0"
 sudo crudini --set /etc/keystone/keystone.conf DEFAULT use_syslog "true"
+sudo crudini --set /etc/keystone/keystone.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5671/?ssl=1" 
 sudo crudini --set /etc/keystone/keystone.conf extra_headers Distribution "Ubuntu"
 sudo crudini --set /etc/keystone/keystone.conf identity driver "sql"
 

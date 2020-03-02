@@ -5,7 +5,7 @@
 ##############################################################################
 # Overwrite existing /etc/cinder/cinder.conf if controller host is also compute host
 sudo crudini --set /etc/cinder/cinder.conf database connection "mysql+pymysql://cinder:${CINDER_DBPASS}@${CONTROLLER_FQDN}/cinder"
-sudo crudini --set /etc/cinder/cinder.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5672"
+sudo crudini --set /etc/cinder/cinder.conf DEFAULT transport_url "rabbit://openstack:${RABBIT_PASS}@${CONTROLLER_FQDN}:5671/?ssl=1"
 sudo crudini --set /etc/cinder/cinder.conf DEFAULT auth_strategy "keystone"
 sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken www_authenticate_uri "https://${CONTROLLER_FQDN}:5000"
 sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken auth_url "https://${CONTROLLER_FQDN}:5000"
