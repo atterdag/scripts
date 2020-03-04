@@ -2,44 +2,53 @@
 
 ## Create roles ansible roles for:
 
-- ~~[Kubernetes]~~
-- Kubernetes dashboard
-- [confd]
-- [gogs]
+-   ~~[Kubernetes][]~~
+-   Kubernetes dashboard
+-   [etcd][]
+-   [confd][] that use etcd
+-   [gogs][]
 
 ## Incoperate into ansible roles:
 
-- [Hashicorp Vault]
-- [testssl.sh]
-- [Suricata]
-- [Sysdig]
-- [Sysdig Falco]
-- [Sysdig Inspect]
+-   ~~[Hashicorp Vault][]~~ Hashicorp Vault is shit.
+-   [testssl.sh][]
+-   [Suricata][]
+-   [Sysdig][]
+-   [Sysdig Falco][]
+-   [Sysdig Inspect][]
 
 ## Learn more about:
 
-- ~~[OpenStack]~~
-- [OpenVSwitch]
-- [ELK]
-- [Influxdb]
-- [Grafana]
-- [Graphite]
-- [Cillium]
-- [Fluentd]
-- [Prometheus]
-- [Terraform]
-- [BOSH]
-- [Nexus Repository OSS]
-- [Istio]
-- [Harbor]
+-   ~~[OpenStack][]~~
+-   [OpenVSwitch][]
+-   [ELK][]
+-   [Influxdb][]
+-   [Grafana][]
+-   [Graphite][]
+-   [Cillium][]
+-   [Fluentd][]
+-   [Prometheus][]
+-   [Terraform][]
+-   [BOSH][]
+-   [Nexus Repository OSS][]
+-   [Istio][]
+-   [Harbor][]
+-   Kubernetes based pipeline solutions
+-   Kubernetes based artifact repositories
+-   [Helm][]
+-   [Tekton][]
+-   [OKD][]
+-   [Knative][]
+-   [Kubeflow][]
+-   [KubeMQ][]
 
 ## Evaluate if ...
 
-- it's worth using [Molecule]
-- ~~it's worth using [Vagrant]~~ - No its obsolete after the introduction of Docker and OpenStack
-- sysdig is compatible with selinux
-- ~~apparmor or selinux works best with containers~~ - Security Enhanced Linux is preferred
-- ~~to use OWASP ZAP or Metasploit~~ Neither! Use [Cillium]
+-   it's worth using [Molecule][]
+-   ~~it's worth using [Vagrant][]~~ - No its obsolete after the introduction of Docker and OpenStack
+-   sysdig is compatible with selinux
+-   ~~apparmor or selinux works best with containers~~ - Security Enhanced Linux is preferred
+-   ~~to use OWASP ZAP or Metasploit~~ Neither! Use [Cillium][]
 
 [bosh]: https://bosh.io/
 [cillium]: https://github.com/cilium/cilium
@@ -67,3 +76,9 @@
 [terraform]: https://www.terraform.io/
 [testssl.sh]: https://testssl.sh/
 [vagrant]: https://www.vagrantup.com/downloads.html
+[tekton]: https://tekton.dev/
+[etcd]: https://etcd.io/
+[okd]: https://www.okd.io/
+[knative]: https://knative.dev/
+[kubeflow]: https://www.kubeflow.org/
+[kubemq]: https://kubemq.io/
