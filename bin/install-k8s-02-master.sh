@@ -85,6 +85,8 @@ subjects:
 EOF
 kubectl create -f dashboard-admin.yaml
 
+kubectl create clusterrolebinding kubernetes-dashboard -n kube-system --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+
 echo '***'
 echo '*** get the dashboard token'
 echo '***'
