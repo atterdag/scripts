@@ -26,6 +26,7 @@ sudo apt-get --yes --quiet --fix-missing install \
 
 curl https://raw.githubusercontent.com/rabbitmq/rabbitmq-management/master/bin/rabbitmqadmin \
   | sudo tee /usr/local/sbin/rabbitmqadmin
+
 sudo chown root:root /usr/local/sbin/rabbitmqadmin
 sudo chmod 0755 /usr/local/sbin/rabbitmqadmin
 
@@ -151,7 +152,9 @@ sudo usermod -a -G ssl-cert rabbitmq
 ##############################################################################
 # Restart rabbitmq server on Controller host
 ##############################################################################
-sudo systemctl restart rabbitmq-server
+sudo systemctl restart \
+  rabbitmq-server
+
 
 ##############################################################################
 # Add RabbitMQ management plugin on Controller host
