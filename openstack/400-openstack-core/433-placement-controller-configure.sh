@@ -6,9 +6,7 @@
 sudo crudini --set /etc/placement/placement.conf placement_database connection "mysql+pymysql://placement:${PLACEMENT_DBPASS}@${CONTROLLER_FQDN}/placement"
 sudo crudini --set /etc/placement/placement.conf api auth_strategy keystone
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken www_authenticate_uri "https://${CONTROLLER_FQDN}:5000"
-# sudo crudini --set /etc/placement/placement.conf keystone_authtoken www_authenticate_uri "http://${CONTROLLER_FQDN}:5000"
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken auth_url "https://${CONTROLLER_FQDN}:5000/v3"
-# sudo crudini --set /etc/placement/placement.conf keystone_authtoken auth_url "http://${CONTROLLER_FQDN}:5000/v3"
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken memcached_servers "${CONTROLLER_FQDN}:11211"
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken auth_type "password"
 sudo crudini --set /etc/placement/placement.conf keystone_authtoken project_domain_name "Default"
