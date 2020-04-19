@@ -49,4 +49,4 @@ export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 $ssh_cmd sudo cat /etc/bind/designate.key \
 | base64 \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/designate.key
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/designate.key

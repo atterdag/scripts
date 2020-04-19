@@ -50,7 +50,7 @@ sudo setup-ds-admin \
 
 export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS
-etcdctl --username user:$ETCD_USER_PASS get keystores/${IDM_ONE_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/${IDM_ONE_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${IDM_ONE_FQDN}.p12

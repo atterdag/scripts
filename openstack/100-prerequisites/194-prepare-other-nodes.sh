@@ -41,7 +41,7 @@ for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|
 done
 
 # Get ALM keystore
-etcdctl --username user:$ETCD_USER_PASS get keystores/${ALM_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/${ALM_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${ALM_FQDN}.p12
@@ -71,7 +71,7 @@ sudo chmod 640 /etc/ssl/private/${ALM_FQDN}.key
 rm -f ${ALM_FQDN}.p12
 
 # Get registry keystore
-etcdctl --username user:$ETCD_USER_PASS get keystores/${REGISTRY_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/${REGISTRY_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${REGISTRY_FQDN}.p12
@@ -101,7 +101,7 @@ sudo chmod 640 /etc/ssl/private/${REGISTRY_FQDN}.key
 rm -f ${REGISTRY_FQDN}.p12
 
 # Get coreswitch keystore
-etcdctl --username user:$ETCD_USER_PASS get keystores/${CORESWITCH_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/${CORESWITCH_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${CORESWITCH_FQDN}.p12

@@ -44,7 +44,7 @@ for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|
 done
 
 # Get compute keystore
-etcdctl --username user:$ETCD_USER_PASS get keystores/${COMPUTE_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/${COMPUTE_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${COMPUTE_FQDN}.p12

@@ -3,21 +3,14 @@
 ##############################################################################
 # Create controller key pair on Controller host
 ##############################################################################
-# Generate controller node key, and certifiate
-# sudo openssl ca \
-#   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
-#   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${REGISTRY_FQDN}.crt \
-#   -passin "pass:${CA_PASSWORD}"
-
 export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 
-etcdctl mk variables/REGISTRY_HOST_NAME 'registry'
-etcdctl mk variables/REGISTRY_FQDN "$(etcdctl get variables/REGISTRY_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl mk variables/REGISTRY_IP_ADDRESS '192.168.0.50'
-
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/REGISTRY_KEYSTORE_PASS $(genpasswd 16)
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/REGISTRY_HOST_NAME 'registry'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/REGISTRY_FQDN "$(etcdctl get variables/REGISTRY_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/REGISTRY_IP_ADDRESS '192.168.0.50'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/REGISTRY_KEYSTORE_PASS $(genpasswd 16)
 
 # Set environment variables
 for key in $(etcdctl ls /variables/ | sed 's|^/variables/||'); do
@@ -31,6 +24,14 @@ ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
 for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|^/passwords/||'); do
 	export eval $secret="$(etcdctl --username user:$ETCD_USER_PASS get /passwords/$secret)"
 done
+
+# Revoke certificate if existing
+if [[ -f ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${REGISTRY_FQDN}.crt ]]; then
+	sudo openssl ca \
+	  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+	  -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${REGISTRY_FQDN}.crt \
+	  -passin "pass:${CA_PASSWORD}"
+fi
 
 sudo su -c "openssl req \
   -batch \
@@ -74,4 +75,4 @@ sudo openssl pkcs12 \
 # Upload PKCS#12 keystore to etcd
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${REGISTRY_FQDN}.p12 \
 | base64 \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/${REGISTRY_FQDN}.p12
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${REGISTRY_FQDN}.p12

@@ -10,7 +10,7 @@ export ETCDCTL_ENDPOINTS="http://localhost:2379"
 ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
 
 # Retrieve MANAGEMENT keystore from etcd
-etcdctl --username user:$ETCD_USER_PASS get keystores/${MANAGEMENT_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/${MANAGEMENT_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${MANAGEMENT_FQDN}.p12
@@ -47,8 +47,8 @@ s|^.*ETCD_LISTEN_CLIENT_URLS=.*|ETCD_LISTEN_CLIENT_URLS=\"https://${MANAGEMENT_I
 s|^.*ETCD_INITIAL_ADVERTISE_PEER_URLS=.*|ETCD_INITIAL_ADVERTISE_PEER_URLS=\"https://${MANAGEMENT_FQDN}:2380\"|
 s|^.*ETCD_INITIAL_CLUSTER=.*|ETCD_INITIAL_CLUSTER=\"default=https://${MANAGEMENT_FQDN}:2380\"|
 s|^.*ETCD_ADVERTISE_CLIENT_URLS=.*|ETCD_ADVERTISE_CLIENT_URLS=\"https://${MANAGEMENT_FQDN}:2379\"|
-s|^.*ETCD_CERT_FILE=.*|ETCD_CERT_FILE=\"/etc/ssl/certs/${MANAGEMENT_FQDN}.crt\"|
-s|^.*ETCD_KEY_FILE=.*|ETCD_KEY_FILE=\"/etc/ssl/private/${MANAGEMENT_FQDN}.key\"|
+s|^.*ETCD_CERT_FILE.*|ETCD_CERT_FILE=\"/etc/ssl/certs/${MANAGEMENT_FQDN}.crt\"|
+s|^.*ETCD_KEY_FILE.*|ETCD_KEY_FILE=\"/etc/ssl/private/${MANAGEMENT_FQDN}.key\"|
 s|^.*ETCD_PEER_CERT_FILE.*|ETCD_PEER_CERT_FILE=\"/etc/ssl/certs/${MANAGEMENT_FQDN}.crt\"|
 s|^.*ETCD_PEER_KEY_FILE.*|ETCD_PEER_KEY_FILE=\"/etc/ssl/private/${MANAGEMENT_FQDN}.key\"|
 EOF

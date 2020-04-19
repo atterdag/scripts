@@ -13,10 +13,8 @@ sudo openssl ca \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/ca.crl \
   -passin pass:${CA_PASSWORD}
 
-echo "Take note of the CA_PASSWORD: ${CA_PASSWORD}"
-
-# Test OCSP
-sudo openssl ocsp \
+echo "Take note of the CA_PASSWORD - ${CA_PASSWORD} - and run the following in another terminal"
+echo "sudo openssl ocsp \
   -index ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/index.txt \
   -port 2560 \
   -rsigner ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt \
@@ -24,12 +22,12 @@ sudo openssl ocsp \
   -CA ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt \
   -text \
   -nrequest 1 \
-  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.log
+  -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.log"
 
-# Test in another terminal
+echo "Test OCSP"
 sudo openssl ocsp \
   -CAfile ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt \
   -url http://127.0.0.1:2560 \
   -resp_text \
   -issuer ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt \
-  -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt
+  -cert ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_INTERMEDIATE_OCSP_ONE_FQDN}.crt

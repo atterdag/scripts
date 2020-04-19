@@ -3,11 +3,14 @@
 ##############################################################################
 # Create controller key pair on Controller host
 ##############################################################################
-# Generate controller node key, and certifiate
-# sudo openssl ca \
-#   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
-#   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${MANAGEMENT_FQDN}.crt \
-#   -passin "pass:${CA_PASSWORD}"
+
+# Revoke certificate if existing
+if [[ -f ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${MANAGEMENT_FQDN}.crt ]]; then
+  sudo openssl ca \
+    -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+    -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${MANAGEMENT_FQDN}.crt \
+    -passin "pass:${CA_PASSWORD}"
+fi
 
 sudo su -c "openssl req \
   -batch \
@@ -46,11 +49,11 @@ sudo openssl pkcs12 \
   -inkey ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${MANAGEMENT_FQDN}.key \
   -name ${MANAGEMENT_FQDN} \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${MANAGEMENT_FQDN}.p12 \
-  -passout "pass:${CONTROLLER_KEYSTORE_PASS}"
+  -passout "pass:${MANAGEMENT_KEYSTORE_PASS}"
 
 # Upload PKCS#12 keystore to etcd
 export ETCDCTL_ENDPOINTS="http://localhost:2379"
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${MANAGEMENT_FQDN}.p12 \
 | base64 \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/${MANAGEMENT_FQDN}.p12
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${MANAGEMENT_FQDN}.p12

@@ -3,16 +3,19 @@
 ##############################################################################
 # Create controller key pair on Controller host
 ##############################################################################
-# Generate controller node key, and certifiate
-# sudo openssl ca \
-#   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
-#   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
-#   -passin "pass:${CA_PASSWORD}"
+
+# Revoke certificate if existing
+if [[ -f ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt ]]; then
+  sudo openssl ca \
+    -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+    -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.crt \
+    -passin "pass:${CA_PASSWORD}"
+fi
 
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
-    printf \"[SAN]\nsubjectAltName=DNS:${CONTROLLER_FQDN}\") \
+    printf \"[SAN]\nsubjectAltName=DNS:${CONTROLLER_FQDN},IP:${CONTROLLER_IP_ADDRESS}\") \
   -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${CONTROLLER_FQDN}.key \
   -new \
   -newkey rsa:2048 \
@@ -53,4 +56,4 @@ export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.p12 \
 | base64 \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/${CONTROLLER_FQDN}.p12
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${CONTROLLER_FQDN}.p12

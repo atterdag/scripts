@@ -156,12 +156,15 @@ sudo systemctl restart \
   rabbitmq-server
 
 # Check that rabbitmq is using the correct certificate
-echo Q | openssl s_client -connect ${CONTROLLER_FQDN}:15671 | openssl x509 -text
+echo Q | openssl s_client -connect ${CONTROLLER_FQDN}:amqps | openssl x509 -text
 
 ##############################################################################
 # Add RabbitMQ management plugin on Controller host
 ##############################################################################
 sudo rabbitmq-plugins enable rabbitmq_management
+
+# Check that rabbitmq is using the correct certificate
+echo Q | openssl s_client -connect ${CONTROLLER_FQDN}:15671 | openssl x509 -text
 
 ##############################################################################
 # Add RabbitMQ management admin user on Controller host

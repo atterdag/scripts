@@ -3,16 +3,18 @@
 sudo systemctl start \
   chrony \
   bind9 \
-  mysql \
-  rabbitmq-server \
-  memcached \
-  etcd \
   dirsrv-admin \
   dirsrv@default.service \
   pki-tomcatd \
   apache2 \
   ipvsadm \
   haproxy
+
+sudo systemctl start \
+  mysql \
+  rabbitmq-server \
+  memcached \
+  etcd
 
 sudo systemctl start \
   glance-registry \

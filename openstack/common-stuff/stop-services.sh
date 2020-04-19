@@ -37,15 +37,17 @@ sudo systemctl stop \
   glance-registry
 
 sudo systemctl stop \
-  haproxy \
-  ipvsadm \
-  apache2 \
-  pki-tomcatd \
+  mysql \
+  rabbitmq-server \
+  memcached \
+  etcd
+
+sudo systemctl stop \
+  chrony \
+  bind9 \
   dirsrv-admin \
   dirsrv@default.service \
-  etcd \
-  memcached \
-  rabbitmq-server \
-  mysql \
-  bind9 \
-  chrony
+  pki-tomcatd \
+  apache2 \
+  ipvsadm \
+  haproxy

@@ -289,8 +289,21 @@ openssl x509 \
 sudo openssl dhparam \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/dhparams-weak.pem \
   -outform PEM \
- 1024
+  1024
 sudo openssl dhparam \
   -out ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/dhparams-strong.pem \
   -outform PEM \
- 2048
+  2048
+
+# Set URI to etcd server
+export ETCDCTL_ENDPOINTS="http://localhost:2379"
+
+# Get the admin password
+ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
+
+sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt \
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /ca/${SSL_ORGANIZATION_NAME}_CA_Chain.crt
+sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/dhparams-weak.pem \
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /ca/dhparams-weak.pem
+sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/dhparams-strong.pem \
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /ca/dhparams-strong.pem

@@ -3,28 +3,22 @@
 ##############################################################################
 # Create controller key pair on Controller host
 ##############################################################################
-# Generate controller node key, and certifiate
-# sudo openssl ca \
-#   -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
-#   -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ALM_FQDN}.crt \
-#   -passin "pass:${CA_PASSWORD}"
 export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
 
 ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/ALM_HOST_NAME 'alm'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/ALM_IP_ADDRESS '192.168.0.42'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/ALM_FQDN "$(etcdctl get variables/ALM_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/AWX_HOST_NAME 'awx'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/AWX_FQDN "$(etcdctl get variables/AWX_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/GOGS_HOST_NAME 'gogs'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/GOGS_FQDN "$(etcdctl get variables/GOGS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/JENKINS_HOST_NAME 'jenkins'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/JENKINS_FQDN "$(etcdctl get variables/JENKINS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/JOXIT_HOST_NAME 'joxit'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk variables/JOXIT_FQDN "$(etcdctl get variables/JOXIT_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
-
-etcdctl --username admin:"$ETCD_ADMIN_PASS" mk /passwords/ALM_KEYSTORE_PASS $(genpasswd 16)
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ALM_HOST_NAME 'alm'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ALM_IP_ADDRESS '192.168.0.42'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ALM_FQDN "$(etcdctl get variables/ALM_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/AWX_HOST_NAME 'awx'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/AWX_FQDN "$(etcdctl get variables/AWX_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/GOGS_HOST_NAME 'gogs'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/GOGS_FQDN "$(etcdctl get variables/GOGS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JENKINS_HOST_NAME 'jenkins'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JENKINS_FQDN "$(etcdctl get variables/JENKINS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JOXIT_HOST_NAME 'joxit'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JOXIT_FQDN "$(etcdctl get variables/JOXIT_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/ALM_KEYSTORE_PASS $(genpasswd 16)
 
 # Set environment variables
 for key in $(etcdctl ls /variables/ | sed 's|^/variables/||'); do
@@ -39,10 +33,18 @@ for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|
 	export eval $secret="$(etcdctl --username user:$ETCD_USER_PASS get /passwords/$secret)"
 done
 
+# Revoke certificate if existing
+if [[ -f ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ALM_FQDN}.crt ]]; then
+	sudo openssl ca \
+	  -config ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf \
+	  -revoke ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ALM_FQDN}.crt \
+	  -passin "pass:${CA_PASSWORD}"
+fi
+
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
-    printf \"[SAN]\nsubjectAltName=DNS:${ALM_FQDN},DNS:${AWX_FQDN},DNS:${GOGS_FQDN},DNS:${JENKINS_FQDN},DNS:${JOXIT_FQDN},DNS:${REGISTRY_FQDN}\") \
+    printf \"[SAN]\nsubjectAltName=DNS:${ALM_FQDN},DNS:${AWX_FQDN},DNS:${GOGS_FQDN},DNS:${JENKINS_FQDN},DNS:${JOXIT_FQDN}\") \
   -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${ALM_FQDN}.key \
   -new \
   -newkey rsa:2048 \
@@ -81,4 +83,4 @@ sudo openssl pkcs12 \
 # Upload PKCS#12 keystore to etcd
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ALM_FQDN}.p12 \
 | base64 \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/${ALM_FQDN}.p12
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${ALM_FQDN}.p12

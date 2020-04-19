@@ -5,7 +5,7 @@
 ##############################################################################
 
 # Generate a root password
-export ETCD_ROOT_PASS=$(genpasswd 32)
+ export ETCD_ROOT_PASS="<store this somewhere safe>"
 
 # Add root user
 etcdctl user add root:"$ETCD_ROOT_PASS"
@@ -19,14 +19,12 @@ etcdctl auth enable
 # Remove the guest roles access
 etcdctl --username root:"$ETCD_ROOT_PASS" role revoke --path "/*" --readwrite guest
 
-# Store etch root password
-sudo touch /var/lib/openstack/ETCD_ROOT_PASS
-sudo chmod 0600 /var/lib/openstack/ETCD_ROOT_PASS
-echo $ETCD_ROOT_PASS | sudo tee /var/lib/openstack/ETCD_ROOT_PASS
-
 ##############################################################################
 # Create areas to store configuration in etcd on Controller host
 ##############################################################################
+
+# Create variables to store public CA files
+etcdctl --username root:"$ETCD_ROOT_PASS" mkdir /ca
 
 # Create ephemeral path for temp data
 etcdctl --username root:"$ETCD_ROOT_PASS" mkdir /ephemeral
@@ -47,15 +45,22 @@ etcdctl --username root:"$ETCD_ROOT_PASS" mkdir /variables
 etcdctl --username root:"$ETCD_ROOT_PASS" role add admin
 etcdctl --username root:"$ETCD_ROOT_PASS" role add user
 
-# Create policy that allows users to read secrets
+# Create policies for admin role
+etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /ca/* --readwrite admin
 etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /ephemeral/* --readwrite admin
-etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /ephemeral/* --readwrite user
 etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /keystores/* --readwrite admin
-etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /keystores/* --read user
 etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /passwords/* --readwrite admin
-etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /passwords/* --read user
 etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /variables/* --readwrite admin
+
+# Create policies for user role
+etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /ca/* --read user
+etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /ephemeral/* --readwrite user
+etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /keystores/* --read user
 etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /passwords/* --read user
+etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /variables/* --read user
+
+# Create policies for guest role
+etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /ca/* --read guest
 etcdctl --username root:"$ETCD_ROOT_PASS" role grant --path /variables/* --read guest
 
 # Generate secrets for the local users

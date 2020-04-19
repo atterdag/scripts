@@ -7,6 +7,7 @@ sudo apt-get --yes --quiet install \
   arptables \
   crudini \
   ebtables \
+  ssl-cert \
   lvm2 \
   thin-provisioning-tools
 

@@ -54,6 +54,6 @@ if [[ $CONTROLLER_FQDN != $IDM_ONE_FQDN ]]; then
   ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
   sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${IDM_ONE_FQDN}.p12 \
   | base64 \
-  | etcdctl --username admin:"$ETCD_ADMIN_PASS" mk keystores/${IDM_ONE_FQDN}.p12
+  | etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${IDM_ONE_FQDN}.p12
 
 fi

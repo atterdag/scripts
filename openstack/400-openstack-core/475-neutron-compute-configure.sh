@@ -17,7 +17,7 @@ if [[ $CONTROLLER_FQDN != $COMPUTE_FQDN ]]; then
   sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken username "neutron"
   sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken password "$NEUTRON_PASS"
   sudo crudini --set /etc/neutron/neutron.conf oslo_concurrency lock_path "/var/lib/neutron/tmp"
-  sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge physical_interface_mappings "provider:${COMPUTE_PROVIDER_NIC}"
+  sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge physical_interface_mappings "${COMPUTE_PROVIDER_VIRTUAL_NIC}:${COMPUTE_PROVIDER_PHYSICAL_NIC}"
   sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan enable_vxlan "true"
   sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan local_ip "${COMPUTE_IP_ADDRESS}"
   sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan l2_population "true"
@@ -40,7 +40,7 @@ if [[ $CONTROLLER_FQDN != $COMPUTE_FQDN ]]; then
   sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken certfile "/etc/ssl/certs/${COMPUTE_FQDN}.crt"
   sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken keyfile "/etc/ssl/private/${COMPUTE_FQDN}.key"
   sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken region_name "RegionOne"
-  sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge bridge_mappings "provider:${COMPUTE_PROVIDER_NIC}"
+  sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge bridge_mappings "${COMPUTE_PROVIDER_VIRTUAL_NIC}:${COMPUTE_PROVIDER_PHYSICAL_NIC}"
   # sudo crudini --set /etc/nova/nova.conf neutron METADATA_SECRET "${METADATA_SECRET}"
   # sudo crudini --set /etc/nova/nova.conf neutron service_metadata_proxy "true"
 
