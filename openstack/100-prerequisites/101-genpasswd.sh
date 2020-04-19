@@ -10,3 +10,4 @@ genpasswd() {
       	tr -dc A-Za-z0-9_ < /dev/urandom | head -c \${l} | xargs
 }
 EOF
+source /etc/profile.d/genpasswd.sh
