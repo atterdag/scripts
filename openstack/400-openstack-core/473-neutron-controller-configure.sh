@@ -73,7 +73,7 @@ sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken keyfile "/etc/ss
 sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken region_name "RegionOne"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 external_network_type "vlan"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 tenant_network_types "vlan,vxlan"
-sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${CONTROLLER_PROVIDER_PHYSICAL_NIC}:1:4094"
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${CONTROLLER_PROVIDER_VIRTUAL_NIC}:1:4094"
 
 sudo chmod 0660 \
   /etc/neutron/neutron.conf \
