@@ -1,4 +1,4 @@
-cat << EOF | sudo tee /var/lib/openstack/dogtag-ca.cfg
+cat << EOF | sudo tee ${OPENSTACK_CONFIGURATION_DIRECTORY}/dogtag-ca.cfg
 [DEFAULT]
 pki_admin_password = ${PKI_ADMIN_PASSWORD}
 pki_backup_password = ${PKI_BACKUP_PASSWORD}
@@ -50,9 +50,9 @@ pki_ds_database = ca
 pki_ocsp_signing_nickname = ${SSL_INTERMEDIATE_OCSP_TWO_FQDN}
 pki_security_domain_user = caadmin
 EOF
-sudo pkispawn -s CA -f /var/lib/openstack/dogtag-ca.cfg -vv
+sudo pkispawn -s CA -f ${OPENSTACK_CONFIGURATION_DIRECTORY}/dogtag-ca.cfg -vv
 
-cat << EOF | sudo tee /var/lib/openstack/dogtag-kra.cfg
+cat << EOF | sudo tee ${OPENSTACK_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg
 
 [KRA]
 pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
@@ -82,5 +82,5 @@ pki_security_domain_hostname = ${CONTROLLER_FQDN}
 #pki_security_domain_https_port=8373
 EOF
 
-sudo pkispawn -s KRA -f /var/lib/openstack/dogtag-kra.cfg
+sudo pkispawn -s KRA -f ${OPENSTACK_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg
 https://jack.se.lemche.net:8443/ca

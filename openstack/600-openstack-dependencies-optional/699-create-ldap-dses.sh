@@ -6,7 +6,7 @@
 sudo apt-get --yes --quiet install \
   ldap-utils
 
-cat << EOF | sudo tee /var/lib/openstack/389-ds-create-os-dses.ldif
+cat << EOF | sudo tee ${OPENSTACK_CONFIGURATION_DIRECTORY}/389-ds-create-os-dses.ldif
 dn: ou=Roles,${DS_SUFFIX}
 objectClass: top
 objectClass: organizationalUnit
@@ -29,4 +29,4 @@ sudo ldapadd \
   -D 'cn=Directory Manager' \
   -w "${DS_ROOT_PASS}" \
   -x \
-  -f /var/lib/openstack/389-ds-create-os-dses.ldif
+  -f ${OPENSTACK_CONFIGURATION_DIRECTORY}/389-ds-create-os-dses.ldif

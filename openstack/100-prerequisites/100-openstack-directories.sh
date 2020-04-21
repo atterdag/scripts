@@ -3,6 +3,6 @@
 ##############################################################################
 # Create directory to store openstack files
 ##############################################################################
-sudo mkdir -p /var/lib/openstack/
-sudo chown root:root /var/lib/openstack/
-sudo chmod 0700 /var/lib/openstack/
+sudo mkdir -p ${OPENSTACK_CONFIGURATION_DIRECTORY}/
+sudo chown root:root ${OPENSTACK_CONFIGURATION_DIRECTORY}/
+sudo chmod 0700 ${OPENSTACK_CONFIGURATION_DIRECTORY}/

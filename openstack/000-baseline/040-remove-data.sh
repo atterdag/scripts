@@ -4,6 +4,6 @@
 # Remove OpenStack data
 ##############################################################################
 sudo rm -fr \
-  /var/lib/openstack/ \
+  ${OPENSTACK_CONFIGURATION_DIRECTORY}/ \
   /var/lib/ssl/ \
   /root/.dogtag
