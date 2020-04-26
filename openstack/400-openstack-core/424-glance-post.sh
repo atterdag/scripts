@@ -3,14 +3,18 @@
 ##############################################################################
 # Ensure Glance works on Controller host
 ##############################################################################
+if [[ ! -d $OPENSTACK_IMAGES_DIRECTORY ]]; then
+  sudo mkdir -p $OPENSTACK_IMAGES_DIRECTORY
+fi
+
 for version in 0.4.0 0.5.0 0.5.1; do
   sudo wget \
     --continue \
-    --output-document=${OPENSTACK_CONFIGURATION_DIRECTORY}/cirros-${version}-x86_64-disk.version \
-    http://download.cirros-cloud.net/${version}/cirros-${version}-x86_64-disk.version
+    --output-document=${OPENSTACK_IMAGES_DIRECTORY}/cirros-${version}-x86_64-disk.img \
+    http://download.cirros-cloud.net/${version}/cirros-${version}-x86_64-disk.img
 
-  sudo --preserve-env openstack image create "cirros-${version}" \
-    --file ${OPENSTACK_CONFIGURATION_DIRECTORY}/cirros-${version}-x86_64-disk.version \
+  openstack image create "cirros-${version}" \
+    --file ${OPENSTACK_IMAGES_DIRECTORY}/cirros-${version}-x86_64-disk.img \
     --disk-format qcow2 \
     --container-format bare \
     --public
