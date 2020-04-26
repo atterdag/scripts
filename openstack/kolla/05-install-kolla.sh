@@ -7,20 +7,28 @@ mkvirtualenv \
   --python=/usr/bin/python3 \
   kolla
 
-# echo '***'
-# echo '*** install ansible, kolla, and openstack client'
-# echo '***'
-# pip install -U \
-#   ansible \
-#   kolla-ansible \
-#   python-openstackclient
+echo '***'
+echo '*** update pip in virtualenv'
+echo '***'
+pip install -U \
+  pip
 
 echo '***'
 echo '*** install ansible, and openstack client'
 echo '***'
 pip install -U \
   ansible \
+  osc-placement-tree \
+  osc-placement
   python-openstackclient
+
+echo '***'
+echo '*** bash completion on Controller host'
+echo '***'
+openstack complete \
+| sudo tee /etc/bash_completion.d/osc.bash_completion \
+> /dev/null
+source /etc/bash_completion
 
 echo '***'
 echo '*** clone kolla and kolla-ansible git repos'

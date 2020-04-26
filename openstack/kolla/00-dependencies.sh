@@ -29,5 +29,6 @@ sudo apt-get --yes --quiet install \
   software-properties-common \
   sshpass \
   ssl-cert \
+  thin-provisioning-tools \
   virtualenvwrapper \
   wget

@@ -11,27 +11,28 @@ echo '***'
 source prepare-node.env
 
 echo '***'
-echo '*** setup cinder vg'
+echo '*** create kolla configuration directory'
 echo '***'
-sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} mklabel gpt
-sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} mkpart primary 0GB 100%
-sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} set 1 lvm on
-sudo pvcreate --yes /dev/${LVM_STANDARD_PV_DEVICE}1
-sudo vgcreate cinder-volumes /dev/${LVM_STANDARD_PV_DEVICE}1
+if [[ ! -d /etc/kolla ]]; then
+  sudo mkdir -p /etc/kolla
+  sudo chown $USER:$USER /etc/kolla
+fi
 
 echo '***'
-echo '*** create kolla configuration directory with configuration templates'
+echo '*** create kolla inventory templates'
 echo '***'
-if [[ ! -d /etc/kolla ]]; then sudo mkdir -p /etc/kolla; fi
-sudo chown $USER:$USER /etc/kolla
-cp -r ${VIRTUAL_ENV}/share/kolla-ansible/etc_examples/kolla/* /etc/kolla
 cp ${VIRTUAL_ENV}/share/kolla-ansible/ansible/inventory/* /etc/kolla/
+
+echo '***'
+echo '*** create kolla certificates directory'
+echo '***'
+if [[ ! -d /etc/kolla/certificates/ca ]]; then
+  mkdir -p /etc/kolla/certificates/ca
+fi
 
 echo '***'
 echo '*** import SSL key pair for haproxy'
 echo '***'
-if [[ ! -d /etc/kolla/certificates/ca ]]; then mkdir -p /etc/kolla/certificates/ca; fi
-
 etcdctl --username user:$ETCD_USER_PASS get /keystores/${HAPROXY_FQDN}.p12 \
 | tr -d '\n' \
 | base64 --decode \
@@ -101,34 +102,17 @@ cp \
 echo '***'
 echo '*** copy root ca'
 echo '***'
-openssl x509 \
-  -in /usr/local/share/ca-certificates/${SSL_ROOT_CA_STRICT_NAME}.crt \
-  -out /etc/kolla/certificates/ca/${SSL_ROOT_CA_STRICT_NAME}.crt
+for crt in /usr/local/share/ca-certificates/*.crt; do
+  openssl x509 \
+    -in $crt \
+    -out /etc/kolla/certificates/ca/$(basename $crt)
+done
 
 echo '***'
 echo '*** generate passwords for kolla'
 echo '***'
 cat > /etc/kolla/imported_passwords.yml <<EOF
-barbican_database_password: ${BARBICAN_DBPASS}
-barbican_crypto_key: ${BARBICAN_KEK}
-barbican_keystone_password: ${BARBICAN_PASS}
-cinder_database_password: ${CINDER_DBPASS}
-cinder_keystone_password: ${CINDER_PASS}
-designate_database_password: ${DESIGNATE_DBPASS}
-designate_keystone_password: ${DESIGNATE_PASS}
-glance_database_password: ${GLANCE_DBPASS}
-glance_keystone_password: ${GLANCE_PASS}
-keystone_admin_password: ${ADMIN_PASS}
-keystone_database_password: ${KEYSTONE_DBPASS}
-metadata_secret: ${METADATA_SECRET}
-neutron_database_password: ${NEUTRON_DBPASS}
-neutron_keystone_password: ${NEUTRON_PASS}
-nova_api_database_password: ${NOVA_DBPASS}
-nova_database_password: ${NOVA_DBPASS}
-nova_keystone_password: ${NOVA_PASS}
-placement_database_password: ${PLACEMENT_DBPASS}
-placement_keystone_password: ${PLACEMENT_PASS}
-rabbitmq_password: ${RABBIT_PASS}
+# Unused secrets saved for later
 # \${CA_PASSWORD}
 # \${COMPUTE_KEYSTORE_PASS}
 # \${CONTROLLER_KEYSTORE_PASS}
@@ -153,8 +137,29 @@ rabbitmq_password: ${RABBIT_PASS}
 # \${PKI_TOKEN_PASSWORD}
 # \${RABBIT_ADMIN_PASS}
 # \${ROOT_DBPASS}
+#
+# Merge following secrets with otherwise generated secrets
+barbican_database_password: ${BARBICAN_DBPASS}
+barbican_crypto_key: ${BARBICAN_KEK}
+barbican_keystone_password: ${BARBICAN_PASS}
+cinder_database_password: ${CINDER_DBPASS}
+cinder_keystone_password: ${CINDER_PASS}
+designate_database_password: ${DESIGNATE_DBPASS}
+designate_keystone_password: ${DESIGNATE_PASS}
+glance_database_password: ${GLANCE_DBPASS}
+glance_keystone_password: ${GLANCE_PASS}
+keystone_admin_password: ${ADMIN_PASS}
+keystone_database_password: ${KEYSTONE_DBPASS}
+metadata_secret: ${METADATA_SECRET}
+neutron_database_password: ${NEUTRON_DBPASS}
+neutron_keystone_password: ${NEUTRON_PASS}
+nova_api_database_password: ${NOVA_DBPASS}
+nova_database_password: ${NOVA_DBPASS}
+nova_keystone_password: ${NOVA_PASS}
+placement_database_password: ${PLACEMENT_DBPASS}
+placement_keystone_password: ${PLACEMENT_PASS}
+rabbitmq_password: ${RABBIT_PASS}
 EOF
-
 cp -r ${VIRTUAL_ENV}/share/kolla-ansible/etc_examples/kolla/passwords.yml /etc/kolla/generated_passwords.yml
 kolla-genpwd --passwords /etc/kolla/generated_passwords.yml
 kolla-mergepwd --old /etc/kolla/imported_passwords.yml --new /etc/kolla/generated_passwords.yml --final /etc/kolla/passwords.yml
@@ -162,26 +167,110 @@ kolla-mergepwd --old /etc/kolla/imported_passwords.yml --new /etc/kolla/generate
 echo '***'
 echo '*** configure globals.yml'
 echo '***'
-syv enable_cinder yes /etc/kolla/globals.yml
-syv enable_cinder_backend_lvm yes /etc/kolla/globals.yml
-syv enable_neutron_provider_networks yes /etc/kolla/globals.yml
-syv kolla_base_distro ubuntu /etc/kolla/globals.yml
-syv kolla_copy_ca_into_containers yes /etc/kolla/globals.yml
-syv kolla_enable_tls_backend yes /etc/kolla/globals.yml
-syv kolla_enable_tls_external yes /etc/kolla/globals.yml
-syv kolla_enable_tls_internal yes /etc/kolla/globals.yml
-syv kolla_external_fqdn ${HAPROXY_FQDN} /etc/kolla/globals.yml
-syv kolla_external_vip_address ${HAPROXY_IP_ADDRESS} /etc/kolla/globals.yml
-syv kolla_install_type binary /etc/kolla/globals.yml
-syv kolla_internal_fqdn ${HAPROXY_FQDN} /etc/kolla/globals.yml
-syv kolla_internal_vip_address ${HAPROXY_IP_ADDRESS} /etc/kolla/globals.yml
-syv network_interface ${CONTROLLER_MANAGEMENT_PHYSICAL_NIC} /etc/kolla/globals.yml
-syv neutron_external_interface ${CONTROLLER_PROVIDER_PHYSICAL_NIC} /etc/kolla/globals.yml
-syv neutron_plugin_agent openvswitch /etc/kolla/globals.yml
-syv openstack_cacert /etc/ssl/certs/ca-certificates.crt /etc/kolla/globals.yml
-syv openstack_release master /etc/kolla/globals.yml
+cp -r ${VIRTUAL_ENV}/share/kolla-ansible/etc_examples/kolla/globals.yml /etc/kolla/globals.yml
+syv cinder_volume_group "system" /etc/kolla/globals.yml
+syv enable_cinder "yes" /etc/kolla/globals.yml
+syv enable_cinder_backend_lvm "yes" /etc/kolla/globals.yml
+syv enable_neutron_provider_networks "yes" /etc/kolla/globals.yml
+syv kolla_base_distro "ubuntu" /etc/kolla/globals.yml
+syv kolla_copy_ca_into_containers "yes" /etc/kolla/globals.yml
+syv kolla_enable_tls_backend "yes" /etc/kolla/globals.yml
+syv kolla_enable_tls_external "yes" /etc/kolla/globals.yml
+syv kolla_enable_tls_internal "yes" /etc/kolla/globals.yml
+syv kolla_external_fqdn "${HAPROXY_FQDN}" /etc/kolla/globals.yml
+syv kolla_external_vip_address "${HAPROXY_IP_ADDRESS}" /etc/kolla/globals.yml
+syv kolla_install_type "binary" /etc/kolla/globals.yml
+syv kolla_internal_fqdn "${HAPROXY_FQDN}" /etc/kolla/globals.yml
+syv kolla_internal_vip_address "${HAPROXY_IP_ADDRESS}" /etc/kolla/globals.yml
+syv network_interface "${CONTROLLER_MANAGEMENT_PHYSICAL_NIC}" /etc/kolla/globals.yml
+syv neutron_external_interface "${CONTROLLER_PROVIDER_PHYSICAL_NIC}" /etc/kolla/globals.yml
+syv neutron_plugin_agent "openvswitch" /etc/kolla/globals.yml
+syv node_custom_config "/etc/kolla/config" /etc/kolla/globals.yml
+syv nova_compute_virt_type "kvm" /etc/kolla/globals.yml
+syv openstack_cacert "/etc/ssl/certs/ca-certificates.crt" /etc/kolla/globals.yml
+syv openstack_release "master" /etc/kolla/globals.yml
+
+# Prometeus is causing high cpu
+# syv enable_grafana yes /etc/kolla/globals.yml
+# syv enable_prometheus yes /etc/kolla/globals.yml
+
+# Ceilometer is depending on gnocchi, but its broken atm
+# syv enable_ceilometer yes /etc/kolla/globals.yml
+
+# Disabled as Ironic on ubuntu is broken at this time
+# syv enable_ironic yes /etc/kolla/globals.yml
+# syv ironic_dnsmasq_interface ${IRONIC_DNSMASQ_INTERFACE} /etc/kolla/globals.yml
+# syv ironic_dnsmasq_dhcp_range ${IRONIC_DNSMASQ_DHCP_RANGE} /etc/kolla/globals.yml
+# syv ironic_cleaning_network ${IRONIC_CLEANING_NETWORK} /etc/kolla/globals.yml
+# syv ironic_dnsmasq_default_gateway ${IRONIC_DNSMASQ_DEFAULT_GATEWAY} /etc/kolla/globals.yml
 
 echo '***'
 echo '*** check configuration'
 echo '***'
 grep -v -E "^$|^#" /etc/kolla/globals.yml | sort
+
+echo '***'
+echo '*** ironic on ubuntu is broken at this time, so we set this manually'
+echo '***'
+if [[ ! -d /etc/kolla/config/neutron ]]; then mkdir -p /etc/kolla/config/neutron; fi
+crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_vlan network_vlan_ranges ${CONTROLLER_PROVIDER_VIRTUAL_NIC}
+crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_flat flat_networks "*"
+
+echo '***'
+echo '*** create additional nova allocation configuration'
+echo '***'
+if [[ ! -d /etc/kolla/config/nova ]]; then mkdir -p /etc/kolla/config/nova; fi
+crudini --set /etc/kolla/config/nova.conf DEFAULT scheduler_default_filters "CoreFilter,RamFilter,DiskFilter"
+crudini --set /etc/kolla/config/nova.conf DEFAULT cpu_allocation_ratio "16.0"
+crudini --set /etc/kolla/config/nova.conf DEFAULT ram_allocation_ratio "5.0"
+crudini --set /etc/kolla/config/nova.conf DEFAULT disk_allocation_ratio 3
+
+echo '***'
+echo '*** create additional cinder volume type configuration'
+echo '***'
+if [[ ! -d /etc/kolla/config/cinder ]]; then mkdir -p /etc/kolla/config/cinder; fi
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf DEFAULT enabled_backends "premium,standard"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf premium volume_group "cinder-premium-vg"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf premium volume_driver "cinder.volume.drivers.lvm.LVMVolumeDriver"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf premium volume_backend_name "premium"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf premium target_helper "tgtadm"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf premium target_protocol "iscsi"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard volume_group "cinder-standard-vg"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard volume_driver "cinder.volume.drivers.lvm.LVMVolumeDriver"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard volume_backend_name "standard"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard target_helper "tgtadm"
+crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard target_protocol "iscsi"
+
+echo '***'
+echo '*** create premium (SDD) storage on Compute host'
+echo '***'
+sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} mklabel gpt
+sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} mkpart primary 0GB 100%
+sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} set 1 lvm on
+sudo pvcreate --yes /dev/${LVM_PREMIUM_PV_DEVICE}1
+sudo vgcreate cinder-premium-vg /dev/${LVM_PREMIUM_PV_DEVICE}1
+
+echo '***'
+echo '*** Create standard (HDD) storage on Compute host'
+echo '***'
+sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} mklabel gpt
+sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} mkpart primary 0GB 100%
+sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} set 1 lvm on
+sudo pvcreate --yes /dev/${LVM_STANDARD_PV_DEVICE}1
+sudo vgcreate cinder-standard-vg /dev/${LVM_STANDARD_PV_DEVICE}1
+
+echo '***'
+echo '*** Create LVM thin pool on system used for lvm-1 on Compute host'
+echo '***'
+lvcreate --type thin-pool --size 10G --name system-pool system
+
+# echo '***'
+# echo '*** download ironic agent images'
+# echo '***'
+# if [[ ! -d /etc/kolla/config/ironic ]]; then mkdir -p /etc/kolla/config/ironic; fi
+# curl \
+#   --url https://tarballs.openstack.org/ironic-python-agent/dib/files/ipa-centos7-master.kernel \
+#   --output /etc/kolla/config/ironic/ironic-agent.kernel
+# curl \
+#   --url https://tarballs.openstack.org/ironic-python-agent/dib/files/ipa-centos7-master.initramfs \
+#   --output /etc/kolla/config/ironic/ironic-agent.initramfs
