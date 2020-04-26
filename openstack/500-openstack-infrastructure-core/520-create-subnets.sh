@@ -8,9 +8,7 @@ openstack subnet create \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
   --gateway 192.168.1.254 \
-  --ip-version 4 \
   --network inside \
-  --dhcp \
   --subnet-range 192.168.1.0/24 \
   inside
 openstack subnet create \
@@ -18,9 +16,7 @@ openstack subnet create \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
   --gateway 192.168.2.254 \
-  --ip-version 4 \
   --network autovoip \
-  --no-dhcp \
   --subnet-range 192.168.2.0/24 \
   autovoip
 openstack subnet create \
@@ -28,9 +24,7 @@ openstack subnet create \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
   --gateway 192.168.3.254 \
-  --ip-version 4 \
   --network autovideo \
-  --no-dhcp \
   --subnet-range 192.168.3.0/24 \
   autovideo
 openstack subnet create \
@@ -38,9 +32,7 @@ openstack subnet create \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
   --gateway 172.16.0.254 \
-  --ip-version 4 \
   --network servers \
-  --no-dhcp \
   --subnet-range 172.16.0.0/24 \
   servers
 openstack subnet create \
@@ -48,9 +40,7 @@ openstack subnet create \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
   --gateway 10.0.0.1 \
-  --ip-version 4 \
   --network dmz \
-  --no-dhcp \
   --subnet-range 10.0.0.0/24 \
   dmz
 openstack subnet create \
@@ -58,8 +48,6 @@ openstack subnet create \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
   --gateway 192.168.254.1 \
-  --ip-version 4 \
   --network routing \
-  --no-dhcp \
   --subnet-range 192.168.254.0/24 \
   routing

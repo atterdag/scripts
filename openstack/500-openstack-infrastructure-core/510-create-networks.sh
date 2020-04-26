@@ -4,8 +4,6 @@
 # Create VLAN network on Controller host
 ##############################################################################
 openstack network create \
-  --enable \
-  --enable-port-security \
   --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
@@ -13,8 +11,6 @@ openstack network create \
   --share \
   autovoip
 openstack network create \
-  --enable \
-  --enable-port-security \
   --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
@@ -22,8 +18,6 @@ openstack network create \
   --share \
   autovideo
 openstack network create \
-  --enable \
-  --enable-port-security \
   --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
@@ -31,8 +25,6 @@ openstack network create \
   --share \
   inside
 openstack network create \
-  --enable \
-  --enable-port-security \
   --internal \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
@@ -40,8 +32,6 @@ openstack network create \
   --share \
   servers
 openstack network create \
-  --enable \
-  --enable-port-security \
   --internal \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
@@ -49,8 +39,6 @@ openstack network create \
   --share \
   dmz
 openstack network create \
-  --enable \
-  --enable-port-security \
   --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
@@ -58,8 +46,6 @@ openstack network create \
   --share \
   routing
 openstack network create \
-  --enable \
-  --enable-port-security \
   --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
