@@ -29,6 +29,7 @@ openstack network create \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
   --provider-segment 5 \
+  --default \
   --share \
   servers
 openstack network create \
