@@ -25,7 +25,7 @@ openstack network create \
   --share \
   inside
 openstack network create \
-  --internal \
+  --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
   --provider-segment 5 \
@@ -33,7 +33,7 @@ openstack network create \
   --share \
   servers
 openstack network create \
-  --internal \
+  --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
   --provider-segment 6 \
