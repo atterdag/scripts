@@ -44,6 +44,12 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OPENSTACK_IMAGES_DIRE
 # Set NTP server details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_HOST_NAME 'ntp'
 
+# Ironic network bootstrap settings
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_INTERFACE 'eno1'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_DHCP_RANGE '192.168.0.66,192.168.0.126'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_CLEANING_NETWORK 'bond0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_DEFAULT_GATEWAY '192.168.0.1'
+
 # External DNS servers
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_ONE_IP_ADDRESS '192.168.0.1'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_TWO_IP_ADDRESS '192.168.0.30'
