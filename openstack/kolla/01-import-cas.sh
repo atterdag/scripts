@@ -30,7 +30,7 @@ syv() {
   local _variable_value=\$2
   local _file=\$3
   if grep -q -E "^\$_variable_name|^#\$_variable_name" \$_file; then \
-    sed -r -i 's/^'\$_variable_name':.*|^#'\$_variable_name':.*/'\$_variable_name': "'\$_variable_value'"/' \$_file
+    sed -r -i 's/^'\$(echo \$_variable_name | sed 's|\\/|\\\\/|g')':.*|^#'\$(echo \$_variable_name | sed 's|\\/|\\\\/|g')':.*/'\$(echo \$_variable_name | sed 's|\\/|\\\\/|g')': "'\$(echo \$_variable_value | sed 's|\\/|\\\\/|g')'"/' \$_file
   else
     echo ''\$_variable_name': "'\$_variable_value'"' >> \$_file
   fi
