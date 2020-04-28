@@ -18,8 +18,14 @@ echo '*** install ansible, and openstack client'
 echo '***'
 pip install -U \
   ansible \
+  osc-placement \
   osc-placement-tree \
-  osc-placement
+  python-cinderclient \
+  python-glanceclient \
+  python-heatclient \
+  python-keystoneclient \
+  python-neutronclient \
+  python-novaclient \
   python-openstackclient
 
 echo '***'
