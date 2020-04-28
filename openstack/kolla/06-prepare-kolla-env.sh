@@ -213,6 +213,7 @@ echo '***'
 echo '*** ironic on ubuntu is broken at this time, so we set this manually'
 echo '***'
 if [[ ! -d /etc/kolla/config/neutron ]]; then mkdir -p /etc/kolla/config/neutron; fi
+if [[ -d /etc/kolla/config/neutron/ml2_conf.ini ]]; then rm -f /etc/kolla/config/neutron/ml2_conf.ini; fi
 crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_vlan network_vlan_ranges ${CONTROLLER_PROVIDER_VIRTUAL_NIC}
 crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_flat flat_networks "*"
 
@@ -220,15 +221,19 @@ echo '***'
 echo '*** create additional nova allocation configuration'
 echo '***'
 if [[ ! -d /etc/kolla/config/nova ]]; then mkdir -p /etc/kolla/config/nova; fi
-crudini --set /etc/kolla/config/nova.conf DEFAULT scheduler_default_filters "CoreFilter,RamFilter,DiskFilter"
+if [[ -d /etc/kolla/config/nova.conf ]]; then rm -f /etc/kolla/config/nova.conf; fi
 crudini --set /etc/kolla/config/nova.conf DEFAULT cpu_allocation_ratio "16.0"
 crudini --set /etc/kolla/config/nova.conf DEFAULT ram_allocation_ratio "5.0"
 crudini --set /etc/kolla/config/nova.conf DEFAULT disk_allocation_ratio 3
+crudini --set /etc/kolla/config/nova.conf scheduler driver filter_scheduler
+crudini --set /etc/kolla/config/nova.conf filter_scheduler available_filters nova.scheduler.filters.all_filters
+crudini --set /etc/kolla/config/nova.conf filter_scheduler enabled_filters AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter
 
 echo '***'
 echo '*** create additional cinder volume type configuration'
 echo '***'
 if [[ ! -d /etc/kolla/config/cinder ]]; then mkdir -p /etc/kolla/config/cinder; fi
+if [[ -d /etc/kolla/config/cinder/cinder-volume.conf ]]; then rm -f /etc/kolla/config/cinder/cinder-volume.conf; fi
 crudini --set /etc/kolla/config/cinder/cinder-volume.conf DEFAULT enabled_backends "premium,standard"
 crudini --set /etc/kolla/config/cinder/cinder-volume.conf premium volume_group "cinder-premium-vg"
 crudini --set /etc/kolla/config/cinder/cinder-volume.conf premium volume_driver "cinder.volume.drivers.lvm.LVMVolumeDriver"
