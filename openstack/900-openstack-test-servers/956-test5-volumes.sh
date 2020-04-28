@@ -4,19 +4,21 @@
 # Create volumes on Controller host
 ##############################################################################
 openstack volume create \
-  --description 'test2 database volume' \
+  --description 'test5 database volume' \
   --size 10 \
   --type premium \
-  test2_database
+  test5_database
+
 openstack server add volume \
-  test2 \
-  test2_database
+  test5 \
+  test5_database
 
 openstack volume create \
---description 'test2 files volume' \
---size 10 \
---type standard \
-test2_files
+  --description 'test5 files volume' \
+  --size 10 \
+  --type standard \
+  test5_files
+
 openstack server add volume \
-  test2 \
-  test2_files
+  test5 \
+  test5_files

@@ -3,5 +3,5 @@
 ##############################################################################
 # Get URL for connecting to server instance on Controller host
 ##############################################################################
-openstack console log show \
-  test1
+openstack console url show \
+  test5
