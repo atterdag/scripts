@@ -22,3 +22,8 @@ openstack volume type create \
 openstack volume type create \
   --property volume_backend_name='standard' \
   standard
+
+echo '***'
+echo '*** In case we just want to run a test configuration'
+echo '***'
+# ${VIRTUAL_ENV}/share/kolla-ansible/init-runonce
