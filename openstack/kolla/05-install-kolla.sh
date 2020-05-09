@@ -26,7 +26,21 @@ pip install -U \
   python-keystoneclient \
   python-neutronclient \
   python-novaclient \
-  python-openstackclient
+  python-openstackclient \
+#  python-barbicanclient \
+#  python-blazarclient \
+#  python-designateclient \
+#  python-magnumclient \
+#  python-manilaclient \
+#  python-mistralclient \
+#  python-monascaclient \
+#  python-octaviaclient \
+#  python-saharaclient \
+#  python-swiftclient \
+#  python-troveclient \
+#  python-zaqarclient \
+#  python-zunclient \
+
 
 echo '***'
 echo '*** bash completion on Controller host'
