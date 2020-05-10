@@ -51,8 +51,8 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_CLEANING_NETWO
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_DEFAULT_GATEWAY '192.168.0.1'
 
 # External DNS servers
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_ONE_IP_ADDRESS '192.168.0.1'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_TWO_IP_ADDRESS '192.168.0.30'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_ONE_IP_ADDRESS '192.168.1.3'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_TWO_IP_ADDRESS '192.168.1.4'
 
 # Set DNS server details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_HOST_NAME 'ns'
