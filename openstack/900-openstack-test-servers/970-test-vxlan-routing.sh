@@ -1,5 +1,9 @@
+#!/bin/bash
+
+# Routing to subnet of vxlan network
 openstack network create \
   --internal \
+  --tag testvxlan \
   testvxlan
 
 openstack subnet create \
@@ -9,9 +13,11 @@ openstack subnet create \
   --gateway 192.168.11.254 \
   --network testvxlan \
   --subnet-range 192.168.11.0/24 \
+  --tag testvxlan \
   testvxlan
 
 openstack router create \
+  --tag testvxlan \
   testvxlan
 
 openstack router add subnet \
@@ -20,7 +26,7 @@ openstack router add subnet \
 
 openstack router set \
   --external-gateway routing \
-  --fixed-ip subnet=routing,ip-address=192.168.254.252 \
+  --fixed-ip subnet=routing,ip-address=192.168.254.11 \
   testvxlan
 
 openstack server create \
