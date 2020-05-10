@@ -90,6 +90,72 @@ openssl pkcs12 \
 rm -f ${COMPUTE_FQDN}.p12
 
 echo '***'
+echo '*** create kolla certificates directory'
+echo '***'
+if [[ ! -d /etc/kolla/config/octavia ]]; then
+  mkdir -p /etc/kolla/config/octavia
+fi
+
+echo '***'
+echo '*** import Octavia server CA'
+echo '***'
+etcdctl --username user:$ETCD_USER_PASS get /keystores/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12 \
+| tr -d '\n' \
+| base64 --decode \
+> ${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12
+
+openssl pkcs12 \
+  -in ${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12 \
+  -passin pass:${SSL_OCTAVIA_SERVER_CA_KEYSTORE_PASS} \
+  -nokeys \
+  -clcerts \
+| openssl x509 \
+| tee /etc/kolla/config/octavia/server_ca.cert.pem
+
+openssl pkcs12 \
+  -in ${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12 \
+  -passin pass:${SSL_OCTAVIA_SERVER_CA_KEYSTORE_PASS} \
+  -nocerts \
+  -nodes \
+| openssl rsa 2>/dev/null \
+| tee /etc/kolla/config/octavia/server_ca.key.pem
+
+rm -f ${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12
+
+echo '***'
+echo '*** import Octavia client certificate and CA'
+echo '***'
+etcdctl --username user:$ETCD_USER_PASS get /keystores/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12 \
+| tr -d '\n' \
+| base64 --decode \
+> ${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12
+
+openssl pkcs12 \
+  -in ${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12 \
+  -passin pass:${SSL_OCTAVIA_CLIENT_CERT_KEYSTORE_PASS} \
+  -nokeys \
+  -clcerts \
+| openssl x509 \
+| tee /etc/kolla/config/octavia/client.cert-and-key.pem
+
+openssl pkcs12 \
+  -in ${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12 \
+  -passin pass:${SSL_OCTAVIA_CLIENT_CERT_KEYSTORE_PASS} \
+  -nocerts \
+  -nodes \
+| openssl rsa 2>/dev/null \
+| tee -a /etc/kolla/config/octavia/client.cert-and-key.pem
+
+openssl pkcs12 \
+  -in ${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12 \
+  -passin pass:${SSL_OCTAVIA_CLIENT_CERT_KEYSTORE_PASS} \
+  -nokeys \
+  -cacerts \
+| tee /etc/kolla/config/octavia/client_ca.cert.pem
+
+rm -f ${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12
+
+echo '***'
 echo '*** copy internal certs to external ones'
 echo '***'
 cp \
@@ -172,6 +238,7 @@ syv cinder_volume_group "system" /etc/kolla/globals.yml
 syv enable_cinder "yes" /etc/kolla/globals.yml
 syv enable_cinder_backend_lvm "yes" /etc/kolla/globals.yml
 syv enable_neutron_provider_networks "yes" /etc/kolla/globals.yml
+syv enable_octavia "master" /etc/kolla/globals.yml
 syv kolla_base_distro "ubuntu" /etc/kolla/globals.yml
 syv kolla_copy_ca_into_containers "yes" /etc/kolla/globals.yml
 syv kolla_enable_tls_backend "yes" /etc/kolla/globals.yml
@@ -267,7 +334,7 @@ sudo vgcreate cinder-standard-vg /dev/${LVM_STANDARD_PV_DEVICE}1
 echo '***'
 echo '*** Create LVM thin pool on system used for lvm-1 on Compute host'
 echo '***'
-lvcreate --type thin-pool --size 10G --name system-pool system
+sudo lvcreate --type thin-pool --size 10G --name system-pool system
 
 # echo '***'
 # echo '*** download ironic agent images'

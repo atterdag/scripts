@@ -26,6 +26,7 @@ pip install -U \
   python-keystoneclient \
   python-neutronclient \
   python-novaclient \
+  python-octaviaclient \
   python-openstackclient \
 #  python-barbicanclient \
 #  python-blazarclient \
@@ -34,7 +35,6 @@ pip install -U \
 #  python-manilaclient \
 #  python-mistralclient \
 #  python-monascaclient \
-#  python-octaviaclient \
 #  python-saharaclient \
 #  python-swiftclient \
 #  python-troveclient \

@@ -83,8 +83,10 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_AUDI
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_ONE_COMMON_NAME 'Lemche.NET Intermediate CA 1'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_TWO_COMMON_NAME 'Lemche.NET Intermediate CA 2'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_ROOT_CA_COMMON_NAME 'Lemche.NET Root CA'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_OCTAVIA_CLIENT_CA_COMMON_NAME 'Lemche.NET Intermediate Octavia Client CA'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_OCTAVIA_SERVER_CA_COMMON_NAME 'Lemche.NET Intermediate Octavia Server CA'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_CLIENT_CA_COMMON_NAME 'Lemche.NET Octavia Client CA'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_CLIENT_CERT_COMMON_NAME 'Lemche.NET Octavia Client Certificate'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CA_COMMON_NAME 'Lemche.NET Octavia Server CA'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CERT_COMMON_NAME 'Lemche.NET Octavia Server Certificate'
 
 # SSL common keys
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_COUNTRY_NAME 'SE'
@@ -117,8 +119,10 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_AUDI
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_AUDIT_TWO_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME) | sed 's/\s/_/g')
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_ONE_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_INTERMEDIATE_CA_ONE_COMMON_NAME) | sed 's/\s/_/g')
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_TWO_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_INTERMEDIATE_CA_TWO_COMMON_NAME) | sed 's/\s/_/g')
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_OCTAVIA_CLIENT_CA_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_INTERMEDIATE_OCTAVIA_CLIENT_CA_COMMON_NAME) | sed 's/\s/_/g')
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_OCTAVIA_SERVER_CA_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_INTERMEDIATE_OCTAVIA_SERVER_CA_COMMON_NAME) | sed 's/\s/_/g')
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_CLIENT_CA_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_OCTAVIA_CLIENT_CA_COMMON_NAME) | sed 's/\s/_/g')
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_OCTAVIA_CLIENT_CERT_COMMON_NAME) | sed 's/\s/_/g')
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CA_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_OCTAVIA_SERVER_CA_COMMON_NAME) | sed 's/\s/_/g')
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CERT_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_OCTAVIA_SERVER_CERT_COMMON_NAME) | sed 's/\s/_/g')
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_BASE_DIR "/var/lib/ssl/$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ORGANIZATION_NAME)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_BASE_URL "http://$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_FQDN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_CA_EMAIL "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_EMAIL_USER)@$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
