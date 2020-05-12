@@ -151,6 +151,7 @@ openssl pkcs12 \
   -passin pass:${SSL_OCTAVIA_CLIENT_CERT_KEYSTORE_PASS} \
   -nokeys \
   -cacerts \
+| openssl x509 \
 | tee /etc/kolla/config/octavia/client_ca.cert.pem
 
 rm -f ${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12
@@ -238,7 +239,8 @@ syv cinder_volume_group "system" /etc/kolla/globals.yml
 syv enable_cinder "yes" /etc/kolla/globals.yml
 syv enable_cinder_backend_lvm "yes" /etc/kolla/globals.yml
 syv enable_neutron_provider_networks "yes" /etc/kolla/globals.yml
-syv enable_octavia "master" /etc/kolla/globals.yml
+syv enable_octavia "yes" /etc/kolla/globals.yml
+syv enable_redis "yes" /etc/kolla/globals.yml
 syv kolla_base_distro "ubuntu" /etc/kolla/globals.yml
 syv kolla_copy_ca_into_containers "yes" /etc/kolla/globals.yml
 syv kolla_enable_tls_backend "yes" /etc/kolla/globals.yml
@@ -255,6 +257,7 @@ syv neutron_plugin_agent "openvswitch" /etc/kolla/globals.yml
 syv node_custom_config "/etc/kolla/config" /etc/kolla/globals.yml
 syv nova_compute_virt_type "kvm" /etc/kolla/globals.yml
 syv openstack_cacert "/etc/ssl/certs/ca-certificates.crt" /etc/kolla/globals.yml
+syv openstack_logging_debug "False" /etc/kolla/globals.yml
 syv openstack_release "master" /etc/kolla/globals.yml
 
 # Prometeus is causing high cpu
