@@ -18,6 +18,7 @@ openstack network create \
   --share \
   autovideo
 openstack network create \
+  --disable-port-security \
   --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
@@ -47,6 +48,7 @@ openstack network create \
   --share \
   routing
 openstack network create \
+  --disable-port-security \
   --external \
   --provider-network-type vlan \
   --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \

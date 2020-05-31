@@ -4,14 +4,6 @@
 # Create subnets for VLANs on Controller host
 ##############################################################################
 openstack subnet create \
-  --allocation-pool start=192.168.1.129,end=192.168.1.196 \
-  --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
-  --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
-  --gateway 192.168.1.254 \
-  --network inside \
-  --subnet-range 192.168.1.0/24 \
-  inside
-openstack subnet create \
   --allocation-pool start=192.168.2.2,end=192.168.2.253 \
   --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
   --dns-nameserver ${DNS_TWO_IP_ADDRESS} \

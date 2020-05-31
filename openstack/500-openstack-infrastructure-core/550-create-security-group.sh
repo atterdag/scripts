@@ -27,3 +27,21 @@ openstack security group rule create \
   --proto tcp \
   --dst-port 22 \
   global_default
+
+openstack security group create \
+  --description "DHCP client" \
+  dhcp_client
+openstack security group rule create \
+  --egress \
+  --ethertype IPv4 \
+  --remote-ip "0.0.0.0/0" \
+  --proto udp \
+  --dst-port 67 \
+  dhcp_client
+openstack security group rule create \
+  --ingress \
+  --ethertype IPv4 \
+  --remote-ip "0.0.0.0/0" \
+  --proto udp \
+  --dst-port 68 \
+  dhcp_client
