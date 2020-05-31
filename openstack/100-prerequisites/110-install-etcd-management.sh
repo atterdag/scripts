@@ -20,9 +20,6 @@ if [[ $(uname --machine) == aarch64 ]]; then
   if [[ -f /usr/sbin/policy-rc.d ]]; then
     sudo rm -f /usr/sbin/policy-rc.d
   fi
-fi
-
-if [[ $(uname --machine) == aarch64 ]]; then
   echo 'ETCD_UNSUPPORTED_ARCH=arm64' | sudo tee -a /etc/default/etcd
 fi
 
