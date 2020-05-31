@@ -48,7 +48,7 @@ sudo setup-ds-admin \
   --silent \
   --file=${OPENSTACK_CONFIGURATION_DIRECTORY}/389-ds-setup.inf
 
-export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
+export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
 echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS
 etcdctl --username user:$ETCD_USER_PASS get /keystores/${IDM_ONE_FQDN}.p12 \
 | tr -d '\n' \

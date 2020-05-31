@@ -7,7 +7,7 @@ sudo apt-get --yes --quiet install \
   apache2
 
 cat  <<EOF | sudo sed --file - --in-place /etc/apache2/ports.conf
-s|Listen\s80|Listen ${MANAGEMENT_FQDN}:80|
+s|Listen\s80|Listen ${ETCD_ONE_FQDN}:80|
 EOF
 
 cat  <<EOF | sudo sed --file - --in-place /etc/apache2/conf-available/security.conf
@@ -17,7 +17,7 @@ s|^ServerSignature|#ServerSignature|
 s|^#ServerSignature Off|ServerSignature Off|
 EOF
 
-echo "ServerName ${MANAGEMENT_FQDN}" \
+echo "ServerName ${ETCD_ONE_FQDN}" \
 | sudo tee /etc/apache2/conf-available/servername.conf
 
 sudo a2enconf security

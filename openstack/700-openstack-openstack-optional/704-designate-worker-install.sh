@@ -3,7 +3,7 @@
 ##############################################################################
 # Install Designate Worker on Controller host
 ##############################################################################
-# export ETCDCTL_ENDPOINTS="https://${MANAGEMENT_FQDN}:2379"
+# export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
 # ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
 # etcdctl --username user:$ETCD_USER_PASS get /keystores/designate.key \
 # | tr -d '\n' \

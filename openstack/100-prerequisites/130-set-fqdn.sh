@@ -3,8 +3,8 @@
 ##############################################################################
 # Ensure that FQDN is present in /etc/hosts
 ##############################################################################
-if ! grep ${MANAGEMENT_FQDN} /etc/hosts > /dev/null; then
-  echo -e "${MANAGEMENT_IP_ADDRESS}\t${MANAGEMENT_FQDN}\t${MANAGEMENT_HOST_NAME}" \
+if ! grep ${ETCD_ONE_FQDN} /etc/hosts > /dev/null; then
+  echo -e "${ETCD_ONE_IP_ADDRESS}\t${ETCD_ONE_FQDN}\t${ETCD_ONE_HOST_NAME}" \
   |  sudo tee -a /etc/hosts
 fi
 if grep ^127.0.1.1 /etc/hosts > /dev/null; then
