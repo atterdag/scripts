@@ -3,7 +3,8 @@
 echo '***'
 echo '*** create kolla management account'
 echo '***'
-sudo useradd -m -U -G docker -s /bin/bash kolla
+sudo groupadd -g 42400 kolla
+sudo useradd -u 42400 -g kolla -m -G docker -s /bin/bash kolla
 cat <<EOF | sudo tee /etc/sudoers.d/kolla-ansible-users
 kolla ALL=(ALL) NOPASSWD: ALL
 EOF

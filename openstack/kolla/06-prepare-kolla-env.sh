@@ -19,11 +19,6 @@ if [[ ! -d /etc/kolla ]]; then
 fi
 
 echo '***'
-echo '*** create kolla inventory templates'
-echo '***'
-cp ${VIRTUAL_ENV}/share/kolla-ansible/ansible/inventory/* /etc/kolla/
-
-echo '***'
 echo '*** create kolla certificates directory'
 echo '***'
 if [[ ! -d /etc/kolla/certificates/ca ]]; then
@@ -115,9 +110,8 @@ openssl pkcs12 \
 openssl pkcs12 \
   -in ${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12 \
   -passin pass:${SSL_OCTAVIA_SERVER_CA_KEYSTORE_PASS} \
+  -passout pass:${SSL_OCTAVIA_SERVER_CA_PASSWORD} \
   -nocerts \
-  -nodes \
-| openssl rsa 2>/dev/null \
 | tee /etc/kolla/config/octavia/server_ca.key.pem
 
 rm -f ${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12
@@ -179,35 +173,9 @@ echo '***'
 echo '*** generate passwords for kolla'
 echo '***'
 cat > /etc/kolla/imported_passwords.yml <<EOF
-# Unused secrets saved for later
-# \${CA_PASSWORD}
-# \${COMPUTE_KEYSTORE_PASS}
-# \${CONTROLLER_KEYSTORE_PASS}
-# \${CORESWITCH_KEYSTORE_PASS}
-# \${DASH_DBPASS}
-# \${DEMO_PASS}
-# \${DS_ADMIN_PASS}
-# \${DS_ROOT_PASS}
-# \${HAPROXY_KEYSTORE_PASS}
-# \${IDM_ONE_KEYSTORE_PASS}
-# \${IDM_TWO_KEYSTORE_PASS}
-# \${KERBEROS_MASTER_SECRET}
-# \${MANAGEMENT_KEYSTORE_PASS}
-# \${PKI_ADMIN_PASSWORD}
-# \${PKI_BACKUP_PASSWORD}
-# \${PKI_CLIENT_DATABASE_PASSWORD}
-# \${PKI_CLIENT_PKCS12_PASSWORD}
-# \${PKI_CLONE_PKCS12_PASSWORD}
-# \${PKI_REPLICATION_PASSWORD}
-# \${PKI_SECURITY_DOMAIN_PASSWORD}
-# \${PKI_SERVER_DATABASE_PASSWORD}
-# \${PKI_TOKEN_PASSWORD}
-# \${RABBIT_ADMIN_PASS}
-# \${ROOT_DBPASS}
-#
 # Merge following secrets with otherwise generated secrets
-barbican_database_password: ${BARBICAN_DBPASS}
 barbican_crypto_key: ${BARBICAN_KEK}
+barbican_database_password: ${BARBICAN_DBPASS}
 barbican_keystone_password: ${BARBICAN_PASS}
 cinder_database_password: ${CINDER_DBPASS}
 cinder_keystone_password: ${CINDER_PASS}
@@ -223,6 +191,9 @@ neutron_keystone_password: ${NEUTRON_PASS}
 nova_api_database_password: ${NOVA_DBPASS}
 nova_database_password: ${NOVA_DBPASS}
 nova_keystone_password: ${NOVA_PASS}
+octavia_ca_password: ${SSL_OCTAVIA_SERVER_CA_PASSWORD}
+octavia_database_password: ${OCTAVIA_DBPASS}
+octavia_keystone_password: ${OCTAVIA_PASS}
 placement_database_password: ${PLACEMENT_DBPASS}
 placement_keystone_password: ${PLACEMENT_PASS}
 rabbitmq_password: ${RABBIT_PASS}
@@ -284,20 +255,19 @@ echo '*** ironic on ubuntu is broken at this time, so we set this manually'
 echo '***'
 if [[ ! -d /etc/kolla/config/neutron ]]; then mkdir -p /etc/kolla/config/neutron; fi
 if [[ -d /etc/kolla/config/neutron/ml2_conf.ini ]]; then rm -f /etc/kolla/config/neutron/ml2_conf.ini; fi
-crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_vlan network_vlan_ranges ${CONTROLLER_PROVIDER_VIRTUAL_NIC}
+crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${CONTROLLER_PROVIDER_VIRTUAL_NIC}"
 crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_flat flat_networks "*"
 
 echo '***'
 echo '*** create additional nova allocation configuration'
 echo '***'
-if [[ ! -d /etc/kolla/config/nova ]]; then mkdir -p /etc/kolla/config/nova; fi
 if [[ -d /etc/kolla/config/nova.conf ]]; then rm -f /etc/kolla/config/nova.conf; fi
 crudini --set /etc/kolla/config/nova.conf DEFAULT cpu_allocation_ratio "16.0"
 crudini --set /etc/kolla/config/nova.conf DEFAULT ram_allocation_ratio "5.0"
-crudini --set /etc/kolla/config/nova.conf DEFAULT disk_allocation_ratio 3
-crudini --set /etc/kolla/config/nova.conf scheduler driver filter_scheduler
-crudini --set /etc/kolla/config/nova.conf filter_scheduler available_filters nova.scheduler.filters.all_filters
-crudini --set /etc/kolla/config/nova.conf filter_scheduler enabled_filters AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter
+crudini --set /etc/kolla/config/nova.conf DEFAULT disk_allocation_ratio "3"
+crudini --set /etc/kolla/config/nova.conf scheduler driver "filter_scheduler"
+crudini --set /etc/kolla/config/nova.conf filter_scheduler available_filters "nova".scheduler.filters.all_filters
+crudini --set /etc/kolla/config/nova.conf filter_scheduler enabled_filters "AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter"
 
 echo '***'
 echo '*** create additional cinder volume type configuration'
@@ -338,6 +308,12 @@ echo '***'
 echo '*** Create LVM thin pool on system used for lvm-1 on Compute host'
 echo '***'
 sudo lvcreate --type thin-pool --size 10G --name system-pool system
+
+# echo '***'
+# echo '*** workaround to allow nova to use /dev/kvm on host'
+# echo '***'
+# sudo groupadd -g 42436 nova
+# sudo useradd -u 42436 -g nova -d /var/lib/nova -m -G kvm -s /usr/sbin/nologin nova
 
 # echo '***'
 # echo '*** download ironic agent images'

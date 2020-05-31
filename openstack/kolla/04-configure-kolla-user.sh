@@ -3,7 +3,8 @@
 echo '***'
 echo '*** dump etcd user password in a file'
 echo '***'
-echo "<etcd user password>" > ~/.ETCD_USER_PASS
+ export ETCD_USER_PASS="<etcd user password>"
+echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS
 
 echo '***'
 echo '*** create and load script to import openstack configuration'
@@ -18,17 +19,17 @@ if [[ ! \$0 =~ bash ]]; then
 fi
 
 # You have to set this by hand
-export MANAGEMENT_FQDN=aku.se.lemche.net
+export ETCD_ONE_FQDN=aku.se.lemche.net
 
 # Get read privileges to etcd
 ETCD_USER_PASS=\$(cat ~/.ETCD_USER_PASS)
 
-if [[ "\$MANAGEMENT_FQDN" == "" ]]; then
- echo "You have to set MANAGEMENT_FQDN variable before sourcing this file!"
+if [[ "\$ETCD_ONE_FQDN" == "" ]]; then
+ echo "You have to set ETCD_ONE_FQDN variable before sourcing this file!"
  return
 fi
 
-export ETCDCTL_ENDPOINTS="https://\${MANAGEMENT_FQDN}:2379"
+export ETCDCTL_ENDPOINTS="https://\${ETCD_ONE_FQDN}:2379"
 
 # Create variables with infrastructure configuration
 for key in \$(etcdctl ls /variables/ | sed 's|^/variables/||'); do
@@ -40,20 +41,20 @@ for secret in \$(etcdctl --username user:\$ETCD_USER_PASS ls /passwords/ | sed '
     export eval \$secret="\$(etcdctl --username user:\$ETCD_USER_PASS get /passwords/\$secret)"
 done
 
-source <(sudo cat /etc/kolla/admin-openrc.sh)
+source <(sudo if [[ -f /etc/kolla/admin-openrc.sh ]]; then cat /etc/kolla/admin-openrc.sh; fi)
 EOF
 
 echo '***'
 echo '*** setup virtualenvwrapper'
 echo '***'
 if [[ ! -d $HOME/.virtualenvs ]]; then mkdir $HOME/.virtualenvs; fi
-if grep -q "^export WORKON_HOME=$HOME/.virtualenv" $HOME/.bashrc; then
+if ! grep -q "^export WORKON_HOME=$HOME/.virtualenvs" $HOME/.bashrc; then
   cat >> $HOME/.bashrc << EOT
 export WORKON_HOME=$HOME/.virtualenvs
 [[ -x "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"
 EOT
+  source $HOME/.bashrc
 fi
-source $HOME/.bashrc
 
 echo '***'
 echo '*** Configure pip'

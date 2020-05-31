@@ -54,16 +54,30 @@ echo '***'
 echo '*** clone kolla and kolla-ansible git repos'
 echo '***'
 if [[ ! -d  $HOME/src ]]; then mkdir $HOME/src; fi
-for repo in kolla kolla-ansible; do
+for repo in kolla kolla-ansible octavia; do
   if [[ -d $HOME/src/${repo}/.git ]]; then
     (cd $HOME/src/${repo} && git pull)
   else
-    git clone https://github.com/openstack/${repo} src/${repo}
+    git clone https://github.com/openstack/${repo} $HOME/src/${repo}
   fi
 done
 
 echo '***'
 echo '*** install kolla'
 echo '***'
-pip install src/kolla
-pip install src/kolla-ansible
+for repo in kolla kolla-ansible; do
+  pip install --upgrade src/$repo
+done
+
+echo '***'
+echo '*** install modules required to build octavia amphora-x64-haproxy image'
+echo '***'
+pip install \
+  --isolated \
+  --upgrade \
+  git+https://git.openstack.org/openstack/diskimage-builder.git
+
+echo '***'
+echo '*** create amphora-x64-haproxy image'
+echo '***'
+$HOME/src/octavia/diskimage-create/diskimage-create.sh
