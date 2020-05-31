@@ -15,7 +15,7 @@ fi
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
-    printf \"[SAN]\nsubjectAltName=DNS:${ETCD_ONE_FQDN}\") \
+    printf \"[SAN]\nsubjectAltName=DNS:${ETCD_ONE_FQDN},IP:${ETCD_ONE_IP_ADDRESS}\") \
   -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${ETCD_ONE_FQDN}.key \
   -new \
   -newkey rsa:2048 \
