@@ -187,7 +187,6 @@ signer_key                     = \$dir/private/tsakey.pem
 tsa_name                       = yes
 EOF
 
-
 # Create the server CA key.
 # $ openssl genrsa -aes256 -out private/ca.key.pem 4096
 #
