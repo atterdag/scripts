@@ -1,4 +1,4 @@
-#!/bin/bash
+d#!/bin/bash
 
 ##############################################################################
 # Enable SSL for etcd on MANAGEMENT host
@@ -40,13 +40,11 @@ sudo chmod 644 /etc/ssl/certs/${ETCD_ONE_FQDN}.crt
 sudo chmod 640 /etc/ssl/private/${ETCD_ONE_FQDN}.key
 
 cat  <<EOF | sudo sed --file - --in-place /etc/default/etcd
-s|^.*ETCD_NAME=.*|ETCD_NAME=\"${ETCD_ONE_FQDN}\"|
-s|^.*ETCD_DATA_DIR=.*|ETCD_DATA_DIR=\"/var/lib/etcd/default\"|
-s|^.*ETCD_LISTEN_PEER_URLS=.*|ETCD_LISTEN_PEER_URLS=\"https://${ETCD_ONE_IP_ADDRESS}:2380\"|
-s|^.*ETCD_LISTEN_CLIENT_URLS=.*|ETCD_LISTEN_CLIENT_URLS=\"https://${ETCD_ONE_IP_ADDRESS}:2379\"|
 s|^.*ETCD_INITIAL_ADVERTISE_PEER_URLS=.*|ETCD_INITIAL_ADVERTISE_PEER_URLS=\"https://${ETCD_ONE_FQDN}:2380\"|
-s|^.*ETCD_INITIAL_CLUSTER=.*|ETCD_INITIAL_CLUSTER=\"default=https://${ETCD_ONE_FQDN}:2380\"|
+s|^.*ETCD_LISTEN_PEER_URLS=.*|ETCD_LISTEN_PEER_URLS=\"https://${ETCD_ONE_IP_ADDRESS}:2380\"|
+s|^.*ETCD_LISTEN_CLIENT_URLS=.*|ETCD_LISTEN_CLIENT_URLS=\"https://${ETCD_ONE_IP_ADDRESS}:2379,http://127.0.0.1:2379\"|
 s|^.*ETCD_ADVERTISE_CLIENT_URLS=.*|ETCD_ADVERTISE_CLIENT_URLS=\"https://${ETCD_ONE_FQDN}:2379\"|
+s|^.*ETCD_INITIAL_CLUSTER=.*|ETCD_INITIAL_CLUSTER=\"${ETCD_ONE_HOST_NAME}=https://${ETCD_ONE_FQDN}:2380,${ETCD_TWO_HOST_NAME}=https://${ETCD_TWO_IP_ADDRESS}:2380\"|
 s|^.*ETCD_CERT_FILE.*|ETCD_CERT_FILE=\"/etc/ssl/certs/${ETCD_ONE_FQDN}.crt\"|
 s|^.*ETCD_KEY_FILE.*|ETCD_KEY_FILE=\"/etc/ssl/private/${ETCD_ONE_FQDN}.key\"|
 s|^.*ETCD_PEER_CERT_FILE.*|ETCD_PEER_CERT_FILE=\"/etc/ssl/certs/${ETCD_ONE_FQDN}.crt\"|

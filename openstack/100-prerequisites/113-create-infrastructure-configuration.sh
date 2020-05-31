@@ -13,6 +13,8 @@ ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
 # Set keys with Management server
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_HOST_NAME 'dexter'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_IP_ADDRESS '192.168.1.3'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_HOST_NAME 'didi'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_IP_ADDRESS '192.168.1.4'
 
 # Set keys with OpenStack servers
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_HOST_NAME 'jack'
@@ -103,6 +105,7 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_FQDN "$(et
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_REVERSE_DOMAIN "$(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/CONTROLLER_IP_ADDRESS) | awk -F'.' '{print $3"."$2"."$1}').in-addr.arpa"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DS_SUFFIX "dc=$(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN) | sed 's|\.|,dc=|g')"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ETCD_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ETCD_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/IDM_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/IDM_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/KERBEROS_REALM "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN | tr a-z A-Z)"

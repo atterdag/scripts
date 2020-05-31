@@ -4,7 +4,7 @@
 # Setting up compute node
 ##############################################################################
 # You have to set these by hand
-export ETCD_ONE_FQDN=aku.se.lemche.net
+export ETCD_ONE_FQDN=dexter.se.lemche.net
 export SSL_ROOT_CA_FQDN=ca.se.lemche.net
  export ETCD_USER_PASS=
 
