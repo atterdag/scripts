@@ -31,12 +31,12 @@ VAULT_VERSION=$(curl \
 | sed 's/^.*\*\svault_//')
 
 sudo curl \
-  --output /var/lib/openstack/vault_${VAULT_VERSION}_linux_amd64.zip\
+  --output /tmp/vault_${VAULT_VERSION}_linux_amd64.zip\
   https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
 
 sudo unzip \
   -d /usr/local/bin/ \
-  /var/lib/openstack/vault_${VAULT_VERSION}_linux_amd64.zip
+  /tmp/vault_${VAULT_VERSION}_linux_amd64.zip
 
 # Add vault autocomplete
 echo "complete -C /usr/local/bin/vault vault" \
@@ -129,24 +129,24 @@ export VAULT_ADDR='http://127.0.0.1:8200'
 
 # Initialize Vault - Obviously its a bad idea to store the keys, and tokens
 # on the same server as HashiCorp Vault. So please ensure to split up the keys
-# in /var/lib/openstack/vault_keys.txt, and move them to seperate locations.
+# in /var/lib/vault/keys.txt, and move them to seperate locations.
 # As putting the root token in a secure location ... and delete of course
-# /var/lib/openstack/vault_keys.txt.
+# /var/lib/vault/keys.txt.
 vault operator init \
-| sudo tee /var/lib/openstack/vault_keys.txt
+| sudo tee /var/lib/vault/keys.txt
 
 # We have to unseal the vault using 3 key shards
 # !!! Remember you have to unseal vault each time its been restarted.
 vault operator unseal \
-  $(sudo grep "Unseal Key 1:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+  $(sudo grep "Unseal Key 1:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
 vault operator unseal \
-  $(sudo grep "Unseal Key 2:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+  $(sudo grep "Unseal Key 2:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
 vault operator unseal \
-  $(sudo grep "Unseal Key 3:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+  $(sudo grep "Unseal Key 3:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
 vault status | grep Sealed
 
 # Set the root token so we can add some root data
-export VAULT_TOKEN=$(sudo grep "Initial Root Token:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+export VAULT_TOKEN=$(sudo grep "Initial Root Token:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
 
 # Enable user authentication
 vault auth enable -local userpass
@@ -344,9 +344,9 @@ sleep 5
 
 # Unseal vault
 export VAULT_ADDR="https://${CONTROLLER_FQDN}:8200"
-vault operator unseal $(sudo grep "Unseal Key 1:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault operator unseal $(sudo grep "Unseal Key 2:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault operator unseal $(sudo grep "Unseal Key 3:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+vault operator unseal $(sudo grep "Unseal Key 1:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
+vault operator unseal $(sudo grep "Unseal Key 2:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
+vault operator unseal $(sudo grep "Unseal Key 3:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
 vault status
 
 ##############################################################################
@@ -358,9 +358,9 @@ sudo systemctl status vault
 
 # Unseal vault
 export VAULT_ADDR="https://$(hostname -f):8200"
-vault operator unseal $(sudo grep "Unseal Key 1:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault operator unseal $(sudo grep "Unseal Key 2:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
-vault operator unseal $(sudo grep "Unseal Key 3:" /var/lib/openstack/vault_keys.txt | awk -F": " '{print $2}')
+vault operator unseal $(sudo grep "Unseal Key 1:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
+vault operator unseal $(sudo grep "Unseal Key 2:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
+vault operator unseal $(sudo grep "Unseal Key 3:" /var/lib/vault/keys.txt | awk -F": " '{print $2}')
 vault status
 
 ##############################################################################
