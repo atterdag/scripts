@@ -8,3 +8,4 @@ ansible/logs/*
 .VAULT_USER_PASS
 .vscode-upload.json
 .vscode
+.ftpignore
