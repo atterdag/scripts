@@ -25,3 +25,5 @@ sudo a2enconf servername
 
 sudo apachectl configtest
 sudo systemctl restart apache2
+
+sudo ufw allow "Apache Full"
