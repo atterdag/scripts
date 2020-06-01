@@ -2,46 +2,47 @@
 
 ## Create roles ansible roles for:
 
+- [confd] that use etcd
+- [etcd]
+- [gogs]
 - ~~[Kubernetes]~~
 - Kubernetes dashboard
-- [etcd]
-- [confd] that use etcd
-- [gogs]
 
 ## Incoperate into ansible roles:
 
-- ~~[Hashicorp Vault]~~ Hashicorp Vault is shit.
-- [testssl.sh]
 - [Suricata]
-- [Sysdig]
 - [Sysdig Falco]
 - [Sysdig Inspect]
+- [Sysdig]
+- [testssl.sh]
+- ~~[Hashicorp Vault]~~ Hashicorp Vault is shit.
 
 ## Learn more about:
 
-- ~~[OpenStack]~~
-- [OpenVSwitch]
+- [BOSH]
+- [Cillium]
 - [ELK]
-- [Influxdb]
+- [Fluentd]
 - [Grafana]
 - [Graphite]
-- [Cillium]
-- [Fluentd]
-- [Prometheus]
-- [Terraform]
-- [BOSH]
-- [Nexus Repository OSS]
-- [Istio]
 - [Harbor]
-- Kubernetes based artifact repositories
 - [Helm]
-- [Tekton]
-- [OKD]
+- [Influxdb]
+- [Istio]
 - [Knative]
 - [Kubeflow]
 - [KubeMQ]
-- [traefik]
+- [netbox]
+- [Nexus Repository OSS]
+- [OKD]
+- [OpenVSwitch]
+- [Prometheus]
 - [pulp]
+- [Tekton]
+- [Terraform]
+- [traefik]
+- ~~[OpenStack]~~
+- Kubernetes based artifact repositories
 
 ## Evaluate if ...
 
@@ -70,6 +71,7 @@
 [kubemq]: https://kubemq.io/
 [kubernetes]: https://kubernetes.io/docs/setup/independent/install-kubeadm/
 [molecule]: https://molecule.readthedocs.io/en/latest/installation.html
+[netbox]: https://netbox.readthedocs.io/en/stable/installation/
 [nexus repository oss]: https://www.sonatype.com/nexus-repository-oss
 [okd]: https://www.okd.io/
 [openstack]: https://www.openstack.org/software/start/
