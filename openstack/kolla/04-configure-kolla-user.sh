@@ -1,10 +1,9 @@
 #!/bin/sh
 
 echo '***'
-echo '*** dump etcd user password in a file'
+echo '*** Get read privileges to etcd'
 echo '***'
- export ETCD_USER_PASS="<etcd user password>"
-echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
 
 echo '***'
 echo '*** create and load script to import openstack configuration'
@@ -19,10 +18,14 @@ if [[ ! \$0 =~ bash ]]; then
 fi
 
 # You have to set this by hand
-export ETCD_ONE_FQDN=aku.se.lemche.net
+export ETCD_ONE_FQDN=dexter.se.lemche.net
 
 # Get read privileges to etcd
-ETCD_USER_PASS=\$(cat ~/.ETCD_USER_PASS)
+if [[ -z \${ETCD_USER_PASS+x} ]]; then
+  echo "ETCD_USER_PASS is undefined, run the following to set it"
+  echo 'if [[ -z \${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi'
+  return 1
+fi
 
 if [[ "\$ETCD_ONE_FQDN" == "" ]]; then
  echo "You have to set ETCD_ONE_FQDN variable before sourcing this file!"
@@ -41,7 +44,9 @@ for secret in \$(etcdctl --username user:\$ETCD_USER_PASS ls /passwords/ | sed '
     export eval \$secret="\$(etcdctl --username user:\$ETCD_USER_PASS get /passwords/\$secret)"
 done
 
-source <(sudo if [[ -f /etc/kolla/admin-openrc.sh ]]; then cat /etc/kolla/admin-openrc.sh; fi)
+if [[ -d /etc/kolla ]]; then
+  source <(sudo if [[ -f /etc/kolla/admin-openrc.sh ]]; then cat /etc/kolla/admin-openrc.sh; fi)
+fi
 EOF
 
 echo '***'
