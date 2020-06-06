@@ -43,6 +43,7 @@ export OS_PASSWORD=$OCTAVIA_PASS
 export OS_IMAGE_API_VERSION=2
 export OS_VOLUME_API_VERSION=3
 EOF
+source $HOME/octavia-openrc
 
 echo '***'
 echo '*** create amphora image'
