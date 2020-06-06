@@ -84,7 +84,7 @@ sudo pkispawn \
   -f ${OPENSTACK_CONFIGURATION_DIRECTORY}/dogtag-step1.cfg
 
 export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
-ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 sudo cat /root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca_signing.csr \
 | base64 \
 | tr -d '\n' \

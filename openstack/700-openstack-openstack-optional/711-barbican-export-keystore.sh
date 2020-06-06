@@ -5,7 +5,7 @@
 ##############################################################################
 # Copy keystore to etcd
 export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
-ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 sudo cat /root/.dogtag/pki-tomcat/ca_admin_cert.p12 \
 | base64 \
 | tr -d '\n' \

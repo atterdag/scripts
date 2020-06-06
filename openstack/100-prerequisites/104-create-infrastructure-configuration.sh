@@ -8,7 +8,7 @@
 export ETCDCTL_ENDPOINTS="http://localhost:2379"
 
 # Get the admin password
-ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 
 # Set keys with Management server
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_HOST_NAME 'dexter'

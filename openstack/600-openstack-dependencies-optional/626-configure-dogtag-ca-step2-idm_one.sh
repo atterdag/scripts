@@ -5,7 +5,7 @@
 ##############################################################################
 # Back on PKI server retrieve the certificate, proceed to step 2
 export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
-ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
 etcdctl --username user:$ETCD_USER_PASS get ephemeral/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
 | tr -d '\n' \
 | base64 --decode \

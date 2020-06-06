@@ -79,6 +79,6 @@ etcdctl --username root:"$ETCD_ROOT_PASS" user grant --roles user user
 etcdctl --username root:"$ETCD_ROOT_PASS" mk /secret/admin "$ETCD_ADMIN_PASS"
 etcdctl --username root:"$ETCD_ROOT_PASS" mk /secret/user  "$ETCD_USER_PASS"
 
-# This is prolly not a good idea
-echo $ETCD_ADMIN_PASS > ~/.ETCD_ADMIN_PASS
-echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS
+# Store the admin and user passwords in your secret management solution
+etcdctl --username root:"$ETCD_ROOT_PASS" get /secret/admin
+etcdctl --username root:"$ETCD_ROOT_PASS" get /secret/user

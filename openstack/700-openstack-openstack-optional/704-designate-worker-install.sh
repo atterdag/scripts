@@ -4,7 +4,7 @@
 # Install Designate Worker on Controller host
 ##############################################################################
 # export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
-# ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+# if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
 # etcdctl --username user:$ETCD_USER_PASS get /keystores/designate.key \
 # | tr -d '\n' \
 # | base64 --decode \

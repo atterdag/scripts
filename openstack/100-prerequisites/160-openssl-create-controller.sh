@@ -53,7 +53,7 @@ sudo openssl pkcs12 \
 
 # Upload PKCS#12 keystore to etcd
 export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
-ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${CONTROLLER_FQDN}.p12 \
 | base64 \
 | etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${CONTROLLER_FQDN}.p12

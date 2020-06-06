@@ -46,7 +46,7 @@ EOF
 $ssh_cmd sudo systemctl restart bind9
 
 export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
-ETCD_ADMIN_PASS=$(cat ~/.ETCD_ADMIN_PASS)
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 $ssh_cmd sudo cat /etc/bind/designate.key \
 | base64 \
 | etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/designate.key

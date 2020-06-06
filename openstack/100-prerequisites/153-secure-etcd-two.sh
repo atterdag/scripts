@@ -15,7 +15,7 @@ export SSL_ROOT_CA_FQDN=ca.se.lemche.net
  export ETCD_USER_PASS=
 
 # Get read privileges to etcd
-ETCD_USER_PASS=$(cat ~/.ETCD_USER_PASS)
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
 
 # Get list of CA certifiates
 CA_CERTIFICATES=$(curl \
