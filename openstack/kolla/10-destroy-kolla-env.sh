@@ -1,6 +1,11 @@
 #!/bin/sh
 
 echo '***'
+echo '*** enable virtualenv'
+echo '***'
+if [[ -z ${WORKON_ON+x} ]]; then workon kolla; fi
+
+echo '***'
 echo '*** delete kolla on Compute host'
 echo '***'
 kolla-ansible -i /etc/kolla/all-in-one destroy --include-images --yes-i-really-really-mean-it \
