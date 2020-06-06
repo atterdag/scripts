@@ -209,8 +209,10 @@ cp -r ${VIRTUAL_ENV}/share/kolla-ansible/etc_examples/kolla/globals.yml /etc/kol
 syv cinder_volume_group "system" /etc/kolla/globals.yml
 syv enable_cinder "yes" /etc/kolla/globals.yml
 syv enable_cinder_backend_lvm "yes" /etc/kolla/globals.yml
+syv enable_grafana yes /etc/kolla/globals.yml
 syv enable_neutron_provider_networks "yes" /etc/kolla/globals.yml
 syv enable_octavia "yes" /etc/kolla/globals.yml
+syv enable_prometheus yes /etc/kolla/globals.yml
 syv enable_redis "yes" /etc/kolla/globals.yml
 syv kolla_base_distro "ubuntu" /etc/kolla/globals.yml
 syv kolla_copy_ca_into_containers "yes" /etc/kolla/globals.yml
@@ -231,9 +233,6 @@ syv openstack_cacert "/etc/ssl/certs/ca-certificates.crt" /etc/kolla/globals.yml
 syv openstack_logging_debug "False" /etc/kolla/globals.yml
 syv openstack_release "master" /etc/kolla/globals.yml
 
-# Prometeus is causing high cpu
-# syv enable_grafana yes /etc/kolla/globals.yml
-# syv enable_prometheus yes /etc/kolla/globals.yml
 
 # Ceilometer is depending on gnocchi, but its broken atm
 # syv enable_ceilometer yes /etc/kolla/globals.yml
