@@ -7,20 +7,20 @@
 # sudo rm -fr /var/lib/ssl/*
 
 # Create Octavia Client CA
-sudo mkdir -p ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/{certs,crl,newcerts,private,reqs}
-sudo chown -R root:ssl-cert ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/private
-sudo chmod 0750 ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/private
-echo "01" | sudo tee ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/serial
-echo "01" | sudo tee ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/crlnumber
-sudo touch ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/index.{txt,txt.attr}
+sudo mkdir -p ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/{certs,crl,newcerts,private,reqs}
+sudo chown -R root:ssl-cert ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/private
+sudo chmod 0750 ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/private
+echo "01" | sudo tee ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/serial
+echo "01" | sudo tee ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/crlnumber
+sudo touch ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/index.{txt,txt.attr}
 
 # Generate random numbers
 sudo openssl rand \
-  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/private/.rnd \
+  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/private/.rnd \
   4096
 
-cat << EOF | sudo tee ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/openssl.cnf
-HOME                           = ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}
+cat << EOF | sudo tee ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/openssl.cnf
+HOME                           = ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}
 oid_section                    = new_oids
 
 [ ca ]
@@ -28,7 +28,7 @@ default_ca                     = CA_default
 
 [ CA_default ]
 # General locations
-dir                            = ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}
+dir                            = ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}
 certs                          = \$dir/certs
 database                       = \$dir/index.txt
 new_certs_dir                  = \$dir/newcerts
@@ -36,11 +36,11 @@ RANDFILE                       = \$dir/private/.rnd
 serial                         = \$dir/serial
 
 # Root CA keypair
-certificate                    = \$dir/certs/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.crt
-private_key                    = \$dir/private/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.key
+certificate                    = \$dir/certs/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.crt
+private_key                    = \$dir/private/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.key
 
 # CRL specific
-crl                            = \$dir/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.crl
+crl                            = \$dir/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.crl
 crl_dir                        = \$dir/crl
 crl_extensions                 = crl_ext
 crlnumber                      = \$dir/crlnumber
@@ -170,7 +170,7 @@ tsa_policy3                    = 1.2.3.4.5.7
 default_tsa                    = tsa_config1
 
 [ tsa_config1 ]
-dir                            = ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}
+dir                            = ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}
 accuracy                       = secs:1, millisecs:500, microsecs:100
 certs                          = \$dir/cacert.pem
 clock_precision_digits         = 0
@@ -187,75 +187,36 @@ signer_key                     = \$dir/private/tsakey.pem
 tsa_name                       = yes
 EOF
 
-# Create the client CA key.
+# Create the server CA key.
 # $ openssl genrsa -aes256 -out private/ca.key.pem 4096
 #
 sudo openssl genrsa \
   -aes256 \
-  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/private/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.key \
-  -passout pass:${SSL_OCTAVIA_CLIENT_CA_PASSWORD} \
+  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/private/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.key \
+  -passout pass:${SSL_OCTAVIA_SERVER_CA_PASSWORD} \
   4096
 
-# Create the client CA certificate.
+# Create the server CA certificate.
 # $ openssl req -config ../openssl.cnf -key private/ca.key.pem -new -x509 -days 7300 -sha256 -extensions v3_ca -out certs/ca.cert.pem
 #
 sudo openssl req \
   -batch \
-  -config ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/openssl.cnf \
+  -config ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/openssl.cnf \
   -days 10950 \
   -extensions "v3_root_ca" \
-  -key ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/private/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.key \
+  -key ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/private/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.key \
   -keyform PEM \
   -new \
-  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.crt \
+  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.crt \
   -outform PEM \
-  -passin pass:${SSL_OCTAVIA_CLIENT_CA_PASSWORD} \
-  -passout pass:${SSL_OCTAVIA_CLIENT_CA_PASSWORD} \
+  -passin pass:${SSL_OCTAVIA_SERVER_CA_PASSWORD} \
+  -passout pass:${SSL_OCTAVIA_SERVER_CA_PASSWORD} \
   -sha512 \
-  -subj "/C=${SSL_COUNTRY_NAME}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_OCTAVIA_CLIENT_CA_COMMON_NAME}" \
+  -subj "/C=${SSL_COUNTRY_NAME}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_OCTAVIA_SERVER_CA_COMMON_NAME}" \
   -subject \
-  -text \
   -verbose \
   -utf8 \
   -x509
-
-# Create a key for the client certificate to use.
-# $ openssl genrsa -aes256 -out private/client.key.pem 2048
-#
-# Create the certificate request for the client certificate used on the controllers.
-# $ openssl req -config ../openssl.cnf -new -sha256 -key private/client.key.pem -out csr/client.csr.pem
-#
-sudo su -c "openssl req \
-  -batch \
-  -config <(cat ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/openssl.cnf; \
-    printf \"[SAN]\nsubjectAltName=DNS:${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}\") \
-  -keyout ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/private/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.key \
-  -new \
-  -newkey rsa:2048 \
-  -nodes \
-  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/reqs/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.csr \
-  -reqexts SAN \
-  -sha256 \
-  -subj \"/C=${SSL_COUNTRY_NAME}/ST=${SSL_STATE}/O=${SSL_ORGANIZATION_NAME}/OU=${SSL_ORGANIZATIONAL_UNIT_NAME}/CN=${SSL_OCTAVIA_CLIENT_CERT_COMMON_NAME}\" \
-  -subject \
-  -utf8"
-
-# Sign the client certificate request.
-# $ openssl ca -config ../openssl.cnf -extensions usr_cert -days 7300 -notext -md sha256 -in csr/client.csr.pem -out certs/client.cert.pem
-#
-sudo openssl ca \
-  -batch \
-  -cert ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.crt \
-  -config ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/openssl.cnf \
-  -days 7300 \
-  -extensions usr_cert \
-  -in ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/reqs/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.csr \
-  -keyfile ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/private/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.key \
-  -keyform PEM \
-  -md sha256 \
-  -notext \
-  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.crt \
-  -passin pass:${SSL_OCTAVIA_CLIENT_CA_PASSWORD}
 
 # Create a concatenated client certificate and key file.
 # $ openssl rsa -in private/client.key.pem -out private/client.cert-and-key.pem
@@ -263,22 +224,21 @@ sudo openssl ca \
 #
 # Create keystore with Octavia Client CA keypair
 sudo openssl pkcs12 \
-  -caname "${SSL_OCTAVIA_CLIENT_CA_COMMON_NAME}" \
-  -certfile ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}.crt \
   -export \
-  -in ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.crt \
-  -inkey ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/private/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.key \
-  -name "${SSL_OCTAVIA_CLIENT_CA_COMMON_NAME}" \
-  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12 \
-  -passout pass:${SSL_OCTAVIA_CLIENT_CERT_KEYSTORE_PASS}
+  -in ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.crt \
+  -inkey ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/private/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.key \
+  -name "${SSL_OCTAVIA_SERVER_CA_COMMON_NAME}" \
+  -out ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12 \
+  -passin pass:${SSL_OCTAVIA_SERVER_CA_PASSWORD} \
+  -passout pass:${SSL_OCTAVIA_SERVER_CA_KEYSTORE_PASS}
 
 # Set URI to etcd server
-export ETCDCTL_ENDPOINTS="http://localhost:2379"
+export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 
 # Get the admin password
 if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 
 # Upload Octavia Client CA keystore to etcd
-sudo cat ${SSL_BASE_DIR}/${SSL_OCTAVIA_CLIENT_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12 \
+sudo cat ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12 \
 | base64 \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/SSL_OCTAVIA_SERVER_CA.p12

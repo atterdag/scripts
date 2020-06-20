@@ -4,9 +4,8 @@
 # Setting up CONTROLLER node
 ##############################################################################
 # You have to set these by hand
-export ETCD_ONE_FQDN=aku.se.lemche.net
 export SSL_ROOT_CA_FQDN=ca.se.lemche.net
- export ETCD_USER_PASS=
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
 
 # Prolly not a good idea
 echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS
@@ -33,7 +32,7 @@ sudo update-ca-certificates \
   --fresh
 
 # Create variables with infrastructure configuration
-export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
+export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 for key in $(etcdctl ls variables/ | sed 's|^/variables/||'); do
 	export eval $key="$(etcdctl get variables/$key)"
 done
@@ -44,7 +43,7 @@ for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|
 done
 
 # Get CONTROLLER keystore
-etcdctl --username user:$ETCD_USER_PASS get /keystores/${CONTROLLER_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/CONTROLLER.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${CONTROLLER_FQDN}.p12

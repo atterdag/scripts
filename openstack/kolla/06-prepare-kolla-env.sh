@@ -28,7 +28,7 @@ fi
 echo '***'
 echo '*** import SSL key pair for haproxy'
 echo '***'
-etcdctl --username user:$ETCD_USER_PASS get /keystores/${HAPROXY_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/HAPROXY.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${HAPROXY_FQDN}.p12
@@ -61,7 +61,7 @@ rm -f ${HAPROXY_FQDN}.p12
 echo '***'
 echo '*** import SSL key pair for backend'
 echo '***'
-etcdctl --username user:$ETCD_USER_PASS get /keystores/${COMPUTE_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/COMPUTE.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${COMPUTE_FQDN}.p12
@@ -94,7 +94,7 @@ fi
 echo '***'
 echo '*** import Octavia server CA'
 echo '***'
-etcdctl --username user:$ETCD_USER_PASS get /keystores/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/SSL_OCTAVIA_SERVER_CA.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12
@@ -119,7 +119,7 @@ rm -f ${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12
 echo '***'
 echo '*** import Octavia client certificate and CA'
 echo '***'
-etcdctl --username user:$ETCD_USER_PASS get /keystores/${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/SSL_OCTAVIA_CLIENT_CERT.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${SSL_OCTAVIA_CLIENT_CERT_STRICT_NAME}.p12

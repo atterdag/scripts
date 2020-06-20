@@ -3,7 +3,7 @@
 ##############################################################################
 # Create controller key pair on Controller host
 ##############################################################################
-export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
+export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 
 if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 
@@ -76,4 +76,4 @@ sudo openssl pkcs12 \
 # Upload PKCS#12 keystore to etcd
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${HAPROXY_FQDN}.p12 \
 | base64 \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${HAPROXY_FQDN}.p12
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/HAPROXY.p12

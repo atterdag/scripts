@@ -1,14 +1,11 @@
 #!/bin/bash
 
 ##############################################################################
-# Setting up compute node
+# Setting up other nodes
 ##############################################################################
 # You have to set these by hand
 export SSL_ROOT_CA_FQDN=ca.se.lemche.net
 if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
-
-# Again prolly not a good idea
-echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS
 
 # Get list of CA certifiates
 CA_CERTIFICATES=$(curl \
@@ -42,30 +39,32 @@ for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|
 	export eval $secret="$(etcdctl --username user:$ETCD_USER_PASS get /passwords/$secret)"
 done
 
-# Get compute keystore
-etcdctl --username user:$ETCD_USER_PASS get /keystores/COMPUTE.p12 \
+# Get registry keystore
+etcdctl --username user:$ETCD_USER_PASS get /keystores/REGISTRY.p12 \
 | tr -d '\n' \
 | base64 --decode \
-> ${COMPUTE_FQDN}.p12
+> ${REGISTRY_FQDN}.p12
 
 openssl pkcs12 \
-  -in ${COMPUTE_FQDN}.p12 \
-  -passin pass:${COMPUTE_KEYSTORE_PASS} \
+  -in ${REGISTRY_FQDN}.p12 \
+  -passin pass:${REGISTRY_KEYSTORE_PASS} \
   -nokeys \
-| sudo tee /etc/ssl/certs/${COMPUTE_FQDN}.crt
+  -clcerts \
+| openssl x509 \
+| sudo tee /etc/ssl/certs/${REGISTRY_FQDN}.crt
 
 openssl pkcs12 \
-  -in ${COMPUTE_FQDN}.p12 \
-  -passin pass:${COMPUTE_KEYSTORE_PASS} \
+  -in ${REGISTRY_FQDN}.p12 \
+  -passin pass:${REGISTRY_KEYSTORE_PASS} \
   -nocerts \
   -nodes \
-| sudo tee /etc/ssl/private/${COMPUTE_FQDN}.key
+| sudo tee /etc/ssl/private/${REGISTRY_FQDN}.key
 
 sudo chown root:ssl-cert \
-  /etc/ssl/certs/${COMPUTE_FQDN}.crt \
-  /etc/ssl/private/${COMPUTE_FQDN}.key
+  /etc/ssl/certs/${REGISTRY_FQDN}.crt \
+  /etc/ssl/private/${REGISTRY_FQDN}.key
 
-sudo chmod 644 /etc/ssl/certs/${COMPUTE_FQDN}.crt
-sudo chmod 640 /etc/ssl/private/${COMPUTE_FQDN}.key
+sudo chmod 644 /etc/ssl/certs/${REGISTRY_FQDN}.crt
+sudo chmod 640 /etc/ssl/private/${REGISTRY_FQDN}.key
 
-rm -f ${COMPUTE_FQDN}.p12
+rm -f ${REGISTRY_FQDN}.p12

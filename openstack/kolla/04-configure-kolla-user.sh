@@ -17,9 +17,6 @@ if [[ ! \$0 =~ bash ]]; then
  exit 1
 fi
 
-# You have to set this by hand
-export ETCD_ONE_FQDN=dexter.se.lemche.net
-
 # Get read privileges to etcd
 if [[ -z \${ETCD_USER_PASS+x} ]]; then
   echo "ETCD_USER_PASS is undefined, run the following to set it"
@@ -27,12 +24,7 @@ if [[ -z \${ETCD_USER_PASS+x} ]]; then
   return 1
 fi
 
-if [[ "\$ETCD_ONE_FQDN" == "" ]]; then
- echo "You have to set ETCD_ONE_FQDN variable before sourcing this file!"
- return
-fi
-
-export ETCDCTL_ENDPOINTS="https://\${ETCD_ONE_FQDN}:2379"
+export ETCDCTL_DISCOVERY_SRV="\$(hostname -d)"
 
 # Create variables with infrastructure configuration
 for key in \$(etcdctl ls /variables/ | sed 's|^/variables/||'); do

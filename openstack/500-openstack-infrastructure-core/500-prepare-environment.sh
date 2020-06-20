@@ -4,10 +4,10 @@
 # Import environment variables, and passwords
 ##############################################################################
 export CONTROLLER_FQDN=aku.se.lemche.net
- export ETCD_USER_PASS=
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
 
 # Create variables with infrastructure configuration
-export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
+export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 for key in $(etcdctl ls variables/ | sed 's|^/variables/||'); do
 	export eval $key="$(etcdctl get variables/$key)"
 done

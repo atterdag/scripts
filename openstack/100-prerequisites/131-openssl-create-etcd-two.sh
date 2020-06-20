@@ -15,7 +15,7 @@ fi
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
-    printf \"[SAN]\nsubjectAltName=DNS:${ETCD_TWO_FQDN},IP:${ETCD_TWO_IP_ADDRESS}\") \
+    printf \"[SAN]\nsubjectAltName=DNS:${ETCD_TWO_FQDN},IP:${ETCD_TWO_IP_ADDRESS},DNS:${DNS_DOMAIN}\") \
   -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${ETCD_TWO_FQDN}.key \
   -new \
   -newkey rsa:2048 \
@@ -56,4 +56,4 @@ export ETCDCTL_ENDPOINTS="http://localhost:2379"
 if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${ETCD_TWO_FQDN}.p12 \
 | base64 \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${ETCD_TWO_FQDN}.p12
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/ETCD_TWO.p12

@@ -50,5 +50,5 @@ if [[ $CONTROLLER_FQDN != $NS_FQDN ]]; then
   if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
   sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${IDM_TWO_FQDN}.p12 \
   | base64 \
-  | etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/${IDM_TWO_FQDN}.p12
+  | etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/IDM_TWO_FQDN
 fi

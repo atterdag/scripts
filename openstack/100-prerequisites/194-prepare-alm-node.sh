@@ -4,9 +4,8 @@
 # Setting up other nodes
 ##############################################################################
 # You have to set these by hand
-export ETCD_ONE_FQDN=aku.se.lemche.net
 export SSL_ROOT_CA_FQDN=ca.se.lemche.net
- export ETCD_USER_PASS=
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
 
 # Get list of CA certifiates
 CA_CERTIFICATES=$(curl \
@@ -30,7 +29,7 @@ sudo update-ca-certificates \
   --fresh
 
 # Create variables with infrastructure configuration
-export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
+export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 for key in $(etcdctl ls variables/ | sed 's|^/variables/||'); do
 	export eval $key="$(etcdctl get variables/$key)"
 done
@@ -41,7 +40,7 @@ for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|
 done
 
 # Get ALM keystore
-etcdctl --username user:$ETCD_USER_PASS get /keystores/${ALM_FQDN}.p12 \
+etcdctl --username user:$ETCD_USER_PASS get /keystores/ALM.p12 \
 | tr -d '\n' \
 | base64 --decode \
 > ${ALM_FQDN}.p12
@@ -69,63 +68,3 @@ sudo chmod 644 /etc/ssl/certs/${ALM_FQDN}.crt
 sudo chmod 640 /etc/ssl/private/${ALM_FQDN}.key
 
 rm -f ${ALM_FQDN}.p12
-
-# Get registry keystore
-etcdctl --username user:$ETCD_USER_PASS get /keystores/${REGISTRY_FQDN}.p12 \
-| tr -d '\n' \
-| base64 --decode \
-> ${REGISTRY_FQDN}.p12
-
-openssl pkcs12 \
-  -in ${REGISTRY_FQDN}.p12 \
-  -passin pass:${REGISTRY_KEYSTORE_PASS} \
-  -nokeys \
-  -clcerts \
-| openssl x509 \
-| sudo tee /etc/ssl/certs/${REGISTRY_FQDN}.crt
-
-openssl pkcs12 \
-  -in ${REGISTRY_FQDN}.p12 \
-  -passin pass:${REGISTRY_KEYSTORE_PASS} \
-  -nocerts \
-  -nodes \
-| sudo tee /etc/ssl/private/${REGISTRY_FQDN}.key
-
-sudo chown root:ssl-cert \
-  /etc/ssl/certs/${REGISTRY_FQDN}.crt \
-  /etc/ssl/private/${REGISTRY_FQDN}.key
-
-sudo chmod 644 /etc/ssl/certs/${REGISTRY_FQDN}.crt
-sudo chmod 640 /etc/ssl/private/${REGISTRY_FQDN}.key
-
-rm -f ${REGISTRY_FQDN}.p12
-
-# Get coreswitch keystore
-etcdctl --username user:$ETCD_USER_PASS get /keystores/${CORESWITCH_FQDN}.p12 \
-| tr -d '\n' \
-| base64 --decode \
-> ${CORESWITCH_FQDN}.p12
-
-openssl pkcs12 \
-  -in ${CORESWITCH_FQDN}.p12 \
-  -passin pass:${CORESWITCH_KEYSTORE_PASS} \
-  -nokeys \
-  -clcerts \
-| openssl x509 \
-| sudo tee /etc/ssl/certs/${CORESWITCH_FQDN}.crt
-
-openssl pkcs12 \
-  -in ${CORESWITCH_FQDN}.p12 \
-  -passin pass:${CORESWITCH_KEYSTORE_PASS} \
-  -nocerts \
-  -nodes \
-| sudo tee /etc/ssl/private/${CORESWITCH_FQDN}.key
-
-sudo chown root:ssl-cert \
-  /etc/ssl/certs/${CORESWITCH_FQDN}.crt \
-  /etc/ssl/private/${CORESWITCH_FQDN}.key
-
-sudo chmod 644 /etc/ssl/certs/${CORESWITCH_FQDN}.crt
-sudo chmod 640 /etc/ssl/private/${CORESWITCH_FQDN}.key
-
-rm -f ${CORESWITCH_FQDN}.p12

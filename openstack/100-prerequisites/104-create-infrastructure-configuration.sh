@@ -11,9 +11,9 @@ export ETCDCTL_ENDPOINTS="http://localhost:2379"
 if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
 
 # Set keys with Management server
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_HOST_NAME 'dexter'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_HOST_NAME 'etcd-0'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_IP_ADDRESS '192.168.1.3'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_HOST_NAME 'didi'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_HOST_NAME 'etcd-1'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_IP_ADDRESS '192.168.1.4'
 
 # Set keys with OpenStack servers
@@ -57,25 +57,27 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_ONE_IP_ADDRESS '1
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_TWO_IP_ADDRESS '192.168.1.4'
 
 # Set DNS server details
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_HOST_NAME 'dexter'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_HOST_NAME 'ns'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_IP_ADDRESS '192.168.1.3'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NSS_HOST_NAME 'didi'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NSS_HOST_NAME 'nss'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NSS_IP_ADDRESS '192.168.1.4'
 
 # Set FreeIPA details
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_ONE_HOST_NAME 'dexter'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/FREEIPA_CONFIGURATION_DIRECTORY '/var/lib/freeipa'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_INSTANCE_NAME 'default'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_ONE_HOST_NAME 'idm1'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_ONE_IP_ADDRESS '192.168.1.3'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_TWO_HOST_NAME 'didi'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_TWO_HOST_NAME 'idm2'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_TWO_IP_ADDRESS '192.168.1.4'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_PKI_INSTANCE_NAME 'pki-tomcat'
 
 # Set keys with CA details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_ROOT_CA_HOST_NAME 'ca'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_ROOT_CA_IP_ADDRESS '192.168.0.30'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_ONE_HOST_NAME 'ca'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_ONE_IP_ADDRESS '192.168.0.30'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_TWO_HOST_NAME 'idm1'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_TWO_IP_ADDRESS '192.168.0.33'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_ONE_HOST_NAME 'idm1'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_ONE_IP_ADDRESS '192.168.1.3'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_TWO_HOST_NAME 'idm2'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_CA_TWO_IP_ADDRESS '192.168.1.4'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_OCSP_ONE_HOST_NAME 'ocsp1'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_OCSP_TWO_HOST_NAME 'ocsp2'
 
@@ -113,7 +115,6 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_FQDN "$(etcdctl --
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NSS_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NSS_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NTP_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_BASE_DIR "/var/lib/ssl/$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ORGANIZATION_NAME)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_BASE_URL "http://$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_FQDN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_CA_EMAIL "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_EMAIL_USER)@$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_AUDIT_ONE_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_INTERMEDIATE_AUDIT_ONE_COMMON_NAME) | sed 's/\s/_/g')
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_AUDIT_TWO_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_INTERMEDIATE_AUDIT_TWO_COMMON_NAME) | sed 's/\s/_/g')
@@ -129,3 +130,4 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CA
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CERT_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_OCTAVIA_SERVER_CERT_COMMON_NAME) | sed 's/\s/_/g')
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_ROOT_CA_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_ROOT_CA_STRICT_NAME "$(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_COMMON_NAME) | sed 's/\s/_/g')"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_BASE_URL "http://$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_FQDN)"
