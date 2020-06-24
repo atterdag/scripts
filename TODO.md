@@ -3,7 +3,7 @@
 ## Create roles ansible roles for:
 
 - [confd] that use etcd
-- [etcd]
+- ~~[etcd]~~
 - [gogs]
 - ~~[Kubernetes]~~
 - Kubernetes dashboard
@@ -21,6 +21,7 @@
 
 - [BOSH]
 - [Cillium]
+- [Conjur]
 - [ELK]
 - [Fluentd]
 - [Grafana]
@@ -37,7 +38,8 @@
 - [OKD]
 - [OpenVSwitch]
 - [Prometheus]
-- [pulp]
+- [Pulp]
+- [Fission]
 - [Tekton]
 - [Terraform]
 - [traefik]
@@ -55,8 +57,10 @@
 [bosh]: https://bosh.io/
 [cillium]: https://github.com/cilium/cilium
 [confd]: https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
+[conjur]: https://www.conjur.org/
 [elk]: https://www.elastic.co
 [etcd]: https://etcd.io/
+[fission]: https://fission.io
 [fluentd]: https://fluentd.org
 [gogs]: https://github.com/gogits/gogs
 [grafana]: https://grafana.com/
