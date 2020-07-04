@@ -29,10 +29,16 @@ sudo systemctl enable etcd
 sudo systemctl start etcd
 
 cat <<EOF | sudo tee /etc/ufw/applications.d/etcd
-[etcd]
-title=etcd
+[etcd-client]
+title=etcd Client Traffic
 description=A distributed, reliable key-value store for the most critical data of a distributed system.
-ports=2379,2380/tcp
+ports=2379/tcp
+
+[etcd-peer]
+title=etcd Peer Traffic
+description=A distributed, reliable key-value store for the most critical data of a distributed system.
+ports=2380/tcp
 EOF
 
-sudo ufw allow etcd
+sudo ufw allow etcd-client
+sudo ufw allow etcd-peer
