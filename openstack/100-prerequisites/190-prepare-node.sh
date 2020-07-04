@@ -4,7 +4,7 @@ echo '***'
 echo '*** You need to set the most basic variables'
 echo '***'
 export SSL_ROOT_CA_FQDN=ca.se.lemche.net
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 
 echo '***'
 echo '*** install tools required to fetch variables, secrets and keystores'
@@ -55,7 +55,7 @@ fi
 # Get read privileges to etcd
 if [[ -z \${ETCD_USER_PASS+x} ]]; then
   echo "ETCD_USER_PASS is undefined, run the following to set it"
-  echo 'if [[ -z \${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi'
+  echo 'echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS'
   return 1
 fi
 

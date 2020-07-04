@@ -4,8 +4,8 @@
 # Create controller key pair on Controller host
 ##############################################################################
 export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 
 CONTEXT=AKU
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/${CONTEXT}_HOST_NAME 'aku'

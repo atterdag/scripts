@@ -9,7 +9,7 @@
 #   -passin "pass:${CA_PASSWORD}"
 
 export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 etcdctl --username user:$ETCD_USER_PASS get ephemeral/ca_signing.csr \
 | tr -d '\n' \
 | base64 --decode \
@@ -28,7 +28,7 @@ sudo openssl ca \
   -passin pass:${CA_PASSWORD} \
   -policy policy_anything
 
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 sudo cat ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
 | base64 \
 | tr -d '\n' \

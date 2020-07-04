@@ -5,7 +5,7 @@ echo '*** Prepare files to upload to switch'
 echo '***'
 export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 
 etcdctl --username user:$ETCD_USER_PASS get /ca/dhparams-strong.pem \
 > dhparams-strong.pem

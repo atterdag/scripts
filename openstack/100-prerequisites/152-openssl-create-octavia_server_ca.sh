@@ -236,7 +236,7 @@ sudo openssl pkcs12 \
 export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 
 # Get the admin password
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 
 # Upload Octavia Client CA keystore to etcd
 sudo cat ${SSL_BASE_DIR}/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}/certs/${SSL_OCTAVIA_SERVER_CA_STRICT_NAME}.p12 \

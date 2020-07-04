@@ -3,8 +3,8 @@
 ##############################################################################
 # Install Designate Worker on Controller host
 ##############################################################################
-# export ETCDCTL_ENDPOINTS="https://${ETCD_ONE_FQDN}:2379"
-# if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+# export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
+# if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 # etcdctl --username user:$ETCD_USER_PASS get /keystores/designate.key \
 # | tr -d '\n' \
 # | base64 --decode \

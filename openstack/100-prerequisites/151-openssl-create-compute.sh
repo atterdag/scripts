@@ -53,7 +53,7 @@ sudo openssl pkcs12 \
 
 # Upload PKCS#12 keystore to etcd
 export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${COMPUTE_FQDN}.p12 \
 | base64 \
 | etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/COMPUTE.p12

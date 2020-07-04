@@ -5,7 +5,7 @@
 ##############################################################################
 export ETCDCTL_ENDPOINTS="http://localhost:2379"
 source /etc/profile.d/genpasswd.sh
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/ADMIN_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/BARBICAN_DBPASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/BARBICAN_KEK $(echo $(genpasswd 32) | base64)

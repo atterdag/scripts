@@ -7,7 +7,7 @@ d#!/bin/bash
 export ETCDCTL_ENDPOINTS="http://localhost:2379"
 
 # Get read privileges to etcd
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 
 # Retrieve MANAGEMENT keystore from etcd
 etcdctl --username user:$ETCD_USER_PASS get /keystores/ETCD_ONE.p12 \

@@ -5,7 +5,7 @@
 ##############################################################################
 export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 
 # Set HA-Proxy server details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/HAPROXY_HOST_NAME 'openstack'
@@ -19,7 +19,7 @@ for key in $(etcdctl ls /variables/ | sed 's|^/variables/||'); do
 done
 
 # Get read privileges to etcd
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 
 # Create variables with secrets
 for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|^/passwords/||'); do

@@ -5,7 +5,7 @@
 ##############################################################################
 export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/REGISTRY_HOST_NAME 'registry'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/REGISTRY_FQDN "$(etcdctl get variables/REGISTRY_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
@@ -18,7 +18,7 @@ for key in $(etcdctl ls /variables/ | sed 's|^/variables/||'); do
 done
 
 # Get read privileges to etcd
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 
 # Create variables with secrets
 for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|^/passwords/||'); do

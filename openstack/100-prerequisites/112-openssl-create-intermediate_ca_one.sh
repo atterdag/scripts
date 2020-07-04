@@ -299,7 +299,7 @@ sudo openssl dhparam \
 export ETCDCTL_ENDPOINTS="http://localhost:2379"
 
 # Get the admin password
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 
 sudo cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/certs/${SSL_ORGANIZATION_NAME}_CA_Chain.crt \
 | etcdctl --username admin:"$ETCD_ADMIN_PASS" set /ca/${SSL_ORGANIZATION_NAME}_CA_Chain.crt

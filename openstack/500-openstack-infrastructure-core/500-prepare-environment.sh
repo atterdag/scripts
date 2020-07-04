@@ -4,7 +4,7 @@
 # Import environment variables, and passwords
 ##############################################################################
 export CONTROLLER_FQDN=aku.se.lemche.net
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 
 # Create variables with infrastructure configuration
 export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"

@@ -5,7 +5,7 @@
 ##############################################################################
 # You have to set these by hand
 export SSL_ROOT_CA_FQDN=ca.se.lemche.net
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 
 # Again prolly not a good idea
 echo $ETCD_USER_PASS > ~/.ETCD_USER_PASS

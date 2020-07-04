@@ -5,7 +5,7 @@
 ##############################################################################
 # Copy keystore from etcd
 export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
-if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read ETCD_USER_PASS; fi
+if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 etcdctl --username user:$ETCD_USER_PASS get ephemeral/ca_admin_cert.p12 \
 | tr -d '\n' \
 | base64 --decode \

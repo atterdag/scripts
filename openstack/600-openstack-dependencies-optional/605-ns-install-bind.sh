@@ -46,7 +46,7 @@ EOF
 $ssh_cmd sudo systemctl restart bind9
 
 export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
-if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read ETCD_ADMIN_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 $ssh_cmd sudo cat /etc/bind/designate.key \
 | base64 \
 | etcdctl --username admin:"$ETCD_ADMIN_PASS" set /keystores/designate.key
