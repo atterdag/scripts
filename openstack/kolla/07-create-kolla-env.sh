@@ -3,20 +3,32 @@
 echo '***'
 echo '*** create kolla inventory templates'
 echo '***'
-cp ${VIRTUAL_ENV}/share/kolla-ansible/ansible/inventory/* /etc/kolla/
+cp \
+  ${VIRTUAL_ENV}/share/kolla-ansible/ansible/inventory/* \
+  /etc/kolla/
 
 echo '***'
 echo '*** deploy openstack kolla'
 echo '***'
-kolla-ansible -i /etc/kolla/all-in-one bootstrap-servers \
-&& kolla-ansible -i /etc/kolla/all-in-one prechecks \
-&& kolla-ansible -i /etc/kolla/all-in-one deploy \
-&& kolla-ansible -i /etc/kolla/all-in-one post-deploy
+kolla-ansible \
+  --inventory /etc/kolla/all-in-one \
+  bootstrap-servers \
+&& kolla-ansible \
+  --inventory /etc/kolla/all-in-one \
+  prechecks \
+&& kolla-ansible \
+  --inventory /etc/kolla/all-in-one \
+  deploy \
+&& kolla-ansible \
+  --inventory /etc/kolla/all-in-one \
+  post-deploy
 
 echo '***'
 echo '*** source in OS configuration'
 echo '***'
-. /etc/kolla/admin-openrc.sh
+echo "export OS_CACERT=/etc/ssl/certs/ca-certificates.crt" \
+| sudo tee -a /etc/kolla/admin-openrc.sh
+source /etc/kolla/admin-openrc.sh
 
 echo '***'
 echo '*** add additional cinder volume types'
@@ -27,6 +39,48 @@ openstack volume type create \
 openstack volume type create \
   --property volume_backend_name='standard' \
   standard
+
+echo '***'
+echo '*** add default domain to designate'
+echo '***'
+ZONE_ID=$(sudo grep id: /etc/kolla/designate-worker/pools.yaml | awk '{print $2}')
+sudo mkdir -p /etc/kolla/config/designate/
+cat <<EOF | sudo tee /etc/kolla/config/designate/designate-sink.conf
+[handler:nova_fixed]
+zone_id = $ZONE_ID
+[handler:neutron_floatingip]
+zone_id = $ZONE_ID
+EOF
+kolla-ansible --inventory /etc/kolla/all-in-one --tags designate,neutron,nova reconfigure
+
+cat <<EOF | sudo tee /etc/kolla/designate-worker/pools.yaml
+- name: default
+  description: Default BIND9 Pool
+  attributes: {}
+  ns_records:
+    - hostname: ${OS_DNS_DOMAIN}.
+      priority: 1
+  nameservers:
+    - host: $(hostname -i)
+      port: 53
+  targets:
+    - type: bind9
+      description: BIND9 Server $(hostname -i)
+      masters:
+        - host: $(hostname -i)
+          port: 5354
+      options:
+        host: $(hostname -i)
+        port: 53
+        rndc_host: $(hostname -i)
+        rndc_port: 953
+        rndc_key_file: /etc/designate/rndc.key
+EOF
+docker restart designate_worker
+docker exec -t designate_worker designate-manage pool update --file /etc/designate/pools.yaml
+openstack zone create \
+  --email hostmaster@${OS_DNS_DOMAIN} \
+  ${OS_DNS_DOMAIN}.
 
 echo '***'
 echo '*** In case we just want to run a test configuration'

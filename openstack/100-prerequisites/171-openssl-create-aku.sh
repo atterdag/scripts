@@ -10,7 +10,7 @@ if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secr
 CONTEXT=AKU
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/${CONTEXT}_HOST_NAME 'aku'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/${CONTEXT}_IP_ADDRESS '192.168.0.40'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/${CONTEXT}_FQDN "$(etcdctl get variables/${CONTEXT}_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/${CONTEXT}_FQDN "$(etcdctl get variables/${CONTEXT}_HOST_NAME).$(etcdctl get variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/${CONTEXT}_KEYSTORE_PASS $(genpasswd 16)
 
 # Set environment variables

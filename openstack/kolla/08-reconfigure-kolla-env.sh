@@ -3,4 +3,4 @@
 echo '***'
 echo '*** reconfigure kolla'
 echo '***'
-kolla-ansible -i /etc/kolla/all-in-one reconfigure
+kolla-ansible --inventory /etc/kolla/all-in-one reconfigure

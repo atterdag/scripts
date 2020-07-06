@@ -8,8 +8,8 @@ openstack network create \
 
 openstack subnet create \
   --allocation-pool start=192.168.12.129,end=192.168.12.196 \
-  --dns-nameserver ${DNS_ONE_IP_ADDRESS} \
-  --dns-nameserver ${DNS_TWO_IP_ADDRESS} \
+  --dns-nameserver ${NS_IP_ADDRESS} \
+  --dns-nameserver ${NSS_IP_ADDRESS} \
   --gateway 192.168.12.254 \
   --network testfloat \
   --subnet-range 192.168.12.0/24 \

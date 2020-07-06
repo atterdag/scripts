@@ -20,7 +20,9 @@ pip install -U \
   ansible \
   osc-placement \
   osc-placement-tree \
+  python-barbicanclient \
   python-cinderclient \
+  python-designateclient \
   python-glanceclient \
   python-heatclient \
   python-keystoneclient \
@@ -28,9 +30,7 @@ pip install -U \
   python-novaclient \
   python-octaviaclient \
   python-openstackclient \
-#  python-barbicanclient \
 #  python-blazarclient \
-#  python-designateclient \
 #  python-magnumclient \
 #  python-manilaclient \
 #  python-mistralclient \

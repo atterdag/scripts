@@ -78,7 +78,7 @@ echo '*** determine'
 echo '***'
 HOST_NAME=$(hostname -s)
 HOST_IP=$(hostname -i)
-HOST_FQDN=${HOST_NAME}.${DNS_DOMAIN}
+HOST_FQDN=${HOST_NAME}.${ROOT_ROOT_DNS_DOMAIN}
 CONTEXT=$(hostname | tr '[:lower:]' '[:upper:]')
 eval CONTEXT_KEYSTORE_PASS=\$${CONTEXT}_KEYSTORE_PASS
 

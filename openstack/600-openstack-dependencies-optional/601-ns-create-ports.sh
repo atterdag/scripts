@@ -22,6 +22,6 @@ fi
 #   --security-group domain \
 #   --security-group domain_xfer \
 #   --security-group rndc \
-#   --dns-domain "${DNS_DOMAIN}" \
+#   --dns-domain "${ROOT_ROOT_DNS_DOMAIN}" \
 #   --dns-name "${NS_HOST_NAME}" \
 #   ${NS_HOST_NAME}

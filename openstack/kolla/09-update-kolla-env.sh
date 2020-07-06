@@ -29,6 +29,6 @@ for repo in kolla kolla-ansible octavia; do
   pip install --upgrade src/$repo
 done
 
-kolla-ansible -i /etc/kolla/all-in-one upgrade && \
-kolla-ansible -i /etc/kolla/all-in-one deploy-containers && \
-kolla-ansible -i /etc/kolla/all-in-one prune-images --yes-i-really-really-mean-it
+kolla-ansible --inventory /etc/kolla/all-in-one upgrade && \
+kolla-ansible --inventory /etc/kolla/all-in-one deploy-containers && \
+kolla-ansible --inventory /etc/kolla/all-in-one prune-images --yes-i-really-really-mean-it

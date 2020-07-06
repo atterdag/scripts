@@ -9,7 +9,7 @@ if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secr
 
 # Set HA-Proxy server details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/HAPROXY_HOST_NAME 'openstack'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/HAPROXY_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/HAPROXY_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/HAPROXY_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/HAPROXY_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/HAPROXY_IP_ADDRESS '192.168.0.253'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/HAPROXY_KEYSTORE_PASS $(genpasswd 16)
 

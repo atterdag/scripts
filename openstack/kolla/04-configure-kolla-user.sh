@@ -24,6 +24,10 @@ if [[ -z \${ETCD_USER_PASS+x} ]]; then
   return 1
 fi
 
+if [[ -d /etc/kolla ]]; then
+  source <(sudo cat /etc/kolla/admin-openrc.sh)
+fi
+
 export ETCDCTL_DISCOVERY_SRV="\$(hostname -d)"
 
 # Create variables with infrastructure configuration
@@ -35,10 +39,6 @@ done
 for secret in \$(etcdctl --username user:\$ETCD_USER_PASS ls /passwords/ | sed 's|^/passwords/||'); do
     export eval \$secret="\$(etcdctl --username user:\$ETCD_USER_PASS get /passwords/\$secret)"
 done
-
-if [[ -d /etc/kolla ]]; then
-  source <(sudo if [[ -f /etc/kolla/admin-openrc.sh ]]; then cat /etc/kolla/admin-openrc.sh; fi)
-fi
 EOF
 
 echo '***'

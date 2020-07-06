@@ -111,7 +111,7 @@ sudo usermod -a -G ssl-cert etcd
 sudo mv /etc/default/etcd /etc/default/etcd.$(date +%Y%m%d-%H%M%S)
 cat  <<EOF | sudo tee /etc/default/etcd
 ETCD_NAME="${ETCD_TWO_FQDN}"
-ETCD_DISCOVERY_SRV="${DNS_DOMAIN}"
+ETCD_DISCOVERY_SRV="${ROOT_ROOT_DNS_DOMAIN}"
 ETCD_INITIAL_ADVERTISE_PEER_URLS="https://${ETCD_TWO_FQDN}:2380"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
 ETCD_INITIAL_CLUSTER_STATE="existing"

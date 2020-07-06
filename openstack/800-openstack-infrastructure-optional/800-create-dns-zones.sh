@@ -4,35 +4,42 @@
 # Create DNS zones for additional subnets
 ##############################################################################
 openstack zone create \
-  --email hostmaster@${DNS_DOMAIN} \
-  servers.${DNS_DOMAIN}.
+  --email hostmaster@${ROOT_ROOT_DNS_DOMAIN} \
+  servers.${ROOT_ROOT_DNS_DOMAIN}.
 openstack zone create \
-  --email hostmaster@${DNS_DOMAIN} \
+  --email hostmaster@${ROOT_ROOT_DNS_DOMAIN} \
   0.16.172.in-addr.arpa.
 
 openstack zone create \
-  --email hostmaster@${DNS_DOMAIN} \
-  dmz.${DNS_DOMAIN}.
+  --email hostmaster@os.${ROOT_ROOT_DNS_DOMAIN} \
+  os.${ROOT_ROOT_DNS_DOMAIN}.
 openstack zone create \
-  --email hostmaster@${DNS_DOMAIN} \
+  --email hostmaster@${ROOT_ROOT_DNS_DOMAIN} \
+  0.16.172.in-addr.arpa.
+
+openstack zone create \
+  --email hostmaster@${ROOT_ROOT_DNS_DOMAIN} \
+  dmz.${ROOT_ROOT_DNS_DOMAIN}.
+openstack zone create \
+  --email hostmaster@${ROOT_ROOT_DNS_DOMAIN} \
   0.0.10.in-addr.arpa.
 
 # ##############################################################################
 # # Create DNS zones, and records for controller
 # ##############################################################################
 # openstack zone create \
-#   --email hostmaster@${DNS_DOMAIN} \
+#   --email hostmaster@${ROOT_ROOT_DNS_DOMAIN} \
 #   --masters 192.168.0.40 \
 #   --type secondary  \
-#   ${DNS_DOMAIN}.
+#   ${ROOT_ROOT_DNS_DOMAIN}.
 # openstack zone create \
-#   --email hostmaster@${DNS_DOMAIN} \
+#   --email hostmaster@${ROOT_ROOT_DNS_DOMAIN} \
 #   --masters 192.168.0.40 \
 #   --type secondary  \
 #   ${DNS_REVERSE_DOMAIN}.
 # openstack recordset create \
 #   --record "${CONTROLLER_IP_ADDRESS}" \
-#   --type A ${DNS_DOMAIN}. \
+#   --type A ${ROOT_ROOT_DNS_DOMAIN}. \
 #   ${CONTROLLER_HOST_NAME}
 # openstack recordset create \
 #   --record "${CONTROLLER_FQDN}." \
@@ -44,7 +51,7 @@ openstack zone create \
 # ##############################################################################
 # openstack recordset create \
 #   --record ${NS_IP_ADDRESS} \
-#   --type A ${DNS_DOMAIN}. \
+#   --type A ${ROOT_ROOT_DNS_DOMAIN}. \
 #   ${NS_HOST_NAME}
 # openstack recordset create \
 #   --record "${NS_FQDN}." \

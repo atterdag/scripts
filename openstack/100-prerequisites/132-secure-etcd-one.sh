@@ -44,7 +44,7 @@ sudo chmod 640 /var/lib/etcd/${ETCD_ONE_FQDN}.key
 sudo usermod -a -G ssl-cert etcd
 
 # Ensure that the following DNS entries are created
-dig +noall +answer SRV _etcd-server-ssl._tcp.${DNS_DOMAIN}
+dig +noall +answer SRV _etcd-server-ssl._tcp.${ROOT_ROOT_DNS_DOMAIN}
 # Should output
 # _etcd-server-ssl._tcp.se.lemche.net. 7197 IN SRV 0 10 2380 etcd-0.se.lemche.net.
 # _etcd-server-ssl._tcp.se.lemche.net. 7197 IN SRV 0 10 2380 etcd-1.se.lemche.net.
@@ -62,7 +62,7 @@ dig +noall +answer ${ETCD_ONE_FQDN} ${ETCD_TWO_FQDN}
 sudo mv /etc/default/etcd /etc/default/etcd.$(date +%Y%m%d-%H%M%S)
 cat  <<EOF | sudo tee /etc/default/etcd
 ETCD_NAME="${ETCD_ONE_FQDN}"
-ETCD_DISCOVERY_SRV="${DNS_DOMAIN}"
+ETCD_DISCOVERY_SRV="${ROOT_ROOT_DNS_DOMAIN}"
 ETCD_INITIAL_ADVERTISE_PEER_URLS="https://${ETCD_ONE_FQDN}:2380"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
 # ETCD_INITIAL_CLUSTER="${ETCD_ONE_FQDN}=https://${ETCD_ONE_FQDN}:2380,${ETCD_TWO_FQDN}=https://${ETCD_TWO_FQDN}:2380"

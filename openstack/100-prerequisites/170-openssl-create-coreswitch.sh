@@ -8,7 +8,7 @@ export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CORESWITCH_HOST_NAME 'coreswitch'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CORESWITCH_FQDN "$(etcdctl get variables/CORESWITCH_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CORESWITCH_FQDN "$(etcdctl get variables/CORESWITCH_HOST_NAME).$(etcdctl get variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CORESWITCH_IP_ADDRESS '192.168.0.4'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/CORESWITCH_KEYSTORE_PASS $(genpasswd 16)
 

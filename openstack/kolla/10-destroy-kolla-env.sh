@@ -6,10 +6,20 @@ echo '***'
 if [[ -z ${WORKON_ON+x} ]]; then workon kolla; fi
 
 echo '***'
-echo '*** delete kolla on Compute host'
+echo '*** destroy kolla on Compute host'
 echo '***'
-kolla-ansible -i /etc/kolla/all-in-one destroy --include-images --yes-i-really-really-mean-it \
-&& sudo rm -fr /etc/kolla
+kolla-ansible \
+  --inventory /etc/kolla/all-in-one destroy \
+  --include-images \
+  --yes-i-really-really-mean-it
+
+echo '***'
+echo '*** delete kolla configuration on Compute host'
+echo '***'
+sudo rm \
+  --force \
+  --recursive \
+  /etc/kolla
 
 echo '***'
 echo '*** delete premium (SDD) storage on Compute host'

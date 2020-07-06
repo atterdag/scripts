@@ -9,15 +9,15 @@ if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secr
 
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ALM_HOST_NAME 'alm'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ALM_IP_ADDRESS '192.168.0.42'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ALM_FQDN "$(etcdctl get variables/ALM_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ALM_FQDN "$(etcdctl get variables/ALM_HOST_NAME).$(etcdctl get variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/AWX_HOST_NAME 'awx'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/AWX_FQDN "$(etcdctl get variables/AWX_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/AWX_FQDN "$(etcdctl get variables/AWX_HOST_NAME).$(etcdctl get variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/GOGS_HOST_NAME 'gogs'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/GOGS_FQDN "$(etcdctl get variables/GOGS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/GOGS_FQDN "$(etcdctl get variables/GOGS_HOST_NAME).$(etcdctl get variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JENKINS_HOST_NAME 'jenkins'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JENKINS_FQDN "$(etcdctl get variables/JENKINS_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JENKINS_FQDN "$(etcdctl get variables/JENKINS_HOST_NAME).$(etcdctl get variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JOXIT_HOST_NAME 'joxit'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JOXIT_FQDN "$(etcdctl get variables/JOXIT_HOST_NAME).$(etcdctl get variables/DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/JOXIT_FQDN "$(etcdctl get variables/JOXIT_HOST_NAME).$(etcdctl get variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/ALM_KEYSTORE_PASS $(genpasswd 16)
 
 # Set environment variables

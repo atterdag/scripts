@@ -207,8 +207,11 @@ echo '*** configure globals.yml'
 echo '***'
 cp -r ${VIRTUAL_ENV}/share/kolla-ansible/etc_examples/kolla/globals.yml /etc/kolla/globals.yml
 syv cinder_volume_group "system" /etc/kolla/globals.yml
+syv designate_backend "bind9" /etc/kolla/globals.yml
+syv designate_ns_record "${OS_DNS_DOMAIN}" /etc/kolla/globals.yml
 syv enable_cinder "yes" /etc/kolla/globals.yml
 syv enable_cinder_backend_lvm "yes" /etc/kolla/globals.yml
+syv enable_designate yes /etc/kolla/globals.yml
 syv enable_grafana yes /etc/kolla/globals.yml
 syv enable_neutron_provider_networks "yes" /etc/kolla/globals.yml
 syv enable_octavia "yes" /etc/kolla/globals.yml
@@ -232,7 +235,8 @@ syv nova_compute_virt_type "kvm" /etc/kolla/globals.yml
 syv openstack_cacert "/etc/ssl/certs/ca-certificates.crt" /etc/kolla/globals.yml
 syv openstack_logging_debug "False" /etc/kolla/globals.yml
 syv openstack_release "master" /etc/kolla/globals.yml
-
+syv syslog_server "192.168.0.40" /etc/kolla/globals.yml
+syv syslog_udp_port "514" /etc/kolla/globals.yml
 
 # Ceilometer is depending on gnocchi, but its broken atm
 # syv enable_ceilometer yes /etc/kolla/globals.yml
@@ -248,6 +252,42 @@ echo '***'
 echo '*** check configuration'
 echo '***'
 grep -v -E "^$|^#" /etc/kolla/globals.yml | sort
+
+echo '***'
+echo '*** set specific debug configuration for a given service'
+echo '***'
+crudini --set /etc/kolla/config/designate.conf DEFAULT debug True
+crudini --set /etc/kolla/config/neutron.conf DEFAULT debug True
+crudini --set /etc/kolla/config/nova.conf DEFAULT debug True
+crudini --set /etc/kolla/config/keystone.conf DEFAULT debug True
+
+echo '***'
+echo '*** create additional cinder volume type configuration'
+echo '***'
+if [[ ! -d /etc/kolla/config/designate-worker ]]; then mkdir -p /etc/kolla/config/designate-worker; fi
+cat <<EOF | sudo tee /etc/kolla/config/designate-worker/pools.yaml
+- name: default
+  description: Default BIND9 Pool
+  attributes: {}
+  ns_records:
+    - hostname: ${OS_DNS_DOMAIN}.
+      priority: 1
+  nameservers:
+    - host: $(hostname -i)
+      port: 53
+  targets:
+    - type: bind9
+      description: BIND9 Server $(hostname -i)
+      masters:
+        - host: $(hostname -i)
+          port: 5354
+      options:
+        host: $(hostname -i)
+        port: 53
+        rndc_host: $(hostname -i)
+        rndc_port: 953
+        rndc_key_file: /etc/designate/rndc.key
+EOF
 
 echo '***'
 echo '*** ironic on ubuntu is broken at this time, so we set this manually'
