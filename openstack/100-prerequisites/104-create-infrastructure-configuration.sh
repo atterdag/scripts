@@ -18,6 +18,10 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_IP_ADDRESS '
 
 # Set NTP server details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_HOST_NAME 'ntp'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_ONE_HOST_NAME 'dexter'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_ONE_IP_ADDRESS '192.168.1.3'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_TWO_HOST_NAME 'didi'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_TWO_IP_ADDRESS '192.168.1.4'
 
 # Set DNS server details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_HOST_NAME 'ns'
@@ -113,7 +117,8 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/KERBEROS_REALM "$(etc
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NS_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NSS_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NSS_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_DOMAIN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_DNS_SUBZONE).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NTP_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NTP_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NTP_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_BASE_DIR "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_DIRECTORY)/$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ORGANIZATION_NAME)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_CA_EMAIL "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_EMAIL_USER)@$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_INTERMEDIATE_AUDIT_ONE_STRICT_NAME $(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_INTERMEDIATE_AUDIT_ONE_COMMON_NAME) | sed 's/\s/_/g')
