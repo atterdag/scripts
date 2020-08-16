@@ -46,6 +46,7 @@
 - ~~[OpenStack]~~
 - Kubernetes based artifact repositories
 - [Clair]
+- [Gitolite]
 
 ## Evaluate if ...
 
@@ -64,6 +65,7 @@
 [etcd]: https://etcd.io/
 [fission]: https://fission.io
 [fluentd]: https://fluentd.org
+[gitolite]: https://gitolite.com
 [gogs]: https://github.com/gogits/gogs
 [grafana]: https://grafana.com/
 [graphite]: https://graphiteapp.org/
