@@ -45,6 +45,7 @@
 - [traefik]
 - ~~[OpenStack]~~
 - Kubernetes based artifact repositories
+- [Clair]
 
 ## Evaluate if ...
 
@@ -56,6 +57,7 @@
 
 [bosh]: https://bosh.io/
 [cillium]: https://github.com/cilium/cilium
+[clair]: https://github.com/quay/clair
 [confd]: https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
 [conjur]: https://www.conjur.org/
 [elk]: https://www.elastic.co
