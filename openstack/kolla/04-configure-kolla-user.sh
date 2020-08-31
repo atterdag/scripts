@@ -40,6 +40,7 @@ for secret in \$(etcdctl --username user:\$ETCD_USER_PASS ls /passwords/ | sed '
     export eval \$secret="\$(etcdctl --username user:\$ETCD_USER_PASS get /passwords/\$secret)"
 done
 EOF
+source $HOME/prepare-node.env
 
 echo '***'
 echo '*** setup virtualenvwrapper'
