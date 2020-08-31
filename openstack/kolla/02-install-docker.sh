@@ -35,7 +35,7 @@ sudo apt-get update
 echo '***'
 echo '*** installing docker-ce'
 echo '***'
-sudo apt-get --yes --quiet install \
+sudo apt-get --yes --quiet --reinstall install \
   docker-ce
 
 echo '***'
