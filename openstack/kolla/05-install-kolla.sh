@@ -66,7 +66,7 @@ echo '***'
 echo '*** install kolla'
 echo '***'
 for repo in kolla kolla-ansible; do
-  pip install --upgrade src/$repo
+  pip install --upgrade $HOME/src/$repo
 done
 
 echo '***'
