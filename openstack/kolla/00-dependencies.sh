@@ -13,6 +13,8 @@ sudo apt-get --yes --quiet --reinstall install \
   bash-completion \
   ca-certificates \
   curl \
+  debootstrap \
+  etcd-client \
   gcc \
   git \
   gnupg2 \
