@@ -59,6 +59,32 @@ openssl pkcs12 \
 rm -f ${HAPROXY_FQDN}.p12
 
 echo '***'
+echo '*** import SSL key pair for controller'
+echo '***'
+etcdctl --username user:$ETCD_USER_PASS get /keystores/CONTROLLER.p12 \
+| tr -d '\n' \
+| base64 --decode \
+> ${CONTROLLER_FQDN}.p12
+
+openssl pkcs12 \
+  -in ${CONTROLLER_FQDN}.p12 \
+  -passin pass:${CONTROLLER_KEYSTORE_PASS} \
+  -nokeys \
+  -clcerts \
+| openssl x509 \
+| tee /etc/kolla/certificates/controller-cert.pem
+
+openssl pkcs12 \
+  -in ${CONTROLLER_FQDN}.p12 \
+  -passin pass:${CONTROLLER_KEYSTORE_PASS} \
+  -nocerts \
+  -nodes \
+| openssl rsa 2>/dev/null \
+| tee /etc/kolla/certificates/controller-key.pem
+
+rm -f ${CONTROLLER_FQDN}.p12
+
+echo '***'
 echo '*** import SSL key pair for backend'
 echo '***'
 etcdctl --username user:$ETCD_USER_PASS get /keystores/COMPUTE.p12 \
@@ -227,15 +253,16 @@ syv kolla_external_vip_address "${HAPROXY_IP_ADDRESS}" /etc/kolla/globals.yml
 syv kolla_install_type "binary" /etc/kolla/globals.yml
 syv kolla_internal_fqdn "${HAPROXY_FQDN}" /etc/kolla/globals.yml
 syv kolla_internal_vip_address "${HAPROXY_IP_ADDRESS}" /etc/kolla/globals.yml
-syv network_interface "${CONTROLLER_MANAGEMENT_PHYSICAL_NIC}" /etc/kolla/globals.yml
-syv neutron_external_interface "${CONTROLLER_PROVIDER_PHYSICAL_NIC}" /etc/kolla/globals.yml
-syv neutron_plugin_agent "openvswitch" /etc/kolla/globals.yml
+syv network_interface "${COMPUTE_MANAGEMENT_PHYSICAL_NIC}" /etc/kolla/globals.yml
+syv neutron_external_interface "${COMPUTE_PROVIDER_PHYSICAL_NIC}" /etc/kolla/globals.yml
+syv neutron_plugin_agent "ovn" /etc/kolla/globals.yml
 syv node_custom_config "/etc/kolla/config" /etc/kolla/globals.yml
 syv nova_compute_virt_type "kvm" /etc/kolla/globals.yml
+syv octavia_amp_network_cidr "${OCTAVIA_AMP_NETWORK_CIDR}" /etc/kolla/globals.yml
 syv openstack_cacert "/etc/ssl/certs/ca-certificates.crt" /etc/kolla/globals.yml
 syv openstack_logging_debug "False" /etc/kolla/globals.yml
 syv openstack_release "master" /etc/kolla/globals.yml
-syv syslog_server "192.168.0.40" /etc/kolla/globals.yml
+syv syslog_server "loghost.se.lemche.net" /etc/kolla/globals.yml
 syv syslog_udp_port "514" /etc/kolla/globals.yml
 
 # Ceilometer is depending on gnocchi, but its broken atm
@@ -256,10 +283,10 @@ grep -v -E "^$|^#" /etc/kolla/globals.yml | sort
 echo '***'
 echo '*** set specific debug configuration for a given service'
 echo '***'
-crudini --set /etc/kolla/config/designate.conf DEFAULT debug True
-crudini --set /etc/kolla/config/neutron.conf DEFAULT debug True
-crudini --set /etc/kolla/config/nova.conf DEFAULT debug True
-crudini --set /etc/kolla/config/keystone.conf DEFAULT debug True
+# crudini --set /etc/kolla/config/designate.conf DEFAULT debug True
+# crudini --set /etc/kolla/config/neutron.conf DEFAULT debug True
+# crudini --set /etc/kolla/config/nova.conf DEFAULT debug True
+# crudini --set /etc/kolla/config/keystone.conf DEFAULT debug True
 
 echo '***'
 echo '*** create additional cinder volume type configuration'
@@ -273,18 +300,18 @@ cat <<EOF | sudo tee /etc/kolla/config/designate-worker/pools.yaml
     - hostname: ${OS_DNS_DOMAIN}.
       priority: 1
   nameservers:
-    - host: $(hostname -i)
+    - host: ${COMPUTE_IP_ADDRESS}
       port: 53
   targets:
     - type: bind9
-      description: BIND9 Server $(hostname -i)
+      description: BIND9 Server ${COMPUTE_IP_ADDRESS}
       masters:
-        - host: $(hostname -i)
+        - host: ${COMPUTE_IP_ADDRESS}
           port: 5354
       options:
-        host: $(hostname -i)
+        host: ${COMPUTE_IP_ADDRESS}
         port: 53
-        rndc_host: $(hostname -i)
+        rndc_host: ${COMPUTE_IP_ADDRESS}
         rndc_port: 953
         rndc_key_file: /etc/designate/rndc.key
 EOF
@@ -294,7 +321,7 @@ echo '*** ironic on ubuntu is broken at this time, so we set this manually'
 echo '***'
 if [[ ! -d /etc/kolla/config/neutron ]]; then mkdir -p /etc/kolla/config/neutron; fi
 if [[ -d /etc/kolla/config/neutron/ml2_conf.ini ]]; then rm -f /etc/kolla/config/neutron/ml2_conf.ini; fi
-crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${CONTROLLER_PROVIDER_VIRTUAL_NIC}"
+crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${COMPUTE_PROVIDER_VIRTUAL_NIC}"
 crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_flat flat_networks "*"
 
 echo '***'
@@ -324,43 +351,3 @@ crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard volume_driver
 crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard volume_backend_name "standard"
 crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard target_helper "tgtadm"
 crudini --set /etc/kolla/config/cinder/cinder-volume.conf standard target_protocol "iscsi"
-
-echo '***'
-echo '*** create premium (SDD) storage on Compute host'
-echo '***'
-sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} mklabel gpt
-sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} mkpart primary 0GB 100%
-sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} set 1 lvm on
-sudo pvcreate --yes /dev/${LVM_PREMIUM_PV_DEVICE}1
-sudo vgcreate cinder-premium-vg /dev/${LVM_PREMIUM_PV_DEVICE}1
-
-echo '***'
-echo '*** Create standard (HDD) storage on Compute host'
-echo '***'
-sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} mklabel gpt
-sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} mkpart primary 0GB 100%
-sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} set 1 lvm on
-sudo pvcreate --yes /dev/${LVM_STANDARD_PV_DEVICE}1
-sudo vgcreate cinder-standard-vg /dev/${LVM_STANDARD_PV_DEVICE}1
-
-echo '***'
-echo '*** Create LVM thin pool on system used for lvm-1 on Compute host'
-echo '***'
-sudo lvcreate --type thin-pool --size 10G --name system-pool system
-
-# echo '***'
-# echo '*** workaround to allow nova to use /dev/kvm on host'
-# echo '***'
-# sudo groupadd -g 42436 nova
-# sudo useradd -u 42436 -g nova -d /var/lib/nova -m -G kvm -s /usr/sbin/nologin nova
-
-# echo '***'
-# echo '*** download ironic agent images'
-# echo '***'
-# if [[ ! -d /etc/kolla/config/ironic ]]; then mkdir -p /etc/kolla/config/ironic; fi
-# curl \
-#   --url https://tarballs.openstack.org/ironic-python-agent/dib/files/ipa-centos7-master.kernel \
-#   --output /etc/kolla/config/ironic/ironic-agent.kernel
-# curl \
-#   --url https://tarballs.openstack.org/ironic-python-agent/dib/files/ipa-centos7-master.initramfs \
-#   --output /etc/kolla/config/ironic/ironic-agent.initramfs

@@ -1,9 +1,10 @@
 #!/bin/sh
 
+cat <<EOF | ssh ${DEPLOY_USER_NAME}@${COMPUTE_FQDN}
 echo '***'
 echo '*** setting up docker space'
 echo '***'
-yes | sudo lvcreate --size 20G --name docker system
+sudo lvcreate --yes --size 20G --name docker system
 sudo mkfs.btrfs /dev/system/docker
 echo -e "/dev/mapper/system-docker /var/lib/docker btrfs defaults\t0\t0" | sudo tee -a /etc/fstab
 sudo mkdir /var/lib/docker
@@ -25,7 +26,6 @@ echo '***'
 cat << EOF | sudo tee /etc/apt/sources.list.d/docker.list
 deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
 deb-src [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
-EOF
 
 echo '***'
 echo '*** updating APT repositories'
@@ -35,8 +35,7 @@ sudo apt-get update
 echo '***'
 echo '*** installing docker-ce'
 echo '***'
-sudo apt-get --yes --quiet --reinstall install \
-  docker-ce
+sudo apt-get --yes --quiet --reinstall install docker-ce
 
 echo '***'
 echo '*** restarting docker daemon'
@@ -52,3 +51,4 @@ echo '***'
 echo '*** add user to docker group'
 echo '***'
 sudo usermod -a -G docker $USER
+EOF

@@ -3,8 +3,8 @@
 echo '***'
 echo '*** setup virtualenvwrapper'
 echo '***'
+source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
 mkvirtualenv \
-  --python=/usr/bin/python3 \
   kolla
 
 echo '***'
@@ -17,7 +17,7 @@ echo '***'
 echo '*** install ansible, and openstack client'
 echo '***'
 pip install -U \
-  ansible \
+  ansible==2.9 \
   osc-placement \
   osc-placement-tree \
   python-barbicanclient \
@@ -53,12 +53,12 @@ source /etc/bash_completion
 echo '***'
 echo '*** clone kolla and kolla-ansible git repos'
 echo '***'
-if [[ ! -d  $HOME/src ]]; then mkdir $HOME/src; fi
+if [[ ! -d  $HOME/src/openstack ]]; then mkdir $HOME/src/openstack; fi
 for repo in kolla kolla-ansible octavia; do
-  if [[ -d $HOME/src/${repo}/.git ]]; then
-    (cd $HOME/src/${repo} && git pull)
+  if [[ -d $HOME/src/openstack/${repo}/.git ]]; then
+    (cd $HOME/src/openstack/${repo} && git pull)
   else
-    git clone https://github.com/openstack/${repo} $HOME/src/${repo}
+    git clone https://github.com/openstack/${repo} $HOME/src/openstack/${repo}
   fi
 done
 
@@ -66,7 +66,7 @@ echo '***'
 echo '*** install kolla'
 echo '***'
 for repo in kolla kolla-ansible; do
-  pip install --upgrade $HOME/src/$repo
+  pip install --upgrade $HOME/src/openstack/$repo
 done
 
 echo '***'
@@ -80,4 +80,4 @@ pip install \
 echo '***'
 echo '*** create amphora-x64-haproxy image'
 echo '***'
-$HOME/src/octavia/diskimage-create/diskimage-create.sh
+$HOME/src/openstack/octavia/diskimage-create/diskimage-create.sh

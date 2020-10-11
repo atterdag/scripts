@@ -24,7 +24,7 @@ if [[ -z \${ETCD_USER_PASS+x} ]]; then
   return 1
 fi
 
-if [[ -d /etc/kolla ]]; then
+if [[ -f /etc/kolla/admin-openrc.sh ]]; then
   source <(sudo cat /etc/kolla/admin-openrc.sh)
 fi
 
@@ -49,7 +49,7 @@ if [[ ! -d $HOME/.virtualenvs ]]; then mkdir $HOME/.virtualenvs; fi
 if ! grep -q "^export WORKON_HOME=$HOME/.virtualenvs" $HOME/.bashrc; then
   cat >> $HOME/.bashrc << EOT
 export WORKON_HOME=$HOME/.virtualenvs
-[[ -x "/usr/local/bin/virtualenvwrapper.sh" ]] && source "/usr/local/bin/virtualenvwrapper.sh"
+[[ -x "/usr/share/virtualenvwrapper/virtualenvwrapper.sh" ]] && source "/usr/share/virtualenvwrapper/virtualenvwrapper.sh"
 EOT
   source $HOME/.bashrc
 fi

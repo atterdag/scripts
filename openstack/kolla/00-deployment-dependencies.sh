@@ -12,6 +12,7 @@ sudo apt-get --yes --quiet --reinstall install \
   apt-transport-https \
   bash-completion \
   ca-certificates \
+  crudini \
   curl \
   debootstrap \
   etcd-client \
@@ -24,6 +25,8 @@ sudo apt-get --yes --quiet --reinstall install \
   libselinux1-dev \
   libssl-dev \
   python-dev \
+  python-dev-is-python3 \
+  python-docker \
   python-pip \
   python-selinux \
   python-setuptools \
