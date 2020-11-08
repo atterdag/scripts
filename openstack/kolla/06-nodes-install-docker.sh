@@ -23,9 +23,10 @@ sudo apt-key fingerprint 0EBFCD88
 echo '***'
 echo '*** adding docker APT repository'
 echo '***'
-cat << EOF | sudo tee /etc/apt/sources.list.d/docker.list
+cat << DOCKER_APT_SOURCE | sudo tee /etc/apt/sources.list.d/docker.list
 deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
 deb-src [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable
+DOCKER_APT_SOURCE
 
 echo '***'
 echo '*** updating APT repositories'
@@ -35,7 +36,7 @@ sudo apt-get update
 echo '***'
 echo '*** installing docker-ce'
 echo '***'
-sudo apt-get --yes --quiet --reinstall install docker-ce
+sudo apt-get --yes --quiet --reinstall install docker-ce python-is-python3 python3-docker
 
 echo '***'
 echo '*** restarting docker daemon'

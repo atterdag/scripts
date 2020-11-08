@@ -39,6 +39,8 @@ openstack router set \
   --fixed-ip subnet=routing,ip-address=192.168.254.20 \
   solution_a_router
 
+# ----------------------------------------------------------------------------
+
 openstack project create \
   --description "Solution A TST" \
   --parent solution_a \
@@ -80,7 +82,7 @@ openstack router set \
   --fixed-ip subnet=solution_a_subnet,ip-address=172.16.1.30 \
   solution_a_router_tst
 
----
+# ----------------------------------------------------------------------------
 
 openstack project create \
   --description "Solution A QA" \

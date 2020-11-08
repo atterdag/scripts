@@ -844,7 +844,7 @@ zone_id = $ZONE_ID
 [handler:neutron_floatingip]
 zone_id = $ZONE_ID
 EOF
-kolla-ansible --inventory /etc/kolla/inventory --tags designate,neutron,nova reconfigure
+kolla-ansible --inventory /etc/kolla/inventory --tags designate reconfigure
 
 cat <<EOF | sudo tee /etc/kolla/designate-worker/pools.yaml
 - name: default
