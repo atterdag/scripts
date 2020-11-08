@@ -4,8 +4,10 @@
 # Create a fixed IP ports
 ##############################################################################
 openstack port create \
-  --fixed-ip ip-address=192.168.1.205 \
+  --enable-port-security \
   --network inside \
+  --no-fixed-ip \
+  --security-group dhcp_client \
   --security-group global_default \
   test5_inside
 openstack port create \

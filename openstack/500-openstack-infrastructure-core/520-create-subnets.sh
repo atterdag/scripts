@@ -39,7 +39,7 @@ openstack subnet create \
   --allocation-pool start=192.168.254.2,end=192.168.254.253 \
   --dns-nameserver ${NS_IP_ADDRESS} \
   --dns-nameserver ${NSS_IP_ADDRESS} \
-  --gateway 192.168.254.1 \
+  --gateway 192.168.254.254 \
   --network routing \
   --subnet-range 192.168.254.0/24 \
   routing

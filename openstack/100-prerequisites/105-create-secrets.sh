@@ -21,6 +21,7 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/DESIGNATE_DBPASS $(ge
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/DESIGNATE_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/DS_ADMIN_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/DS_ROOT_PASS $(genpasswd 16)
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/DS_REPL_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/ETCD_ONE_KEYSTORE_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/ETCD_TWO_KEYSTORE_PASS $(genpasswd 16)
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /passwords/GLANCE_DBPASS $(genpasswd 16)

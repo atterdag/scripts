@@ -17,6 +17,13 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_HOST_NAME 'e
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_IP_ADDRESS '192.168.1.4'
 
 # Set NTP server details
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DEPLOY_USER_NAME 'kolla'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DEPLOY_USER_ID '42400'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DEPLOY_USER_SSHKEY ''
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DEPLOY_GROUP_ID '42400'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DEPLOY_GROUP_NAME 'kolla'
+
+# Set NTP server details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_HOST_NAME 'ntp'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_ONE_HOST_NAME 'dexter'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_ONE_IP_ADDRESS '192.168.1.3'
@@ -73,15 +80,15 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CE
 # Set keys with OpenStack servers
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_HOST_NAME 'jack'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_IP_ADDRESS '192.168.0.30'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_HOST_NAME 'jack'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_IP_ADDRESS '192.168.0.30'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_HOST_NAME 'aku'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_IP_ADDRESS '192.168.0.40'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_SUBZONE 'os'
 
 # Set keys with general DNS/Network used by OpenStack
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_MANAGEMENT_PHYSICAL_NIC 'eno1'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_MANAGEMENT_PHYSICAL_NIC 'eth0'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_PROVIDER_PHYSICAL_NIC 'bond0'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_PROVIDER_VIRTUAL_NIC 'physnet1'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_MANAGEMENT_PHYSICAL_NIC 'eno1'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_MANAGEMENT_PHYSICAL_NIC 'eth0'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_PROVIDER_PHYSICAL_NIC 'bond0'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_PROVIDER_VIRTUAL_NIC 'physnet1'
 
@@ -100,7 +107,10 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OPENSTACK_IMAGES_DIRE
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_CLEANING_NETWORK 'bond0'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_DEFAULT_GATEWAY '192.168.0.1'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_DHCP_RANGE '192.168.0.66,192.168.0.126'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_INTERFACE 'eno1'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_INTERFACE 'eth0'
+
+# Set Octavia subnet
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OCTAVIA_AMP_NETWORK_CIDR '10.10.10.10/24'
 
 ##############################################################################
 # Create calculated keys based of hardcoded keys

@@ -1,10 +1,7 @@
 #!/bin/bash
 
 ##############################################################################
-# Install ufw on etcd host
+# Install 389 Directory Server
 ##############################################################################
-sudo apt-get --yes --quiet install \
-  ufw
-
-sudo ufw allow OpenSSH
-yes | sudo ufw enable
+# Import configuration data to environment
+source $HOME/prepare-node.env

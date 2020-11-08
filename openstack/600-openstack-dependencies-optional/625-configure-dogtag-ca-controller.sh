@@ -3,13 +3,17 @@
 ##############################################################################
 # Receive CSR, and sign it on CA host
 ##############################################################################
-# sudo openssl ca \
-#   -config ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/openssl.cnf \
-#   -revoke ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
-#   -passin "pass:${CA_PASSWORD}"
+if [[ -f ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt ]]; then
+  sudo openssl ca \
+    -config ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/openssl.cnf \
+    -revoke ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
+    -passin "pass:${CA_PASSWORD}"
+fi
 
-export ETCDCTL_ENDPOINTS="https://${CONTROLLER_FQDN}:4100"
+export ETCDCTL_DISCOVERY_SRV="$(hostname -d)"
 if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
+if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
+
 etcdctl --username user:$ETCD_USER_PASS get ephemeral/ca_signing.csr \
 | tr -d '\n' \
 | base64 --decode \
@@ -29,7 +33,8 @@ sudo openssl ca \
   -policy policy_anything
 
 if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
-sudo cat ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
+sudo openssl x509 \
+  -in ${SSL_BASE_DIR}/${SSL_ROOT_CA_STRICT_NAME}/certs/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt \
 | base64 \
 | tr -d '\n' \
-| etcdctl --username admin:"$ETCD_ADMIN_PASS" mk ephemeral/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt
+| etcdctl --username admin:"$ETCD_ADMIN_PASS" set ephemeral/${SSL_INTERMEDIATE_CA_TWO_STRICT_NAME}.crt

@@ -23,8 +23,8 @@ cat << EOF | sudo tee /etc/krb5.conf
         }
 
 [domain_realm]
-        .${DNS_DOMAIN}t = ${KERBEROS_REALM}
-        ${DNS_DOMAIN}t = ${KERBEROS_REALM}
+        .${ROOT_ROOT_DNS_DOMAIN}t = ${KERBEROS_REALM}
+        ${ROOT_ROOT_DNS_DOMAIN}t = ${KERBEROS_REALM}
 EOF
 
 sudo kdb5_util \

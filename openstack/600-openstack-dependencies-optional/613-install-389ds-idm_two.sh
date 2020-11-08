@@ -36,35 +36,35 @@ fi
 sudo chown root:root ${FREEIPA_CONFIGURATION_DIRECTORY}/
 sudo chmod 0750 ${FREEIPA_CONFIGURATION_DIRECTORY}/
 
-# Download IDM_ONE certificate PKCS#12 keystore
-etcdctl --username user:$ETCD_USER_PASS get /keystores/IDM_ONE_FQDN \
+# Download IDM_TWO certificate PKCS#12 keystore
+etcdctl --username user:$ETCD_USER_PASS get /keystores/IDM_TWO_FQDN \
 | tr -d '\n' \
 | base64 --decode \
-> ~/${IDM_ONE_FQDN}.p12
+> ~/${IDM_TWO_FQDN}.p12
 
 # Extract IDM certificate and key from keystore
 sudo openssl pkcs12 \
-  -in ~/${IDM_ONE_FQDN}.p12 \
-  -passin pass:${IDM_ONE_KEYSTORE_PASS} \
+  -in ~/${IDM_TWO_FQDN}.p12 \
+  -passin pass:${IDM_TWO_KEYSTORE_PASS} \
   -nokeys \
   -clcerts \
 | openssl x509 \
-| sudo tee ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.crt
+| sudo tee ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_TWO_FQDN}.crt
 sudo openssl pkcs12 \
-  -in ~/${IDM_ONE_FQDN}.p12 \
-  -passin pass:${IDM_ONE_KEYSTORE_PASS} \
+  -in ~/${IDM_TWO_FQDN}.p12 \
+  -passin pass:${IDM_TWO_KEYSTORE_PASS} \
   -nocerts \
   -nodes \
 | openssl rsa 2>/dev/null \
-| sudo tee -a ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.key
-sudo chown root:root ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.key
-sudo chmod 0640 ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.key
+| sudo tee -a ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_TWO_FQDN}.key
+sudo chown root:root ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_TWO_FQDN}.key
+sudo chmod 0640 ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_TWO_FQDN}.key
 
 # Remove keystore
-rm -f ~/${IDM_ONE_FQDN}.p12
+rm -f ~/${IDM_TWO_FQDN}.p12
 
 # Create instance configuration file
-sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_INSTANCE_NAME}.inf general full_machine_name "${IDM_ONE_FQDN}"
+sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_INSTANCE_NAME}.inf general full_machine_name "${IDM_TWO_FQDN}"
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_INSTANCE_NAME}.inf general selinux "False"
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_INSTANCE_NAME}.inf general start "True"
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_INSTANCE_NAME}.inf slapd instance_name "${IDM_INSTANCE_NAME}"
@@ -95,29 +95,28 @@ sudo dsctl ${IDM_INSTANCE_NAME} \
 # Importing a Private Key and Server Certificate
 sudo dsctl ${IDM_INSTANCE_NAME} \
   tls import-server-key-cert \
-    ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.crt \
-    ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.key
+    ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_TWO_FQDN}.crt \
+    ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_TWO_FQDN}.key
 sudo dsctl ${IDM_INSTANCE_NAME} \
-  tls show-cert \
-    Server-Cert
+  tls show-cert Server-Cert
 
 # Enable StartTLs and LDAPS
 sudo dsconf \
   -D "cn=Directory Manager" \
   -w "${DS_ROOT_PASS}" \
-  ldap://${IDM_ONE_FQDN}:389 \
+  ldap://${IDM_TWO_FQDN}:389 \
   config replace \
     nsslapd-securePort=636 \
     nsslapd-security=on
 sudo dsconf \
   -D "cn=Directory Manager" \
   -w "${DS_ROOT_PASS}" \
-  ldap://${IDM_ONE_FQDN}:389 \
-    security certificate list
+  ldap://${IDM_TWO_FQDN}:389 \
+  security certificate list
 sudo dsconf \
   -D "cn=Directory Manager" \
   -w "${DS_ROOT_PASS}" \
-  ldap://${IDM_ONE_FQDN}:389 \
+  ldap://${IDM_TWO_FQDN}:389 \
   security rsa set \
     --tls-allow-rsa-certificates on \
     --nss-token "internal (software)" \
@@ -129,7 +128,7 @@ sudo dsctl ${IDM_INSTANCE_NAME} \
 
 # Check encryption configuration
 ldapsearch \
-  -H ldap://${IDM_ONE_FQDN}:389 \
+  -H ldap://${IDM_TWO_FQDN}:389 \
   -D 'cn=Directory Manager' \
   -w "${DS_ROOT_PASS}" \
   -Z \

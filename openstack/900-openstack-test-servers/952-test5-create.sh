@@ -7,8 +7,7 @@ openstack server create \
   --flavor m1.medium \
   --image ubuntu-18.04-server-cloudimg-amd64 \
   --key-name default \
-  --nic port-id=test5_dmz \
-  --nic port-id=test5_inside \
+  --nic port-id=test5_servers \
   --security-group global_default \
   --wait \
   test5

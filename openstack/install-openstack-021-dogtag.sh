@@ -33,7 +33,7 @@ pki_security_domain_name = ${SSL_ORGANIZATION_NAME}
 pki_tomcat_server_port = 8005
 
 [CA]
-pki_admin_email = caadmin@${DNS_DOMAIN}
+pki_admin_email = caadmin@${ROOT_ROOT_DNS_DOMAIN}
 pki_admin_name = caadmin
 pki_admin_nickname = PKI CA Administrator
 pki_admin_uid = caadmin
@@ -56,7 +56,7 @@ cat << EOF | sudo tee ${OPENSTACK_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg
 
 [KRA]
 pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
-pki_admin_email=kraadmin@${DNS_DOMAIN}
+pki_admin_email=kraadmin@${ROOT_ROOT_DNS_DOMAIN}
 pki_admin_name=kraadmin
 pki_admin_nickname=PKI KRA Administrator
 pki_admin_password = ${PKI_ADMIN_PASSWORD}
