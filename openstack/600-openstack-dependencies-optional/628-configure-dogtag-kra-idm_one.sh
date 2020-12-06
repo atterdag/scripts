@@ -43,7 +43,7 @@ sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg DEFAULT pki
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg DEFAULT pki_token_password "${PKI_TOKEN_PASSWORD}"
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg DEFAULT pki_tomcat_server_port "8005"
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg KRA pki_admin_cert_file "/root/.dogtag/${SSL_PKI_INSTANCE_NAME}/ca_admin.cert"
-sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg KRA pki_admin_email "kraadmin@${ROOT_ROOT_DNS_DOMAIN}"
+sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg KRA pki_admin_email "kraadmin@${ROOT_DNS_DOMAIN}"
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg KRA pki_admin_name "kraadmin"
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg KRA pki_admin_nickname "PKI KRA Administrator"
 sudo crudini --set ${FREEIPA_CONFIGURATION_DIRECTORY}/dogtag-kra.cfg KRA pki_admin_uid "kraadmin"

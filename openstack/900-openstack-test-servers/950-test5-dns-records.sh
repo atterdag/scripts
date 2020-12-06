@@ -5,7 +5,7 @@
 ##############################################################################
 openstack recordset create \
   --record '192.168.0.205' \
-  --type A ${ROOT_ROOT_DNS_DOMAIN}. \
+  --type A ${ROOT_DNS_DOMAIN}. \
   test5
 openstack recordset create \
   --record 'test5.se.lemche.net.' \
@@ -14,7 +14,7 @@ openstack recordset create \
 
 openstack recordset create \
   --record '172.16.0.205' \
-  --type A servers.${ROOT_ROOT_DNS_DOMAIN}. \
+  --type A servers.${ROOT_DNS_DOMAIN}. \
   test5
 openstack recordset create \
   --record 'test5.servers.se.lemche.net.' \
@@ -23,7 +23,7 @@ openstack recordset create \
 
 openstack recordset create \
   --record '10.0.0.205' \
-  --type A dmz.${ROOT_ROOT_DNS_DOMAIN}. \
+  --type A dmz.${ROOT_DNS_DOMAIN}. \
   test5
 openstack recordset create \
   --record 'test5.dmz.se.lemche.net.' \
