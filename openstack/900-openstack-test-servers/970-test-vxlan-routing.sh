@@ -2,7 +2,8 @@
 
 # Routing to subnet of vxlan network
 openstack network create \
-  --internal \
+  --external \
+  --share \
   --tag testvxlan \
   testvxlan
 
@@ -26,6 +27,7 @@ openstack router add subnet \
 
 openstack router set \
   --external-gateway routing \
+  --disable-snat \
   --fixed-ip subnet=routing,ip-address=192.168.254.11 \
   testvxlan
 
@@ -38,12 +40,14 @@ openstack server create \
   --wait \
   testvxlan
 
+ping \
+  -c 4 \
+  $(openstack server show -c addresses -f value testvxlan | cut -d '=' -f 2)
+
+ssh cirros@$(openstack server show -c addresses -f value testvxlan | cut -d '=' -f 2)
+
 # Add static routes on routers in infrastructure
 # Network Address: 192.168.11.0
 # Subnet Mask: 255.255.255.0
 # Next Hop IP Address: 192.168.254.252
 # Preference: 1
-
-ping \
-  -c 4 \
-  $(openstack server show -c addresses -f value testvxlan | cut -d '=' -f 2)
