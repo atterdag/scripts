@@ -14,7 +14,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get --yes install \
   389-ds \
   crudini
 
-# sudo sudo dsctl ${IDM_INSTANCE_NAME} remove --do-it
+# sudo dsctl ${IDM_INSTANCE_NAME} remove --do-it
 
 # Set /proc/sys values
 cat << EOF | sudo tee /etc/sysctl.d/99-389-ds.conf
