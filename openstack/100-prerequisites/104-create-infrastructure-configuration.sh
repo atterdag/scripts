@@ -82,7 +82,31 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_HOST_NAME 'ja
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_IP_ADDRESS '192.168.0.30'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_HOST_NAME 'aku'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_IP_ADDRESS '192.168.0.40'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_SUBZONE 'os'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_REVERSE_ZONE '10.in-addr.arpa'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_SUB_ZONE 'os'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_ALLOCATION_START '10.0.0.2'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_ALLOCATION_STOP '10.0.0.253'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_DNS_REVERSE_ZONE '0.0.10.in-addr.arpa'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_DNS_SUB_ZONE 'hub'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_GATEWAY '10.0.0.254'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_NETWORK_CIDR '10.0.0.0/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_NETWORK_NAME 'hub'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_ALLOCATION_START '10.1.0.2'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_ALLOCATION_STOP '10.1.0.253'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_DNS_REVERSE_ZONE '0.1.10.in-addr.arpa'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_DNS_SUB_ZONE 'spoke'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_GATEWAY '10.1.0.254'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_NETWORK_CIDR '10.1.0.0/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_NETWORK_NAME 'spoke'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_FLOATING_IP_ADDRESS '10.0.0.11'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_EXTERNAL_GATEWAY_IP_ADDRESS '10.0.0.30'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_ALLOCATION_START '192.168.254.2'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_ALLOCATION_STOP '192.168.254.253'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_GATEWAY '192.168.254.254'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_NAME 'routing'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_ROUTER_IP_ADDRESS '192.168.254.10'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_NETWORK_CIDR '192.168.254.0/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_VLAN '1000'
 
 # Set keys with general DNS/Network used by OpenStack
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_MANAGEMENT_PHYSICAL_NIC 'eth0'
@@ -126,7 +150,10 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IDM_TWO_FQDN "$(etcdc
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/KERBEROS_REALM "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN | tr a-z A-Z)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NS_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NSS_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NSS_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_DOMAIN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_DNS_SUBZONE).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/PC_DNS_DOMAIN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/PC_DNS_SUBZONE).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_DOMAIN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_DNS_SUB_ZONE).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_DNS_DOMAIN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_HUB_DNS_SUB_ZONE).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_DNS_DOMAIN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_SPOKE_DNS_SUB_ZONE).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NTP_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NTP_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/NTP_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_BASE_DIR "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_DIRECTORY)/$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ORGANIZATION_NAME)"

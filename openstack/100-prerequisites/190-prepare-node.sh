@@ -4,6 +4,7 @@ echo '***'
 echo '*** You need to set the most basic variables'
 echo '***'
 export SSL_ROOT_CA_FQDN=ca.se.lemche.net
+export ROOT_DNS_DOMAIN=se.lemche.net
 if [[ -z ${ETCD_USER_PASS+x} ]]; then echo "Fetch from user password from secret management"; read -s ETCD_USER_PASS; fi
 
 echo '***'
@@ -59,7 +60,7 @@ if [[ -z \${ETCD_USER_PASS+x} ]]; then
   return 1
 fi
 
-export ETCDCTL_DISCOVERY_SRV="\$(hostname -d)"
+export ETCDCTL_DISCOVERY_SRV="$ROOT_DNS_DOMAIN"
 
 # Create variables with infrastructure configuration
 for key in \$(etcdctl ls /variables/ | sed 's|^/variables/||'); do
