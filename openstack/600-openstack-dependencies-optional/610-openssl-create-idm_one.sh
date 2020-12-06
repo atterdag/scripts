@@ -18,7 +18,7 @@ fi
 sudo su -c "openssl req \
   -batch \
   -config <(cat ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/openssl.cnf; \
-    printf \"[SAN]\nsubjectAltName=DNS:${IDM_ONE_FQDN},IP:${IDM_ONE_IP_ADDRESS}\") \
+    printf \"[SAN]\nsubjectAltName=DNS:${IDM_ONE_FQDN}\") \
   -keyout ${SSL_BASE_DIR}/${SSL_INTERMEDIATE_CA_ONE_STRICT_NAME}/private/${IDM_ONE_FQDN}.key \
   -new \
   -newkey rsa:2048 \
