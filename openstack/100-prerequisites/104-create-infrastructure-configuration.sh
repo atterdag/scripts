@@ -36,6 +36,7 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NS_IP_ADDRESS '192.16
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NSS_HOST_NAME 'nss'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/NSS_IP_ADDRESS '192.168.1.4'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ROOT_DNS_DOMAIN 'se.lemche.net'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/PC_DNS_SUBZONE 'pc'
 
 # Set FreeIPA details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/FREEIPA_CONFIGURATION_DIRECTORY '/var/lib/freeipa'
@@ -108,6 +109,17 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_ROUTER_IP
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_NETWORK_CIDR '192.168.254.0/24'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_VLAN '1000'
 
+# Set keys with MAAS servers
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ONE_HOST_NAME 'maas01'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ONE_IP_ADDRESS '192.168.100.11'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_TWO_HOST_NAME 'maas02'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_TWO_IP_ADDRESS '192.168.100.12'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DNS_SUBZONE 'maas'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_PG_REPLICATION_USERNAME 'replicator'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DBUSER 'maas'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DBNAME 'maasdb'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ADMIN_USERNAME 'admin'
+
 # Set keys with general DNS/Network used by OpenStack
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_MANAGEMENT_PHYSICAL_NIC 'eth0'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_PROVIDER_PHYSICAL_NIC 'bond0'
@@ -122,6 +134,24 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/LVM_STANDARD_PV_DEVIC
 
 # Will probably be deleted later ...
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SIMPLE_CRYPTO_CA 'OpenStack'
+
+# Set k8s raspberry pi details
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CLUSTER_NAME 'k8srassies'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CONTROL_PLANE_HOST_NAME 'k8smaster'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CONTROL_PLANE_IP_ADDRESS '192.168.1.9'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CONTROL_PLANE_PORT '8443'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_MASTER_ONE_API_PORT '6443'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_MASTER_ONE_HOST_NAME 'k8smaster01'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_MASTER_ONE_IP_ADDRESS '192.168.1.5'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_MASTER_TWO_API_PORT '6443'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_MASTER_TWO_HOST_NAME 'k8smaster02'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_MASTER_TWO_IP_ADDRESS '192.168.1.6'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_POD_NETWORK_CIDR '10.244.0.0/16'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_SERVICE_NETWORK_CIDR '10.96.0.0/12'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_ONE_HOST_NAME 'k8sworker01'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_ONE_IP_ADDRESS '192.168.1.7'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_TWO_HOST_NAME 'k8sworker02'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_TWO_IP_ADDRESS '192.168.1.8'
 
 # Where to store OpenStack configuration files
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OPENSTACK_CONFIGURATION_DIRECTORY '/var/lib/openstack'
@@ -173,3 +203,12 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CE
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_ROOT_CA_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_ROOT_CA_STRICT_NAME "$(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_COMMON_NAME) | sed 's/\s/_/g')"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_BASE_URL "http://$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/SSL_ROOT_CA_FQDN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DNS_DOMAIN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/MAAS_DNS_SUBZONE).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/MAAS_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/MAAS_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/MAAS_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/MAAS_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ADMIN_EMAIL "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/MAAS_ADMIN_USERNAME)@$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/MAAS_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_MASTER_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/K8S_MASTER_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_MASTER_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/K8S_MASTER_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/K8S_WORKER_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/K8S_WORKER_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CONTROL_PLANE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/K8S_CONTROL_PLANE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
