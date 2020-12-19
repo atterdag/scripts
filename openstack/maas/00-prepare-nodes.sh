@@ -1,6 +1,18 @@
 #!/bin/bash
 
 echo '***'
+echo '*** Remove kubernetes cluster'
+echo '***'
+sudo kubeadm reset --force
+
+echo '***'
+echo '*** Remove docker and kubernetes repositories'
+echo '***'
+sudo rm -f \
+  /etc/apt/sources.list.d/docker.list \
+  /etc/apt/sources.list.d/kubernetes.list
+
+echo '***'
 echo '*** Remove all packages installed since baseline'
 echo '***'
 if [[ -f baseline_packages.txt ]]; then
@@ -13,7 +25,22 @@ if [[ -f baseline_packages.txt ]]; then
   # Remove new packages installed since baseline_packages.txt was created
   sudo apt-get --purge --yes --quiet remove \
     $(cat baseline_packages.txt new_packages.txt | sort | uniq -u | tr '\n' ' ')
+
+  sudo apt-get --yes --quiet install \
+    $(cat baseline_packages.txt | sort | uniq -u | tr '\n' ' ')
+
+  sudo apt-get --yes --quiet dist-upgrade
+  sudo apt-get --yes --purge autoremove
+  sudo apt-get --yes clean
 fi
+
+echo '***'
+echo '*** Get package listing'
+echo '***'
+dpkg --list \
+| grep ^ii \
+| awk '{print $2}' \
+> baseline_packages.txt
 
 echo '***'
 echo '*** You need to set the most basic variables'
