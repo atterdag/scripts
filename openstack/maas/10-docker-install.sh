@@ -1,7 +1,3 @@
-# sudo apt-get install containerd
-# sudo ctr image pull docker.io/library/hello-world:latest
-# sudo ctr run docker.io/library/hello-world:latest helloworld
-
 echo '***'
 echo '*** adding docker repository GPG key'
 echo '***'
