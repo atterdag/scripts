@@ -35,7 +35,7 @@
 - [KubeMQ]
 - [netbox]
 - [Nexus Repository OSS]
-- [OKD]
+- ~~[OKD]~~
 - [OpenVSwitch]
 - [Prometheus]
 - [Pulp]
@@ -48,6 +48,13 @@
 - [Razee]
 - [Clair]
 - [Gitolite]
+- [Portainer]
+- [OpenPolicyAgent]
+- [Kyverno]
+- [Plunder Cloud Provider]
+- [kube-vip]
+- [MetalLB]
+- [kube-proxy IPVS]
 
 ## Evaluate if ...
 
@@ -76,15 +83,22 @@
 [influxdb]: https://www.influxdata.com/
 [istio]: https://istio.io
 [knative]: https://knative.dev/
+[kube-proxy ipvs]: https://github.com/kubernetes/kubernetes/blob/master/pkg/proxy/ipvs/README.md
+[kube-vip]: https://github.com/plunder-app/kube-vip
 [kubeflow]: https://www.kubeflow.org/
 [kubemq]: https://kubemq.io/
 [kubernetes]: https://kubernetes.io/docs/setup/independent/install-kubeadm/
+[kyverno]: https://kyverno.io/
+[metallb]: https://metallb.universe.tf/
 [molecule]: https://molecule.readthedocs.io/en/latest/installation.html
 [netbox]: https://netbox.readthedocs.io/en/stable/installation/
 [nexus repository oss]: https://www.sonatype.com/nexus-repository-oss
 [okd]: https://www.okd.io/
+[openpolicyagent]: https://www.openpolicyagent.org/
 [openstack]: https://www.openstack.org/software/start/
 [openvswitch]: http://docs.openvswitch.org/en/latest/
+[plunder cloud provider]: https://github.com/plunder-app
+[portainer]: https://www.portainer.io/
 [prometheus]: https://prometheus.io/
 [pulp]: https://pulpproject.org/
 [razee]: https://razee.io/
