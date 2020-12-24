@@ -7,25 +7,25 @@ if [[ $1 == "" ]]; then
     HOSTNAME='registry'
 fi
 
-if [ ! -d /var/lib/${HOSTNAME}/auth ]; then
+if [ ! -d /var/lib/registry/auth ]; then
     echo '***'
     echo '*** creating directory on host to store' ${HOSTNAME} 'auth data'
     echo '***'
-    sudo mkdir -p /var/lib/${HOSTNAME}/auth
+    sudo mkdir -p /var/lib/registry/auth
 fi
 
-if [ ! -d /var/lib/${HOSTNAME}/certs ]; then
+if [ ! -d /var/lib/registry/certs ]; then
     echo '***'
     echo '*** creating directory on host to store' ${HOSTNAME} 'certificates'
     echo '***'
-    sudo mkdir -p /var/lib/${HOSTNAME}/certs
+    sudo mkdir -p /var/lib/registry/certs
 fi
 
-if [ ! -d /var/lib/${HOSTNAME}/data ]; then
+if [ ! -d /var/lib/registry/data ]; then
     echo '***'
     echo '*** creating directory on host to store' ${HOSTNAME} 'regitry data'
     echo '***'
-    sudo mkdir -p /var/lib/${HOSTNAME}/data
+    sudo mkdir -p /var/lib/registry/data
 fi
 
 echo '***'
@@ -48,9 +48,9 @@ echo '*** generating htpasswd for' ${HOSTNAME}
 docker container run \
  --name htpasswd \
  --entrypoint htpasswd \
- registry:2 \
+ httpd \
  -Bbn docker $PASSWORD \
- | sudo tee /var/lib/${HOSTNAME}/auth/htpasswd
+ | sudo tee /var/lib/registry/auth/htpasswd
 echo '***'
 
 echo '***'
@@ -64,10 +64,10 @@ echo '***'
 # sudo cp /net/main/srv/common-setup/ssl/cacert.pem /var/lib/docker/registry/certs/example-ca.crt
 # sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-cert.pem /var/lib/docker/registry/certs/${HOSTNAME}.example.com.crt
 # sudo cp /net/main/srv/common-setup/ssl/${HOSTNAME}.example.com-key.pem /var/lib/docker/registry/certs/${HOSTNAME}.example.com.key
-cat /etc/ssl/certs/${HOSTNAME}.se.lemche.net.crt /usr/local/share/ca-certificates/Lemche.NET-CA.crt | sudo tee /var/lib/${HOSTNAME}/certs/domain.crt
-sudo cp /etc/ssl/private/${HOSTNAME}.se.lemche.net.key /var/lib/${HOSTNAME}/certs/domain.key
+cat /etc/ssl/certs/${HOSTNAME}.se.lemche.net.crt /usr/local/share/ca-certificates/Lemche.NET-CA.crt | sudo tee /var/lib/registry/certs/domain.crt
+sudo cp /etc/ssl/private/${HOSTNAME}.se.lemche.net.key /var/lib/registry/certs/domain.key
 
-cat << EOF | sudo tee /var/lib/${HOSTNAME}/docker-compose.yml
+cat << EOF | sudo tee /var/lib/registry/docker-compose.yml
 $HOSTNAME:
   container_name: $HOSTNAME
   dns_search: se.lemche.net
@@ -86,14 +86,14 @@ $HOSTNAME:
     REGISTRY_STORAGE_DELETE_ENABLED: "true"
   image: registry:2
   ports:
-    - 192.168.0.50:5001:5001
+    - 192.168.1.50:5001:5001
   restart: unless-stopped
   volumes:
-    - /var/lib/${HOSTNAME}/data:/var/lib/registry
-    - /var/lib/${HOSTNAME}/certs:/certs:ro
-    - /var/lib/${HOSTNAME}/auth:/auth:ro
+    - /var/lib/registry/data:/var/lib/registry
+    - /var/lib/registry/certs:/certs:ro
+    - /var/lib/registry/auth:/auth:ro
 EOF
-(cd /var/lib/${HOSTNAME}/; docker-compose up -d)
+(cd /var/lib/registry/; docker-compose up -d)
 
 sleep 1
 
@@ -126,3 +126,16 @@ echo '***'
 cat << EOF | sudo tee /etc/profile.d/docker-register.sh
 alias registry-garbage-collect='docker container exec -it '$HOSTNAME' registry garbage-collect /etc/docker/registry/config.yml'
 EOF
+
+echo '***'
+echo '*** checking that you can push an image to the registry'
+echo '***'
+docker image tag httpd:latest ${HOSTNAME}.se.lemche.net:5001/httpd:latest
+docker push ${HOSTNAME}.se.lemche.net:5001/httpd:latest
+​
+echo '***'
+echo '*** checking that you can pull an image from the registry'
+echo '***'
+docker image rm httpd:latest ${HOSTNAME}.se.lemche.net:5001/httpd:latest
+docker image pull ${HOSTNAME}.se.lemche.net:5001/httpd:latest
+docker image rm ${HOSTNAME}.se.lemche.net:5001/httpd:latest
