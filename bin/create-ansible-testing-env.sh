@@ -7,10 +7,10 @@ sudo apt-get install -y \
   bash-completion \
   gcc \
   git \
-  python-dev \
-  python-pip \
-  python-virtualenv \
-  virtualenv-clone \
+  python3-dev \
+  python3-pip \
+  python3-virtualenv \
+  python3-virtualenv-clone \
   virtualenvwrapper
 
 echo '***'
