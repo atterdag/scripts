@@ -116,10 +116,10 @@ networking:
   serviceSubnet: ${K8S_SERVICE_NETWORK_CIDR}
 scheduler: {}
 controlPlaneEndpoint: ${K8S_CONTROL_PLANE_FQDN}:${K8S_CONTROL_PLANE_PORT}
----
-apiVersion: kubeproxy.config.k8s.io/v1alpha1
-kind: KubeProxyConfiguration
-mode: ipvs
+# ---
+# apiVersion: kubeproxy.config.k8s.io/v1alpha1
+# kind: KubeProxyConfiguration
+# mode: ipvs
 EOF
 
 echo '***'
