@@ -18,6 +18,7 @@ echo '*** initializing master02'
 echo '***'
 sudo kubeadm join ${K8S_CONTROL_PLANE_FQDN}:${K8S_CONTROL_PLANE_PORT} \
   --control-plane \
+  --cri-socket /run/containerd/containerd.sock \
   --discovery-token-ca-cert-hash $K8S_DISCOVERY_TOKEN_CA_CERT_HASH \
   --node-name ${K8S_MASTER_TWO_HOST_NAME} \
   --token $K8S_RASP_TOKEN

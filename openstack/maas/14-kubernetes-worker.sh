@@ -9,6 +9,7 @@ echo '***'
 echo '*** join worker node'
 echo '***'
 sudo kubeadm join ${K8S_CONTROL_PLANE_FQDN}:${K8S_CONTROL_PLANE_PORT} \
+  --cri-socket /run/containerd/containerd.sock \
   --discovery-token-ca-cert-hash $K8S_DISCOVERY_TOKEN_CA_CERT_HASH \
   --node-name $(hostname -s) \
   --token $K8S_RASP_TOKEN
