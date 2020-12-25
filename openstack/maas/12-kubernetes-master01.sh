@@ -101,6 +101,7 @@ apiServer:
 apiVersion: kubeadm.k8s.io/v1beta2
 certificatesDir: /etc/kubernetes/pki
 clusterName: ${K8S_CLUSTER_NAME}
+controllerManager: {}
 dns:
   type: CoreDNS
 etcd:
