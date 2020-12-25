@@ -63,4 +63,4 @@ sudo usermod --append --groups docker $USER
 echo '***'
 echo '*** test docker'
 echo '***'
-sudo sg docker -c "docker container run hello-world"
+sudo sg docker -c "docker container run --rm hello-world"
