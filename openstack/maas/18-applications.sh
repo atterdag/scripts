@@ -75,3 +75,6 @@ EOF
 kubectl get service kube-verify -n kube-verify
 
 curl $(kubectl get -n kube-verify service/kube-verify -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+
+# Delete namespace
+kubectl delete namespace kube-verify
