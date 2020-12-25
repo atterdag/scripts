@@ -98,6 +98,6 @@ echo '***'
 kubectl proxy
 
 echo '***'
-echo '*** open http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login'
+echo '*** open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/'
 echo '*** and login with the token from above'
 echo '***'

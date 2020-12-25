@@ -111,7 +111,7 @@ echo '*** create hello-world deployment'
 echo '***'
 cat > hello-world-deploy.yml << EOF
 ---
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hello-world
