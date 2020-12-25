@@ -41,7 +41,14 @@ openstack image list
 echo '***'
 echo '*** add default domain to designate'
 echo '***'
-ZONE_ID=$(sudo grep id: /etc/kolla/designate-worker/pools.yaml | awk '{print $2}')
+openstack zone create \
+  --email hostmaster@${OS_DNS_DOMAIN} \
+  ${OS_DNS_DOMAIN}.
+openstack zone create \
+  --email hostmaster@${OS_DNS_DOMAIN} \
+  ${OS_DNS_REVERSE_ZONE}.
+
+ZONE_ID=$(sudo grep id: /etc/kolla/config/designate-worker/pools.yaml | awk '{print $2}')
 sudo mkdir -p /etc/kolla/config/designate/
 cat <<EOF | sudo tee /etc/kolla/config/designate/designate-sink.conf
 [handler:nova_fixed]
@@ -49,7 +56,7 @@ zone_id = $ZONE_ID
 [handler:neutron_floatingip]
 zone_id = $ZONE_ID
 EOF
-kolla-ansible --inventory /etc/kolla/inventory --tags designate reconfigure
+kolla-ansible --inventory /etc/kolla/inventory --tags designate,neutron,nova reconfigure
 
 # cat <<EOF | sudo tee /etc/kolla/config/designate-worker/pools.yaml
 # - name: default
@@ -76,12 +83,6 @@ kolla-ansible --inventory /etc/kolla/inventory --tags designate reconfigure
 # EOF
 # ssh ${COMPUTE_IP_ADDRESS} sudo docker restart designate_worker
 # ssh ${COMPUTE_IP_ADDRESS} sudo docker exec -t designate_worker designate-manage pool update --file /etc/designate/pools.yaml
-openstack zone create \
-  --email hostmaster@${OS_DNS_DOMAIN} \
-  ${OS_DNS_DOMAIN}.
-openstack zone create \
-  --email hostmaster@${OS_DNS_DOMAIN} \
-  ${OS_DNS_REVERSE_ZONE}.
 
 echo '***'
 echo '*** create routing network provider'
