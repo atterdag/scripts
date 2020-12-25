@@ -235,6 +235,7 @@ cp -r ${VIRTUAL_ENV}/share/kolla-ansible/etc_examples/kolla/globals.yml /etc/kol
 syv cinder_volume_group "system" /etc/kolla/globals.yml
 syv designate_backend "bind9" /etc/kolla/globals.yml
 syv designate_ns_record "${OS_DNS_DOMAIN}" /etc/kolla/globals.yml
+syv dns_interface "${COMPUTE_MANAGEMENT_PHYSICAL_NIC}" /etc/kolla/globals.yml
 syv enable_cinder "yes" /etc/kolla/globals.yml
 syv enable_cinder_backend_lvm "yes" /etc/kolla/globals.yml
 syv enable_designate yes /etc/kolla/globals.yml
