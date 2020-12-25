@@ -56,7 +56,7 @@ sudo openssl pkcs12 \
   -nocerts \
   -nodes \
 | openssl rsa 2>/dev/null \
-| sudo tee -a ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.key
+| sudo tee ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.key
 sudo chown root:root ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.key
 sudo chmod 0640 ${FREEIPA_CONFIGURATION_DIRECTORY}/${IDM_ONE_FQDN}.key
 
