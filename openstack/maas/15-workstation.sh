@@ -69,5 +69,5 @@ echo '***'
 echo '*** add bash completion scripts for helm, and kubectl'
 echo '***'
 helm completion bash | sudo tee /etc/bash_completion.d/helm
-kubeadm completion bash | sudo tee /etc/bash_completion.d/kubeadm
+kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl
 . /etc/bash_completion
