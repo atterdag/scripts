@@ -154,7 +154,6 @@ metadata:
     zone: test
     version: v1
     app: hello-kubernetes
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -188,85 +187,6 @@ spec:
         image: ckaserer/hello-kubernetes
         ports:
         - containerPort: 8080
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello-service
-  namespace: hello-kubernetes
-  labels:
-    zone: test
-    version: v1
-    app: hello-kubernetes
-spec:
-  type: NodePort
-  ports:
-  - port: 30001
-    targetPort: 8080
-    protocol: TCP
-  selector:
-    app: hello-kubernetes
-
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: hello-service
-#   namespace: hello-kubernetes
-#   labels:
-#     zone: test
-#     version: v1
-#     app: hello-kubernetes
-# spec:
-#   type: LoadBalancer
-#   loadBalancerIP: 192.168.1.221
-#   ports:
-#   - port: 80
-#     targetPort: 8080
-#     protocol: TCP
-#   selector:
-#     app: hello-kubernetes
----
-apiVersion: networking.k8s.io/v1beta1
-kind: Ingress
-metadata:
-  name: hello-ingress
-  namespace: hello-kubernetes
-  labels:
-    zone: test
-    version: v1
-    app: hello-kubernetes
-spec:
-  rules:
-  - host: hello-kubernetes.se.lemche.net
-    http:
-      paths:
-      - path: /hello
-        backend:
-          serviceName: hello-service
-          servicePort: 80
-# ---
-# apiVersion: networking.k8s.io/v1beta1
-# kind: Ingress
-# metadata:
-#   name: hello-kubernetes
-#   namespace: hello-kubernetes
-#   annotations:
-#     nginx.ingress.kubernetes.io/rewrite-target: /
-#   labels:
-#     zone: test
-#     version: v1
-#     app: hello-kubernetes
-# spec:
-#   rules:
-#   - host: hello-kubernetes.se.lemche.net
-#     http:
-#       paths:
-#       - path: /hello
-#         backend:
-#           serviceName: hello-service
-#           servicePort: 8080
 ---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
@@ -285,6 +205,58 @@ spec:
   minReplicas: 1
   maxReplicas: 10
   targetCPUUtilizationPercentage: 75
+---
+apiVersion: v1
+data:
+  tls.crt: $(base64 -w0 hello-kubernetes.se.lemche.net.crt)
+  tls.key: $(base64 -w0 hello-kubernetes.se.lemche.net.key)
+kind: Secret
+metadata:
+  name: hello-kubernetes
+  namespace: hello-kubernetes
+type: Opaque
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: hello-kubernetes
+  namespace: hello-kubernetes
+  labels:
+    zone: test
+    version: v1
+    app: hello-kubernetes
+spec:
+  rules:
+  - host: hello-kubernetes.se.lemche.net
+    http:
+      paths:
+      - path: /hello
+        tls:
+        - secretName: hello-kubernetes
+        backend:
+          serviceName: hello-service
+          servicePort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-service
+  namespace: hello-kubernetes
+  labels:
+    zone: test
+    version: v1
+    app: hello-kubernetes
+  annotations:
+    metallb.universe.tf/address-pool: system
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.1.221
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: hello-kubernetes
 EOF
 kubectl apply -f hello-kubernetes-deploy.yml --dry-run=client \
 && kubectl apply -f hello-kubernetes-deploy.yml
