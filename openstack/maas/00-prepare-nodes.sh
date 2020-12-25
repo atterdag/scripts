@@ -32,6 +32,23 @@ if [[ -f baseline_packages.txt ]]; then
   sudo apt-get --yes --quiet dist-upgrade
   sudo apt-get --yes --purge autoremove
   sudo apt-get --yes clean
+  sudo rm -fr \
+    /etc/bash_completion.d/kubeadm \
+    /etc/bash_completion.d/kubectl \
+    /etc/cni \
+    /etc/containerd \
+    /etc/docker/ \
+    /etc/kubernetes/ \
+    /etc/modules-load.d/kube-proxy-ipvs.conf \
+    /etc/sysctl.d/k8s.conf \
+    /etc/systemd/system/docker.service.d \
+    /var/lib/calico/ \
+    /var/lib/cni/ \
+    /var/lib/containerd/ \
+    /var/lib/docker \
+    /var/lib/dockershim/ \
+    /var/lib/kubelet/
+  sudo reboot
 fi
 
 echo '***'
