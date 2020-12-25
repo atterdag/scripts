@@ -58,7 +58,6 @@ for module in ip_vs ip_vs_rr ip_vs_wrr ip_vs_sh nf_conntrack; do
   sudo modprobe $module
 done
 
-
 echo '***'
 echo '*** add bash completion scripts for kubeadm, and kubectl'
 echo '***'

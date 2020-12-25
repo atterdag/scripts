@@ -11,7 +11,7 @@ echo '***'
 etcdctl --username user:$ETCD_USER_PASS get /keystores/K8S_CONTROL_PLANE_PKI \
 | tr -d '\n' \
 | base64 --decode \
-| sudo tar --extract --directory=/
+| sudo tar --verbose --extract --directory=/
 
 echo '***'
 echo '*** initializing master02'
@@ -37,12 +37,3 @@ echo '***'
 echo '*** - allow master node to run pods'
 echo '***'
 # kubectl taint nodes --all node-role.kubernetes.io/master-
-
-echo '***'
-echo '*** install Calico Layer 3 networking solution for pod networks'
-echo '***'
-# curl --silent --url https://docs.projectcalico.org/manifests/calico.yaml \
-# | sed -E 's|(.*)(#\s)(.*)(value:.*)("192.168.0.0/16")|\1\3\4"'${K8S_POD_NETWORK_CIDR}'"|; s|(.*)(#\s)(.*)(-\sname:\sCALICO_IPV4POOL_CIDR)|\1\3\4|;' \
-# | tee calico.yaml
-# kubectl apply -f calico.yaml
-kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
