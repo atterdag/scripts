@@ -28,9 +28,12 @@ metadata:
 data:
   config: |
     address-pools:
-    - name: address-pool-1
+    - name: system
       protocol: layer2
       addresses:
       - 192.168.1.220-192.168.1.223
+    - name: applications
+      protocol: layer2
+      addresses:
       - 192.168.1.224/27
 EOF
