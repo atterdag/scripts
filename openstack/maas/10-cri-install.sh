@@ -24,7 +24,15 @@ sudo apt-get update
 echo '***'
 echo '*** installing docker'
 echo '***'
-sudo apt install --yes docker-ce docker-ce-cli containerd.io
+sudo apt-get install --yes \
+  containerd.io=1.2.13-2 \
+  docker-ce=5:19.03.11~3-0~ubuntu-$(lsb_release -cs) \
+  docker-ce-cli=5:19.03.11~3-0~ubuntu-$(lsb_release -cs)
+
+echo '***'
+echo '*** holding docker packages at specific version'
+echo '***'
+sudo apt-mark hold containerd.io docker-ce docker-ce-cli
 
 echo '***'
 echo '*** enable systemd cgroup driver docker'
@@ -54,6 +62,11 @@ echo '***'
 echo '*** restarting docker daemon'
 echo '***'
 sudo /etc/init.d/docker restart
+
+echo '***'
+echo '*** ensure docker service is started when booting'
+echo '***'
+sudo systemctl enable docker
 
 echo '***'
 echo '*** add user to docker group'
