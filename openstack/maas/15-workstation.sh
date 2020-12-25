@@ -42,6 +42,15 @@ kubectl config set-context kubernetes-admin@${K8S_CLUSTER_NAME}
 kubectl get nodes
 
 echo '***'
+echo '*** install Calico Layer 3 networking solution for pod networks'
+echo '***'
+# curl --silent --url https://docs.projectcalico.org/manifests/calico.yaml \
+# | sed -E 's|(.*)(#\s)(.*)(value:.*)("192.168.0.0/16")|\1\3\4"'${K8S_POD_NETWORK_CIDR}'"|; s|(.*)(#\s)(.*)(-\sname:\sCALICO_IPV4POOL_CIDR)|\1\3\4|;' \
+# | tee calico.yaml
+# kubectl apply -f calico.yaml
+kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
+echo '***'
 echo '*** install helm'
 echo '***'
 curl \
@@ -55,3 +64,10 @@ curl \
   linux-amd64/helm \
 && sudo mv /tmp/linux-amd64/helm \
   /usr/local/bin/helm
+
+echo '***'
+echo '*** add bash completion scripts for helm, and kubectl'
+echo '***'
+helm completion bash | sudo tee /etc/bash_completion.d/helm
+kubeadm completion bash | sudo tee /etc/bash_completion.d/kubeadm
+. /etc/bash_completion

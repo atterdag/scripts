@@ -48,11 +48,14 @@ EOF
 if [[ ! -d /etc/kubernetes/manifests ]]; then
   sudo mkdir -p /etc/kubernetes/manifests
 fi
-docker run \
-  -it \
-  --rm plndr/kube-vip:0.1.1 \
-  /kube-vip \
-  sample manifest \
+
+sudo ctr image pull docker.io/plndr/kube-vip:0.1.1
+sudo ctr run \
+  --rm \
+  docker.io/plndr/kube-vip:0.1.1 \
+  kube-vip-manifest \
+  /kube-vip sample \
+  manifest 2>&1 \
 | sed "s|plndr/kube-vip:'|plndr/kube-vip:0.1.1'|" \
 | sudo tee /etc/kubernetes/manifests/kube-vip.yaml
 
@@ -76,7 +79,7 @@ localAPIEndpoint:
   advertiseAddress: ${K8S_MASTER_ONE_IP_ADDRESS}
   bindPort: ${K8S_MASTER_ONE_API_PORT}
 nodeRegistration:
-  criSocket: /var/run/dockershim.sock
+  criSocket: /run/containerd/containerd.sock
   name: ${K8S_MASTER_ONE_HOST_NAME}
   taints:
   - effect: NoSchedule
@@ -130,7 +133,7 @@ sudo kubeadm init --config kubeadm.conf --dry-run \
 && sudo kubeadm init phase upload-certs --upload-certs
 
 echo '***'
-echo '*** enabling user to run kubadm'
+echo '*** enabling user to run kubctl'
 echo '***'
 if [[ -d ~/.kube ]]; then rm -fr ~/.kube; fi \
 && mkdir -p $HOME/.kube \
