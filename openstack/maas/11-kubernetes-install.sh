@@ -30,10 +30,15 @@ echo '***'
 echo '*** installing kubernetes - kubelet kubeadm kubectl'
 echo '***'
 sudo apt-get --yes --quiet install \
-  kubelet \
-  kubeadm \
-  kubectl \
+  kubelet=1.19.6-00 \
+  kubeadm=1.19.6-00 \
+  kubectl=1.19.6-00 \
   ipvsadm
+
+echo '***'
+echo '*** holding kubernetes packages at specific version'
+echo '***'
+sudo apt-mark hold kubelet kubeadm kubectl
 
 echo '***'
 echo '*** letting iptables see bridged traffic'
