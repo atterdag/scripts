@@ -55,6 +55,7 @@
 - [kube-vip]
 - [MetalLB]
 - [kube-proxy IPVS]
+- [kube-linter]
 
 ## Evaluate if ...
 
@@ -83,6 +84,7 @@
 [influxdb]: https://www.influxdata.com/
 [istio]: https://istio.io
 [knative]: https://knative.dev/
+[kube-linter]: https://github.com/stackrox/kube-linter
 [kube-proxy ipvs]: https://github.com/kubernetes/kubernetes/blob/master/pkg/proxy/ipvs/README.md
 [kube-vip]: https://github.com/plunder-app/kube-vip
 [kubeflow]: https://www.kubeflow.org/
