@@ -1,30 +1,30 @@
 #!/bin/sh
 
 echo '***'
-echo '*** install hello-kubernetes pod'
+echo '*** create namespace for hello-kubernetes'
 echo '***'
-cat > hello-kubernetes-ns.yml << EOF
+cat <<EOF | kubectl apply -f -
+---
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: hello-kubernetes
+  name: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
     app: hello-kubernetes
 EOF
-kubectl apply -f hello-kubernetes-ns.yml
 
 echo '***'
 echo '*** install hello-kubernetes pod'
 echo '***'
-cat > hello-kubernetes-pod.yml << EOF
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
 kind: Pod
 metadata:
   name: hello-pod
-  namespace: hello-kubernetes
+  namespace: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
@@ -36,31 +36,30 @@ spec:
     ports:
     - containerPort: 8080
 EOF
-kubectl apply -f hello-kubernetes-pod.yml
 
 echo '***'
 echo '*** check if hello-kubernetes pod is running'
 echo '***'
-kubectl get pods -n hello-kubernetes
-kubectl describe pods -n hello-kubernetes
-kubectl exec hello-kubernetes -n hello-kubernetes -- ps faux
-kubectl exec hello-kubernetes -n hello-kubernetes -it -- sh -l
+kubectl get pods -n hello-kubernetes-namespace
+kubectl describe pods -n hello-kubernetes-namespace
+kubectl exec hello-pod -n hello-kubernetes-namespace -- ps faux
+kubectl exec hello-pod -n hello-kubernetes-namespace -it -- sh -l
 
 echo '***'
 echo '*** delete hello-kubernetes pod'
 echo '***'
-kubectl delete pods hello-pod -n hello-kubernetes
+kubectl delete pods hello-pod -n hello-kubernetes-namespace
 
 echo '***'
 echo '*** create hello-kubernetes replicaset'
 echo '***'
-cat > hello-kubernetes-rs.yml << EOF
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
   name: hello-rs
-  namespace: hello-kubernetes
+  namespace: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
@@ -83,24 +82,23 @@ spec:
         ports:
         - containerPort: 8080
 EOF
-kubectl apply -f hello-kubernetes-rs.yml
 
 echo '***'
 echo '*** check if hello-kubernetes replicaset is running'
 echo '***'
-kubectl get pods --show-labels -n hello-kubernetes
-kubectl get rs --output=yaml -n hello-kubernetes
+kubectl get pods --show-labels -n hello-kubernetes-namespace
+kubectl get rs --output=yaml -n hello-kubernetes-namespace
 
 echo '***'
 echo '*** create hello-kubernetes service'
 echo '***'
-cat > hello-kubernetes-svc.yml << EOF
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: hello-service
-  namespace: hello-kubernetes
+  namespace: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
@@ -115,51 +113,54 @@ spec:
   selector:
     app: hello-kubernetes
 EOF
-kubectl apply -f hello-kubernetes-svc.yml
 
 echo '***'
 echo '*** check if hello-kubernetes service is running'
 echo '***'
-kubectl get service hello-service -n hello-kubernetes --output=yaml
+kubectl get service hello-service -n hello-kubernetes-namespace --output=yaml
 
 echo '***'
 echo '*** Use curl to connect to the ClusterIP'
 echo '***'
-ssh k8smaster.se.lemche.net curl $(kubectl get service hello-service -n hello-kubernetes -o jsonpath="{.spec.clusterIP}"):8080
+ssh ${K8S_CONTROL_PLANE_FQDN} curl $(kubectl get service hello-service -n hello-kubernetes-namespace -o jsonpath="{.spec.clusterIP}"):8080
 
 echo '***'
 echo '*** Use curl to connect to the NodePort'
 echo '***'
-curl http://k8smaster.se.lemche.net:30001
+curl http://${K8S_CONTROL_PLANE_FQDN}:30001
 
 echo '***'
 echo '*** clean-up'
 echo '***'
-kubectl delete service hello-service -n hello-kubernetes
-kubectl delete replicasets hello-rs -n hello-kubernetes
-kubectl delete namespace hello-kubernetes
-
-#kubectl autoscale deployment --max=15 --min=3 --cpu-percent=50 hello-kubernetes
+kubectl delete service hello-service -n hello-kubernetes-namespace
+kubectl delete replicasets hello-rs -n hello-kubernetes-namespace
+kubectl delete namespace hello-kubernetes-namespace
 
 echo '***'
-echo '*** create hello-kubernetes deployment'
+echo '*** Create namespace again'
 echo '***'
-cat > hello-kubernetes-deploy.yml << EOF
+cat <<EOF | kubectl apply -f -
 ---
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: hello-kubernetes
+  name: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
     app: hello-kubernetes
+EOF
+
+echo '***'
+echo '*** Deploy pods'
+echo '***'
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hello-deploy
-  namespace: hello-kubernetes
+  name: hello-kubernetes-deployment
+  namespace: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
@@ -183,125 +184,152 @@ spec:
         version: v1
     spec:
       containers:
-      - name: hello-pod
-        image: ckaserer/hello-kubernetes
-        ports:
-        - containerPort: 8080
+        - name: hello-kubernetes-pod
+          image: docker.io/ckaserer/hello-kubernetes
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: 500m
+            requests:
+              cpu: 200m
+EOF
+
+echo '***'
+echo '*** Create horizontal autoscaling of pods'
+echo '***'
+cat <<EOF | kubectl apply -f -
 ---
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: hello-autoscale
-  namespace: hello-kubernetes
+  name: hello-kubernetes-autoscale
+  namespace: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
     app: hello-kubernetes
 spec:
   scaleTargetRef:
-    apiVersion: extensions/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
-    name: hello-deploy
+    name: hello-kubernetes-deployment
   minReplicas: 1
   maxReplicas: 10
-  targetCPUUtilizationPercentage: 75
----
-apiVersion: v1
-data:
-  tls.crt: $(base64 -w0 hello-kubernetes.se.lemche.net.crt)
-  tls.key: $(base64 -w0 hello-kubernetes.se.lemche.net.key)
-kind: Secret
-metadata:
-  name: hello-kubernetes
-  namespace: hello-kubernetes
-type: Opaque
----
-apiVersion: networking.k8s.io/v1beta1
-kind: Ingress
-metadata:
-  name: hello-kubernetes
-  namespace: hello-kubernetes
-  labels:
-    zone: test
-    version: v1
-    app: hello-kubernetes
-spec:
-  rules:
-  - host: hello-kubernetes.se.lemche.net
-    http:
-      paths:
-      - path: /hello
-        tls:
-        - secretName: hello-kubernetes
-        backend:
-          serviceName: hello-service
-          servicePort: 8080
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+EOF
+
+echo '***'
+echo '*** Create a Cluster IP service'
+echo '***'
+cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: hello-service
-  namespace: hello-kubernetes
+  name: hello-kubernetes-service-clusterip
+  namespace: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
     app: hello-kubernetes
-  annotations:
-    metallb.universe.tf/address-pool: system
 spec:
-  type: LoadBalancer
-  loadBalancerIP: 192.168.1.221
+  sessionAffinity: None
+  type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 8080
-    protocol: TCP
+    - name: hello-kubernetes-service-clusterip-https
+      port: 443
+      targetPort: 8080
+      protocol: TCP
   selector:
     app: hello-kubernetes
 EOF
-kubectl apply -f hello-kubernetes-deploy.yml --dry-run=client \
-&& kubectl apply -f hello-kubernetes-deploy.yml
 
 echo '***'
-echo '*** delete hello-kubernetes deployment'
+echo '*** Create secret with SSL key pair for hello kubernetes HTTP proxy'
 echo '***'
-kubectl delete -f hello-kubernetes-deploy.yml
-
-echo '***'
-echo '*** Setup Ingress controller'
-echo '***'
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.41.2/deploy/static/provider/baremetal/deploy.yaml
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/service-nodeport.yaml
+etcdctl --username user:$ETCD_USER_PASS get /keystores/HELLO_KUBERNETES.p12 \
+| tr -d '\n' \
+| base64 --decode \
+> ${HELLO_KUBERNETES_FQDN}.p12
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 data:
-  tls.crt: $(base64 -w0 hello-kubernetes.se.lemche.net.crt)
-  tls.key: $(base64 -w0 hello-kubernetes.se.lemche.net.key)
+  tls.crt: $(openssl pkcs12 \
+  -in ${HELLO_KUBERNETES_FQDN}.p12 \
+  -passin pass:${HELLO_KUBERNETES_KEYSTORE_PASS} \
+  -nokeys \
+  -clcerts \
+| openssl x509 \
+| base64 -w0)
+  tls.key: $(openssl pkcs12 \
+  -in ${HELLO_KUBERNETES_FQDN}.p12 \
+  -passin pass:${HELLO_KUBERNETES_KEYSTORE_PASS} \
+  -nocerts \
+  -nodes \
+| openssl rsa 2>/dev/null \
+| base64 -w0 -)
 kind: Secret
 metadata:
-  name: sslcerts
-  namespace: default
-type: Opaque
+  name: hello-kubernetes-secret-certificate
+  namespace: hello-kubernetes-namespace
+type: kubernetes.io/tls
+EOF
+
+rm -f ${HELLO_KUBERNETES_FQDN}.p12
+
+echo '***'
+echo '*** Create a HTTP Proxy for the service'
+echo '***'
+cat <<EOF | kubectl apply -f -
 ---
-apiVersion: extensions/v1beta1
-kind: Ingress
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
 metadata:
-  name: hello-kubernetes
-  namespace: hello-kubernetes
+  name: hello-kubernetes-httpproxy
+  namespace: hello-kubernetes-namespace
   labels:
     zone: test
     version: v1
     app: hello-kubernetes
 spec:
-  rules:
-  - host: k8sworker02.se.lemche.net
-    http:
-      paths:
-      - path: /hello
-        tls:
-        - secretName: sslcerts
-        backend:
-          serviceName: hello-service
-          servicePort: 8080
+  virtualhost:
+    fqdn: ${HELLO_KUBERNETES_FQDN}
+    tls:
+      secretName: hello-kubernetes-secret-certificate
+  routes:
+    - services:
+        - name: hello-kubernetes-service-clusterip
+          port: 443
+EOF
+
+echo '***'
+echo '*** Create a Load Balancer in the projectcontour namespace'
+echo '***'
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-kubernetes-service-loadbalancer
+  namespace: projectcontour
+  annotations:
+    metallb.universe.tf/address-pool: applications
+spec:
+  externalTrafficPolicy: Local
+  ports:
+    - port: 443
+      name: https
+      protocol: TCP
+  selector:
+    app: envoy
+  type: LoadBalancer
+  loadBalancerIP: ${HELLO_KUBERNETES_IP_ADDRESS}
 EOF

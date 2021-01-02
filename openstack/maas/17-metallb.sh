@@ -1,24 +1,28 @@
 #!/bin/bash
 
 echo '***'
-echo '*** Configure Cloud Provider RBAC:'
+echo '*** Change Kubernetes to enforce strict ARP'
 echo '***'
 kubectl get configmap kube-proxy -n kube-system -o yaml | \
 sed -e "s/strictARP: false/strictARP: true/" | \
 kubectl apply -f - -n kube-system
 
 echo '***'
-echo '*** Configure Cloud Provider RBAC:'
+echo '*** Install MetalLB'
 echo '***'
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml
 
-# On first install only
-if ! kubectl get secret -n metallb-system memberlist  --output=name; then
+echo '***'
+echo '*** Create PSK for MetalLB members on first install only'
+echo '***'
+if ! kubectl get secret -n metallb-system memberlist  --output=name > /dev/null; then
   kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
 fi
 
-# Create the config map
+echo '***'
+echo '*** Create the config map to set address ranges'
+echo '***'
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ConfigMap
@@ -31,9 +35,9 @@ data:
     - name: system
       protocol: layer2
       addresses:
-      - 192.168.1.220-192.168.1.223
+      - ${K8S_LOADBALANCER_ADDRESS_RANGE_SYSTEM}
     - name: applications
       protocol: layer2
       addresses:
-      - 192.168.1.224/27
+      - ${K8S_LOADBALANCER_ADDRESS_RANGE_APPLICATIONS}
 EOF

@@ -152,6 +152,8 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_ONE_HOST_N
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_ONE_IP_ADDRESS '192.168.1.7'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_TWO_HOST_NAME 'k8sworker02'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_TWO_IP_ADDRESS '192.168.1.8'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_LOADBALANCER_ADDRESS_RANGE_SYSTEM '192.168.1.220-192.168.1.223'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_LOADBALANCER_ADDRESS_RANGE_APPLICATIONS '192.168.1.224/27'
 
 # Where to store OpenStack configuration files
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OPENSTACK_CONFIGURATION_DIRECTORY '/var/lib/openstack'

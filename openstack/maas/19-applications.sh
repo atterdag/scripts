@@ -1,9 +1,13 @@
 #!/bin/sh
 
-# Create a new namespace
+echo '***'
+echo '*** Create a new namespace for kube-verify'
+echo '***'
 kubectl create namespace kube-verify
 
-# Create a new deployment
+echo '***'
+echo '*** Create a new deployment'
+echo '***'
 cat <<EOF | kubectl create -f -
 apiVersion: apps/v1
 kind: Deployment
@@ -29,10 +33,14 @@ spec:
         - containerPort: 8080
 EOF
 
-# Check the resources that were created by the deployment
+echo '***'
+echo '*** Check the resources that were created by the deployment'
+echo '***'
 kubectl get all -n kube-verify
 
-# Create a service for the deployment
+echo '***'
+echo '*** Create a service for the deployment'
+echo '***'
 cat <<EOF | kubectl create -f -
 apiVersion: v1
 kind: Service
@@ -48,13 +56,19 @@ spec:
       targetPort: 8080
 EOF
 
-# Examine the new service
+echo '***'
+echo '*** Examine the new service'
+echo '***'
 kubectl get -n kube-verify service/kube-verify
 
-# Use curl to connect to the ClusterIP
+echo '***'
+echo '*** Use curl to connect to the ClusterIP'
+echo '***'
 ssh k8smaster.se.lemche.net curl $(kubectl get -n kube-verify service/kube-verify -o jsonpath="{.spec.clusterIP}")
 
-# Create a LoadBalancer service for the kube-verify deployment
+echo '***'
+echo '*** Create a LoadBalancer service for the kube-verify deployment'
+echo '***'
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Service
@@ -71,10 +85,17 @@ spec:
   type: LoadBalancer
 EOF
 
-# View the new kube-verify service
+echo '***'
+echo '*** View the new kube-verify service'
+echo '***'
 kubectl get service kube-verify -n kube-verify
 
+echo '***'
+echo '*** Use curl to connect to the LoadBalancer'
+echo '***'
 curl $(kubectl get -n kube-verify service/kube-verify -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
 
-# Delete namespace
+echo '***'
+echo '*** Delete namespace'
+echo '***'
 kubectl delete namespace kube-verify
