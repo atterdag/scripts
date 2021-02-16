@@ -15,7 +15,7 @@ sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken user_domain_id "de
 sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken project_name "service"
 sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken username "cinder"
 sudo crudini --set /etc/cinder/cinder.conf keystone_authtoken password "$CINDER_PASS"
-sudo crudini --set /etc/cinder/cinder.conf DEFAULT my_ip "${CONTROLLER_IP_ADDRESS}"
+sudo crudini --set /etc/cinder/cinder.conf DEFAULT my_ip "${OS_CONTROLLER_IP_ADDRESS}"
 sudo crudini --set /etc/cinder/cinder.conf oslo_concurrency lock_path "/var/lib/cinder/tmp"
 sudo crudini --set /etc/nova/nova.conf cinder os_region_name "RegionOne"
 

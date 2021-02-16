@@ -16,7 +16,7 @@ sudo crudini --set /etc/nova/nova.conf keystone_authtoken user_domain_name "Defa
 sudo crudini --set /etc/nova/nova.conf keystone_authtoken project_name "service"
 sudo crudini --set /etc/nova/nova.conf keystone_authtoken username "nova"
 sudo crudini --set /etc/nova/nova.conf keystone_authtoken password "$NOVA_PASS"
-sudo crudini --set /etc/nova/nova.conf DEFAULT my_ip "${CONTROLLER_IP_ADDRESS}"
+sudo crudini --set /etc/nova/nova.conf DEFAULT my_ip "${OS_CONTROLLER_IP_ADDRESS}"
 sudo crudini --set /etc/nova/nova.conf DEFAULT use_neutron "true"
 sudo crudini --set /etc/nova/nova.conf DEFAULT firewall_driver "nova.virt.firewall.NoopFirewallDriver"
 sudo crudini --set /etc/nova/nova.conf vnc enabled "true"

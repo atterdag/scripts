@@ -17,4 +17,4 @@ for secret in $(etcdctl --username user:$ETCD_USER_PASS ls /passwords/ | sed 's|
 	export eval $secret="$(etcdctl --username user:$ETCD_USER_PASS get /passwords/$secret)"
 done
 
-source <(sudo cat ${OPENSTACK_CONFIGURATION_DIRECTORY}/admin-openrc)
+source <(sudo cat ${OS_CONFIGURATION_DIRECTORY}/admin-openrc)

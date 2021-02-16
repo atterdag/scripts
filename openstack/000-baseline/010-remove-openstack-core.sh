@@ -39,7 +39,7 @@ sudo rm -fr \
   /var/lib/designate/ \
   /var/lib/glance/ \
   /var/lib/nova/ \
-  $OPENSTACK_CONFIGURATION_DIRECTORY-dashboard/ \
+  $OS_CONFIGURATION_DIRECTORY-dashboard/ \
   /var/lib/placement/ \
   /var/log/apache2/cinder*.log* \
   /var/log/apache2/keystone*.log* \

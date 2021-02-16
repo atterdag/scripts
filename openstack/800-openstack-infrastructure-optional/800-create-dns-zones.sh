@@ -38,13 +38,13 @@ openstack zone create \
 #   --type secondary  \
 #   ${DNS_REVERSE_DOMAIN}.
 # openstack recordset create \
-#   --record "${CONTROLLER_IP_ADDRESS}" \
+#   --record "${OS_CONTROLLER_IP_ADDRESS}" \
 #   --type A ${ROOT_DNS_DOMAIN}. \
-#   ${CONTROLLER_HOST_NAME}
+#   ${OS_CONTROLLER_HOST_NAME}
 # openstack recordset create \
 #   --record "${CONTROLLER_FQDN}." \
 #   --type PTR ${DNS_REVERSE_DOMAIN}. \
-#   $(echo $CONTROLLER_IP_ADDRESS | awk -F'.' '{print $4}')
+#   $(echo $OS_CONTROLLER_IP_ADDRESS | awk -F'.' '{print $4}')
 #
 # ##############################################################################
 # # Create DNZ records for ns

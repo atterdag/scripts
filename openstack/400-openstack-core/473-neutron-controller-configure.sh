@@ -33,12 +33,12 @@ sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 type_drivers "flat,
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 tenant_network_types "vxlan"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 mechanism_drivers "linuxbridge,l2population"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 extension_drivers "port_security"
-sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_flat flat_networks "${CONTROLLER_PROVIDER_VIRTUAL_NIC}"
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_flat flat_networks "${OS_CONTROLLER_PROVIDER_VIRTUAL_NIC}"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_vxlan vni_ranges "1:1000"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_ipset "true"
-sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge physical_interface_mappings "${CONTROLLER_PROVIDER_VIRTUAL_NIC}:${CONTROLLER_PROVIDER_PHYSICAL_NIC}"
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini linux_bridge physical_interface_mappings "${OS_CONTROLLER_PROVIDER_VIRTUAL_NIC}:${OS_CONTROLLER_PROVIDER_PHYSICAL_NIC}"
 sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan enable_vxlan "true"
-sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan local_ip "${CONTROLLER_IP_ADDRESS}"
+sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan local_ip "${OS_CONTROLLER_IP_ADDRESS}"
 sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini vxlan l2_population "true"
 sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini securitygroup enable_security_group "true"
 sudo crudini --set /etc/neutron/plugins/ml2/linuxbridge_agent.ini securitygroup firewall_driver "neutron.agent.linux.iptables_firewall.IptablesFirewallDriver"
@@ -73,7 +73,7 @@ sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken keyfile "/etc/ss
 sudo crudini --set /etc/neutron/neutron.conf keystone_authtoken region_name "RegionOne"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 external_network_type "vlan"
 sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 tenant_network_types "vlan,vxlan"
-sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${CONTROLLER_PROVIDER_VIRTUAL_NIC}:1:4094"
+sudo crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${OS_CONTROLLER_PROVIDER_VIRTUAL_NIC}:1:4094"
 
 sudo chmod 0660 \
   /etc/neutron/neutron.conf \

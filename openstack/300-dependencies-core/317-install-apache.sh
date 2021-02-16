@@ -7,8 +7,8 @@ sudo apt-get --yes --quiet install \
   apache2
 
 cat  <<EOF | sudo sed --file - --in-place /etc/apache2/ports.conf
-s|Listen\s80|Listen ${CONTROLLER_IP_ADDRESS}:80|
-s|Listen\s443|Listen ${CONTROLLER_IP_ADDRESS}:443|g
+s|Listen\s80|Listen ${OS_CONTROLLER_IP_ADDRESS}:80|
+s|Listen\s443|Listen ${OS_CONTROLLER_IP_ADDRESS}:443|g
 EOF
 
 cat  <<EOF | sudo sed --file - --in-place /etc/apache2/conf-available/security.conf

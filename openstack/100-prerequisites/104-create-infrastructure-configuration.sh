@@ -10,6 +10,39 @@ export ETCDCTL_ENDPOINTS="http://localhost:2379"
 # Get the admin password
 if [[ -z ${ETCD_ADMIN_PASS+x} ]]; then echo "Fetch from admin password from secret management"; read -s ETCD_ADMIN_PASS; fi
 
+# Set keys with CEPH servers
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_CLUSTER_NETWORK_CIDR '192.168.1.0/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MONITOR_NIC 'eth0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MON_ONE_HOST_NAME 'dexter'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MON_ONE_IP_ADDRESS '192.168.1.3'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MON_TWO_HOST_NAME 'didi'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MON_TWO_IP_ADDRESS '192.168.1.4'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_FOUR_HOST_NAME 'k8sworker02'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_FOUR_IP_ADDRESS '192.168.1.8'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_ONE_HOST_NAME 'k8smaster01'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_ONE_IP_ADDRESS '192.168.1.5'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_ONS_PV_DEVICE 'sda'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_THREE_HOST_NAME 'k8sworker01'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_THREE_IP_ADDRESS '192.168.1.7'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_TWO_HOST_NAME 'k8smaster02'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_TWO_IP_ADDRESS '192.168.1.6'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_OSD_TWO_PV_DEVICE 'sdb'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_PUBLIC_NETWORK_CIDR '192.168.1.0/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MANAGER_SERVER_PORT '3300'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MONITOR_SERVER_PORT '6789'
+
+
+# Set keys with MAAS servers
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ONE_HOST_NAME 'maas01'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ONE_IP_ADDRESS '192.168.100.11'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_TWO_HOST_NAME 'maas02'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_TWO_IP_ADDRESS '192.168.100.12'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DNS_SUBZONE 'maas'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_PG_REPLICATION_USERNAME 'replicator'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DBUSER 'maas'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DBNAME 'maasdb'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ADMIN_USERNAME 'admin'
+
 # Set keys with Management server
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_HOST_NAME 'etcd-0'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_IP_ADDRESS '192.168.1.3'
@@ -79,10 +112,16 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CA
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SSL_OCTAVIA_SERVER_CERT_COMMON_NAME 'Lemche.NET Octavia Server Certificate'
 
 # Set keys with OpenStack servers
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_HOST_NAME 'jack'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_IP_ADDRESS '192.168.0.30'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_HOST_NAME 'aku'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_IP_ADDRESS '192.168.0.40'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_COMPUTE_HOST_NAME 'jack'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_COMPUTE_IP_ADDRESS '192.168.0.30'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_COMPUTE_MANAGEMENT_PHYSICAL_NIC 'eth0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_COMPUTE_PROVIDER_PHYSICAL_NIC 'bond0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_CONFIGURATION_DIRECTORY '/var/lib/openstack'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_CONTROLLER_HOST_NAME 'jack'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_CONTROLLER_IP_ADDRESS '192.168.0.30'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_CONTROLLER_MANAGEMENT_PHYSICAL_NIC 'eth0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_CONTROLLER_PROVIDER_PHYSICAL_NIC 'bond0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_CONTROLLER_PROVIDER_VIRTUAL_NIC 'physnet1'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_REVERSE_ZONE '10.in-addr.arpa'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_DNS_SUB_ZONE 'os'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_ALLOCATION_START '10.0.0.2'
@@ -92,48 +131,31 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_DNS_SUB_ZONE '
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_GATEWAY '10.0.0.254'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_NETWORK_CIDR '10.0.0.0/24'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_HUB_NETWORK_NAME 'hub'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_ALLOCATION_START '10.1.0.2'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_ALLOCATION_STOP '10.1.0.253'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_DNS_REVERSE_ZONE '0.1.10.in-addr.arpa'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_DNS_SUB_ZONE 'spoke'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_GATEWAY '10.1.0.254'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_NETWORK_CIDR '10.1.0.0/24'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_NETWORK_NAME 'spoke'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_FLOATING_IP_ADDRESS '10.0.0.11'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_EXTERNAL_GATEWAY_IP_ADDRESS '10.0.0.30'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_IMAGES_DIRECTORY '/var/cache/openstack'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_IRONIC_CLEANING_NETWORK 'bond0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_IRONIC_DNSMASQ_DEFAULT_GATEWAY '192.168.0.1'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_IRONIC_DNSMASQ_DHCP_RANGE '192.168.0.66,192.168.0.126'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_IRONIC_DNSMASQ_INTERFACE 'eth0'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_LVM_PREMIUM_PV_DEVICE 'sdb'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_LVM_STANDARD_PV_DEVICE 'sda'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_OCTAVIA_AMP_NETWORK_CIDR '10.10.10.10/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_OS_COMPUTE_PROVIDER_VIRTUAL_NIC 'physnet1'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_ALLOCATION_START '192.168.254.2'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_ALLOCATION_STOP '192.168.254.253'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_GATEWAY '192.168.254.254'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_NAME 'routing'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_ROUTER_IP_ADDRESS '192.168.254.10'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_NETWORK_CIDR '192.168.254.0/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_ROUTER_IP_ADDRESS '192.168.254.10'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_PROVIDER_VLAN '1000'
-
-# Set keys with MAAS servers
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ONE_HOST_NAME 'maas01'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ONE_IP_ADDRESS '192.168.100.11'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_TWO_HOST_NAME 'maas02'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_TWO_IP_ADDRESS '192.168.100.12'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DNS_SUBZONE 'maas'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_PG_REPLICATION_USERNAME 'replicator'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DBUSER 'maas'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_DBNAME 'maasdb'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/MAAS_ADMIN_USERNAME 'admin'
-
-# Set keys with general DNS/Network used by OpenStack
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_MANAGEMENT_PHYSICAL_NIC 'eth0'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_PROVIDER_PHYSICAL_NIC 'bond0'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_PROVIDER_VIRTUAL_NIC 'physnet1'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_MANAGEMENT_PHYSICAL_NIC 'eth0'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_PROVIDER_PHYSICAL_NIC 'bond0'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_PROVIDER_VIRTUAL_NIC 'physnet1'
-
-# Set keys with storage devices used by OpenStack
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/LVM_PREMIUM_PV_DEVICE 'sdb'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/LVM_STANDARD_PV_DEVICE 'sda'
-
-# Will probably be deleted later ...
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/SIMPLE_CRYPTO_CA 'OpenStack'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_ALLOCATION_START '10.1.0.2'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_ALLOCATION_STOP '10.1.0.253'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_DNS_REVERSE_ZONE '0.1.10.in-addr.arpa'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_DNS_SUB_ZONE 'spoke'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_EXTERNAL_GATEWAY_IP_ADDRESS '10.0.0.30'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_FLOATING_IP_ADDRESS '10.0.0.11'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_GATEWAY '10.1.0.254'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_NETWORK_CIDR '10.1.0.0/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OS_SPOKE_NETWORK_NAME 'spoke'
 
 # Set k8s raspberry pi details
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CLUSTER_NAME 'k8srassies'
@@ -154,26 +176,18 @@ etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_TWO_HOST_N
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_WORKER_TWO_IP_ADDRESS '192.168.1.8'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_LOADBALANCER_ADDRESS_RANGE_SYSTEM '192.168.1.220-192.168.1.223'
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_LOADBALANCER_ADDRESS_RANGE_APPLICATIONS '192.168.1.224/27'
-
-# Where to store OpenStack configuration files
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OPENSTACK_CONFIGURATION_DIRECTORY '/var/lib/openstack'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OPENSTACK_IMAGES_DIRECTORY '/var/cache/openstack'
-
-# Ironic network bootstrap settings
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_CLEANING_NETWORK 'bond0'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_DEFAULT_GATEWAY '192.168.0.1'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_DHCP_RANGE '192.168.0.66,192.168.0.126'
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/IRONIC_DNSMASQ_INTERFACE 'eth0'
-
-# Set Octavia subnet
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/OCTAVIA_AMP_NETWORK_CIDR '10.10.10.10/24'
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CEPH_OSD_POOL_DATA_NAME "k8sfs_data"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CEPH_OSD_POOL_METADATA_NAME "k8sfs_metadata"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/K8S_CEPH_FS_NAME "k8sfs"
 
 ##############################################################################
 # Create calculated keys based of hardcoded keys
 ##############################################################################
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/COMPUTE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/CONTROLLER_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
-etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_REVERSE_DOMAIN "$(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/CONTROLLER_IP_ADDRESS) | awk -F'.' '{print $3"."$2"."$1}').in-addr.arpa"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MON_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/CEPH_MON_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CEPH_MON_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/CEPH_MON_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/COMPUTE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_COMPUTE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/CONTROLLER_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_CONTROLLER_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
+etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DNS_REVERSE_DOMAIN "$(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/OS_CONTROLLER_IP_ADDRESS) | awk -F'.' '{print $3"."$2"."$1}').in-addr.arpa"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/DS_SUFFIX "dc=$(echo $(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN) | sed 's|\.|,dc=|g')"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_ONE_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ETCD_ONE_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"
 etcdctl --username admin:"$ETCD_ADMIN_PASS" set /variables/ETCD_TWO_FQDN "$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ETCD_TWO_HOST_NAME).$(etcdctl --username admin:"$ETCD_ADMIN_PASS" get /variables/ROOT_DNS_DOMAIN)"

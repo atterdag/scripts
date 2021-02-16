@@ -154,7 +154,7 @@ LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 # (usually behind a load-balancer). Either you have to make sure that a session
 # gets all requests routed to the same dashboard instance or you set the same
 # SECRET_KEY for all of them.
-SECRET_KEY = secret_key.generate_or_read_from_file('$OPENSTACK_CONFIGURATION_DIRECTORY-dashboard/secret_key')
+SECRET_KEY = secret_key.generate_or_read_from_file('$OS_CONFIGURATION_DIRECTORY-dashboard/secret_key')
 
 # We recommend you use memcached for development; otherwise after every reload
 # of the django development server, you will have to login again. To use
