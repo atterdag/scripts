@@ -31,7 +31,6 @@ done
 
 kolla-ansible \
   --inventory /etc/kolla/inventory \
-  -vvv \
   upgrade && \
 kolla-ansible \
   --inventory /etc/kolla/inventory \

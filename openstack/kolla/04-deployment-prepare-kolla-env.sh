@@ -235,7 +235,7 @@ cp -r ${VIRTUAL_ENV}/share/kolla-ansible/etc_examples/kolla/globals.yml /etc/kol
 syv cinder_volume_group "system" /etc/kolla/globals.yml
 syv designate_backend "bind9" /etc/kolla/globals.yml
 syv designate_ns_record "${OS_DNS_DOMAIN}" /etc/kolla/globals.yml
-syv dns_interface "${COMPUTE_MANAGEMENT_PHYSICAL_NIC}" /etc/kolla/globals.yml
+syv dns_interface "${OS_OS_COMPUTE_MANAGEMENT_PHYSICAL_NIC}" /etc/kolla/globals.yml
 syv enable_cinder "yes" /etc/kolla/globals.yml
 syv enable_cinder_backend_lvm "yes" /etc/kolla/globals.yml
 syv enable_designate yes /etc/kolla/globals.yml
@@ -254,12 +254,12 @@ syv kolla_external_vip_address "${HAPROXY_IP_ADDRESS}" /etc/kolla/globals.yml
 syv kolla_install_type "binary" /etc/kolla/globals.yml
 syv kolla_internal_fqdn "${HAPROXY_FQDN}" /etc/kolla/globals.yml
 syv kolla_internal_vip_address "${HAPROXY_IP_ADDRESS}" /etc/kolla/globals.yml
-syv network_interface "${COMPUTE_MANAGEMENT_PHYSICAL_NIC}" /etc/kolla/globals.yml
-syv neutron_external_interface "${COMPUTE_PROVIDER_PHYSICAL_NIC}" /etc/kolla/globals.yml
+syv network_interface "${OS_OS_COMPUTE_MANAGEMENT_PHYSICAL_NIC}" /etc/kolla/globals.yml
+syv neutron_external_interface "${OS_COMPUTE_PROVIDER_PHYSICAL_NIC}" /etc/kolla/globals.yml
 syv neutron_plugin_agent "ovn" /etc/kolla/globals.yml
 syv node_custom_config "/etc/kolla/config" /etc/kolla/globals.yml
 syv nova_compute_virt_type "kvm" /etc/kolla/globals.yml
-syv octavia_amp_network_cidr "${OCTAVIA_AMP_NETWORK_CIDR}" /etc/kolla/globals.yml
+syv octavia_amp_network_cidr "${OS_OCTAVIA_AMP_NETWORK_CIDR}" /etc/kolla/globals.yml
 syv openstack_cacert "/etc/ssl/certs/ca-certificates.crt" /etc/kolla/globals.yml
 syv openstack_logging_debug "False" /etc/kolla/globals.yml
 syv openstack_release "master" /etc/kolla/globals.yml
@@ -271,10 +271,10 @@ syv syslog_udp_port "514" /etc/kolla/globals.yml
 
 # Disabled as Ironic on ubuntu is broken at this time
 # syv enable_ironic yes /etc/kolla/globals.yml
-# syv ironic_dnsmasq_interface ${IRONIC_DNSMASQ_INTERFACE} /etc/kolla/globals.yml
-# syv ironic_dnsmasq_dhcp_range ${IRONIC_DNSMASQ_DHCP_RANGE} /etc/kolla/globals.yml
-# syv ironic_cleaning_network ${IRONIC_CLEANING_NETWORK} /etc/kolla/globals.yml
-# syv ironic_dnsmasq_default_gateway ${IRONIC_DNSMASQ_DEFAULT_GATEWAY} /etc/kolla/globals.yml
+# syv ironic_dnsmasq_interface ${OS_IRONIC_DNSMASQ_INTERFACE} /etc/kolla/globals.yml
+# syv ironic_dnsmasq_dhcp_range ${OS_IRONIC_DNSMASQ_DHCP_RANGE} /etc/kolla/globals.yml
+# syv ironic_cleaning_network ${OS_IRONIC_CLEANING_NETWORK} /etc/kolla/globals.yml
+# syv ironic_dnsmasq_default_gateway ${OS_IRONIC_DNSMASQ_DEFAULT_GATEWAY} /etc/kolla/globals.yml
 
 echo '***'
 echo '*** check configuration'
@@ -301,18 +301,18 @@ cat <<EOF | sudo tee /etc/kolla/config/designate-worker/pools.yaml
     - hostname: ${OS_DNS_DOMAIN}.
       priority: 1
   nameservers:
-    - host: ${COMPUTE_IP_ADDRESS}
+    - host: ${OS_COMPUTE_IP_ADDRESS}
       port: 53
   targets:
     - type: bind9
-      description: BIND9 Server ${COMPUTE_IP_ADDRESS}
+      description: BIND9 Server ${OS_COMPUTE_IP_ADDRESS}
       masters:
-        - host: ${COMPUTE_IP_ADDRESS}
+        - host: ${OS_COMPUTE_IP_ADDRESS}
           port: 5354
       options:
-        host: ${COMPUTE_IP_ADDRESS}
+        host: ${OS_COMPUTE_IP_ADDRESS}
         port: 53
-        rndc_host: ${COMPUTE_IP_ADDRESS}
+        rndc_host: ${OS_COMPUTE_IP_ADDRESS}
         rndc_port: 953
         rndc_key_file: /etc/designate/rndc.key
 EOF
@@ -322,7 +322,7 @@ echo '*** ironic on ubuntu is broken at this time, so we set this manually'
 echo '***'
 if [[ ! -d /etc/kolla/config/neutron ]]; then mkdir -p /etc/kolla/config/neutron; fi
 if [[ -d /etc/kolla/config/neutron/ml2_conf.ini ]]; then rm -f /etc/kolla/config/neutron/ml2_conf.ini; fi
-crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${COMPUTE_PROVIDER_VIRTUAL_NIC}"
+crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_vlan network_vlan_ranges "${OS_OS_COMPUTE_PROVIDER_VIRTUAL_NIC}"
 crudini --set /etc/kolla/config/neutron/ml2_conf.ini ml2_type_flat flat_networks "*"
 
 echo '***'

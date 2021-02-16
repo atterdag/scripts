@@ -5,16 +5,16 @@ echo '*** delete premium (SDD) storage on Compute host'
 echo '***'
 sudo lvremove --force cinder-premium-vg/cinder-premium-vg-pool
 sudo vgremove --force cinder-premium-vg
-sudo pvremove --force /dev/${LVM_PREMIUM_PV_DEVICE}1
-sudo parted --script /dev/${LVM_PREMIUM_PV_DEVICE} rm 1
+sudo pvremove --force /dev/${OS_LVM_PREMIUM_PV_DEVICE}1
+sudo parted --script /dev/${OS_LVM_PREMIUM_PV_DEVICE} rm 1
 
 echo '***'
 echo '*** delete standard (HDD) storage on Compute host'
 echo '***'
 sudo lvremove --force cinder-standard-vg/cinder-standard-vg-pool
 sudo vgremove --force cinder-standard-vg
-sudo pvremove --force /dev/${LVM_STANDARD_PV_DEVICE}1
-sudo parted --script /dev/${LVM_STANDARD_PV_DEVICE} rm 1
+sudo pvremove --force /dev/${OS_LVM_STANDARD_PV_DEVICE}1
+sudo parted --script /dev/${OS_LVM_STANDARD_PV_DEVICE} rm 1
 
 echo '***'
 echo '*** delete standard (HDD) storage on Compute host'

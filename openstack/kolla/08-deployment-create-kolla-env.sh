@@ -8,8 +8,8 @@ cp \
   /etc/kolla/
 
 cat > /etc/kolla/inventory <<EOF
-${CONTROLLER_FQDN} ansible_host=${CONTROLLER_IP_ADDRESS} ansible_user=${DEPLOY_USER_NAME}
-${COMPUTE_FQDN} ansible_host=${COMPUTE_IP_ADDRESS} ansible_user=${DEPLOY_USER_NAME}
+${CONTROLLER_FQDN} ansible_host=${OS_CONTROLLER_IP_ADDRESS} ansible_user=${DEPLOY_USER_NAME}
+${COMPUTE_FQDN} ansible_host=${OS_COMPUTE_IP_ADDRESS} ansible_user=${DEPLOY_USER_NAME}
 
 [control]
 ${COMPUTE_FQDN}

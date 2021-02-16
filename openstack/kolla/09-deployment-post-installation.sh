@@ -20,18 +20,18 @@ openstack volume type create \
 echo '***'
 echo '*** Retrieve cirros test image'
 echo '***'
-if [[ ! -d $OPENSTACK_IMAGES_DIRECTORY ]]; then
-  sudo mkdir -p $OPENSTACK_IMAGES_DIRECTORY
+if [[ ! -d $OS_IMAGES_DIRECTORY ]]; then
+  sudo mkdir -p $OS_IMAGES_DIRECTORY
 fi
 
 CIRROS_RELEASE=$(curl http://download.cirros-cloud.net/version/released)
 sudo wget \
   --continue \
-  --output-document=${OPENSTACK_IMAGES_DIRECTORY}/cirros-${CIRROS_RELEASE}-x86_64-disk.img \
+  --output-document=${OS_IMAGES_DIRECTORY}/cirros-${CIRROS_RELEASE}-x86_64-disk.img \
   http://download.cirros-cloud.net/${CIRROS_RELEASE}/cirros-${CIRROS_RELEASE}-x86_64-disk.img
 
 openstack image create "cirros-${CIRROS_RELEASE}" \
-  --file ${OPENSTACK_IMAGES_DIRECTORY}/cirros-${CIRROS_RELEASE}-x86_64-disk.img \
+  --file ${OS_IMAGES_DIRECTORY}/cirros-${CIRROS_RELEASE}-x86_64-disk.img \
   --disk-format qcow2 \
   --container-format bare \
   --public
@@ -66,23 +66,23 @@ kolla-ansible --inventory /etc/kolla/inventory --tags designate,neutron,nova rec
 #     - hostname: ${OS_DNS_DOMAIN}.
 #       priority: 1
 #   nameservers:
-#     - host: ${COMPUTE_IP_ADDRESS}
+#     - host: ${OS_COMPUTE_IP_ADDRESS}
 #       port: 53
 #   targets:
 #     - type: bind9
-#       description: BIND9 Server ${COMPUTE_IP_ADDRESS}
+#       description: BIND9 Server ${OS_COMPUTE_IP_ADDRESS}
 #       masters:
-#         - host: ${COMPUTE_IP_ADDRESS}
+#         - host: ${OS_COMPUTE_IP_ADDRESS}
 #           port: 5354
 #       options:
-#         host: ${COMPUTE_IP_ADDRESS}
+#         host: ${OS_COMPUTE_IP_ADDRESS}
 #         port: 53
-#         rndc_host: ${COMPUTE_IP_ADDRESS}
+#         rndc_host: ${OS_COMPUTE_IP_ADDRESS}
 #         rndc_port: 953
 #         rndc_key_file: /etc/designate/rndc.key
 # EOF
-# ssh ${COMPUTE_IP_ADDRESS} sudo docker restart designate_worker
-# ssh ${COMPUTE_IP_ADDRESS} sudo docker exec -t designate_worker designate-manage pool update --file /etc/designate/pools.yaml
+# ssh ${OS_COMPUTE_IP_ADDRESS} sudo docker restart designate_worker
+# ssh ${OS_COMPUTE_IP_ADDRESS} sudo docker exec -t designate_worker designate-manage pool update --file /etc/designate/pools.yaml
 
 echo '***'
 echo '*** create routing network provider'
@@ -90,7 +90,7 @@ echo '***'
 openstack network create \
   --external \
   --provider-network-type vlan \
-  --provider-physical-network ${COMPUTE_PROVIDER_VIRTUAL_NIC} \
+  --provider-physical-network ${OS_OS_COMPUTE_PROVIDER_VIRTUAL_NIC} \
   --provider-segment ${OS_PROVIDER_VLAN} \
   --share \
   ${OS_PROVIDER_NAME}
@@ -153,6 +153,108 @@ openstack router set \
 ping \
   -c 4 \
   ${OS_PROVIDER_ROUTER_IP_ADDRESS}
+
+##############################################################################
+# Create flavors on Controller host
+##############################################################################
+openstack flavor create \
+  --disk 1 \
+  --public \
+  --ram 128 \
+  --vcpus 1 \
+  --property hw:cpu_policy=shared \
+  --property hw:cpu_cores=1 \
+  --property hw:cpu_sockets=1 \
+  --property hw:cpu_threads=1 \
+  m1.tiny
+openstack flavor create \
+  --disk 5 \
+  --public \
+  --ram 256 \
+  --vcpus 1 \
+  --property hw:cpu_policy=shared \
+  m1.small
+openstack flavor create \
+  --disk 5 \
+  --public \
+  --ram 512 \
+  --vcpus 2 \
+  --property hw:cpu_policy=shared \
+  m1.medium
+openstack flavor create \
+  --disk 5 \
+  --public \
+  --ram 1024 \
+  --vcpus 2 \
+  --property hw:cpu_policy=shared \
+  m1.large
+openstack flavor create \
+  --disk 5 \
+  --public \
+  --ram 2048 \
+  --vcpus 4 \
+  --property hw:cpu_policy=shared \
+  m1.huge
+
+##############################################################################
+# Create default security on Controller host
+##############################################################################
+# The default group is created for all projects, but that means that you
+# cannot just refer to it by its name, because there are multiple default
+# groups. So to workaround that, just create a global default group that will
+# have a unique name.
+openstack security group create \
+  --description "Global default rule" \
+  global_default
+openstack security group rule create \
+  --ingress \
+  --ethertype IPv4 \
+  --remote-ip "0.0.0.0/0" \
+  global_default
+openstack security group rule create \
+  --ingress \
+  --ethertype IPv6 \
+  --remote-ip "::/0" \
+  global_default
+openstack security group rule create \
+  --proto icmp \
+  global_default
+openstack security group rule create \
+  --proto tcp \
+  --dst-port 22 \
+  global_default
+
+openstack security group create \
+  --description "DHCP client" \
+  dhcp_client
+openstack security group rule create \
+  --egress \
+  --ethertype IPv4 \
+  --remote-ip "0.0.0.0/0" \
+  --proto udp \
+  --dst-port 67 \
+  dhcp_client
+openstack security group rule create \
+  --ingress \
+  --ethertype IPv4 \
+  --remote-ip "0.0.0.0/0" \
+  --proto udp \
+  --dst-port 68 \
+  dhcp_client
+
+##############################################################################
+# Create default SSH key on Controller host if you don't want to forward one
+##############################################################################
+if [[ -f ~/.ssh/authorized_keys ]]; then
+  openstack keypair create \
+    --public-key ~/.ssh/authorized_keys \
+    default
+else
+  echo | ssh-keygen -q -N ""
+  openstack keypair create \
+    --public-key ~/.ssh/id_rsa.pub \
+    default
+fi
 
 openstack server create \
   --flavor m1.tiny \
@@ -267,7 +369,7 @@ openstack image create \
 echo '***'
 echo '*** create amphora flavor'
 echo '***'
-openstack flavor create \
+openstack loadbalancer flavor create \
   --id 200 \
   --vcpus 1 \
   --ram 1024 \
